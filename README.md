@@ -16,9 +16,9 @@ A detailed description of all involved principles and equations can be found in 
 
 The REVUB tool models reservoir operation and hydro-solar-wind power generation at hourly (or lower) timesteps over time spans ranging from years to decades and derives:
 
-* Optimal mix of hydro / solar / wind
-* Overall load-following potential of hydro + solar + wind
-* Optimal operating rules for hydropower reservoirs to enable this load-following
+* Optimal mix of hydro / solar / wind to maximise load-following;
+* Optimal operating rules for hydropower reservoirs to enable this load-following;
+* Hourly to decadally resolved hydro, solar and wind power generation.
 
 # 2. Installation
 ---
