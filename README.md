@@ -27,14 +27,14 @@ The files given in this GitHub folder contain code and data needed to run a mini
 
 ### Scripts
 There are three main scripts:
-* **1_REVUB_initialise_minimum_example.m**
+* **A_REVUB_initialise_minimum_example.m**
 
 The first script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
-* **2_REVUB_main_code.m**
+* **B_REVUB_main_code.m**
 
 The second script runs the REVUB simulation and optimisation.
  
-* **3_REVUB_plotting.m**. 
+* **C_REVUB_plotting.m**. 
 
 The third script produces figure outputs for Bui (set plot_HPP = 1) or Buyo (set plot_HPP = 2), most of which can also be found in the publication or its SI (for the same example).
 
