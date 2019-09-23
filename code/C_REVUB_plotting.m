@@ -18,7 +18,7 @@ set(0,'DefaultLineLineWidth',1)
 close all
 
 % [set by user] select hydropower plant and year, month, days for which to display results
-plot_HPP = 1;
+plot_HPP = 2;
 plot_year = 15;
 plot_month = 4;
 plot_day_month = 2;

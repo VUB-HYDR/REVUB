@@ -383,11 +383,8 @@ L_unmet_STOR_frac_bymonth = zeros(months_yr,length(simulation_years),HPP_number)
 
 %%%%% DATA OUTPUT FILE %%%%%
 
-% [preallocate] Table with main output parameters for post-processing
-data_excel_BAL = NaN.*ones(HPP_number,19);
+% [preallocate] Table with main output parameters for post-processing (column 7-12 in Table S3-7)
 data_SI_B_BAL = NaN.*ones(HPP_number,7);
-
-data_excel_STOR = NaN.*ones(HPP_number,19);
 data_SI_B_STOR = NaN.*ones(HPP_number,7);
 
 close all
@@ -1380,15 +1377,7 @@ for HPP = [1:HPP_number]
         % [check] if criterion on k_turb is met for BAL, wrap up simulation and write data
         if median(prctile(temp_hydro_exhausted_BAL,99)) < 1
             
-            % output data for Excel sheet
-            data_excel_BAL(HPP,:) = [1 - C_OR_range_BAL(q) f_size ...
-                E_hydro_CONV_stable_statistics_median(HPP) E_hydro_CONV_RoR_statistics_median(HPP) E_hydro_BAL_nonRoR_statistics_median(HPP) E_hydro_BAL_RoR_statistics_median(HPP) ...
-                E_HSW_BAL_statistics_median(HPP) E_HSW_BAL_statistics_pct25(HPP) E_HSW_BAL_statistics_pct75(HPP) ...
-                mean(c_multiplier_BAL(:,HPP))*c_solar_relative(HPP) mean(c_multiplier_BAL(:,HPP))*c_wind_relative(HPP) ...
-                NaN ELCC_BAL_statistics_median(HPP) ELCC_BAL_statistics_pct25(HPP) ELCC_BAL_statistics_pct75(HPP) ...
-                NaN ratio_ELCC_E_hydro_BAL_median(HPP) NaN median(share_SW_BAL(:,HPP))];
-            
-            % [arrange] data for tables in SI B
+            % [arrange] data for tables in SI B (column 7-12 in Table S3-7)
             data_SI_B_BAL(HPP,:) = [P_r_turb(HPP) C_OR_range_BAL(q) E_hydro_BAL_nonRoR_statistics_median(HPP) E_hydro_BAL_RoR_statistics_median(HPP) ...
                 E_solar_BAL_statistics_median(HPP) E_wind_BAL_statistics_median(HPP) ELCC_BAL_statistics_median(HPP)];
             
@@ -2237,15 +2226,7 @@ for HPP = [1:HPP_number]
             % [check] if criterion on k_turb is met for STOR, wrap up simulation and write data
             if median(prctile(temp_hydro_exhausted_STOR,99)) < 1
                 
-                % output data for Excel sheet
-                data_excel_STOR(HPP,:) = [1 - C_OR_range_STOR(q) f_size ...
-                    E_hydro_CONV_stable_statistics_median(HPP) E_hydro_CONV_RoR_statistics_median(HPP) E_hydro_STOR_statistics_median(HPP) 0 ...
-                    E_HSW_STOR_statistics_median(HPP) E_HSW_STOR_statistics_pct25(HPP) E_HSW_STOR_statistics_pct75(HPP) ...
-                    mean(c_multiplier_STOR(:,HPP))*c_solar_relative(HPP) mean(c_multiplier_STOR(:,HPP))*c_wind_relative(HPP) ...
-                    NaN ELCC_STOR_statistics_median(HPP) ELCC_STOR_statistics_pct25(HPP) ELCC_STOR_statistics_pct75(HPP) ...
-                    NaN ratio_ELCC_E_hydro_STOR_median(HPP) NaN median(share_SW_STOR(:,HPP))];
-                
-                % [arrange] data for tables in SI B
+                % [arrange] data for tables in SI B (column 7-12 in Table S3-7)
                 data_SI_B_STOR(HPP,:) = [P_r_turb(HPP) C_OR_range_STOR(q) E_hydro_STOR_statistics_median(HPP) 0 ...
                     E_solar_STOR_statistics_median(HPP) E_wind_STOR_statistics_median(HPP) ELCC_STOR_statistics_median(HPP)];
                 
