@@ -14,7 +14,7 @@ The main objective of the REVUB tool is to model how flexible operation of hydro
 This tool was first introduced in the paper "Streamlining hydro, solar and wind power strategies in West Africa from power plant to power pool" (Sterl et al., in preparation); hereafter referred to as "the publication".
 A detailed description of all involved principles and equations can be found in the publication and its SI.
 
-The REVUB tool models reservoir operation and hydro-solar-wind power generation at hourly (or lower) timesteps over time spans ranging from years to decades and derives:
+The REVUB tool models reservoir operation and hydro-solar-wind power generation and derives:
 
 * Optimal mix of hydro / solar / wind to maximise load-following;
 * Optimal operating rules for hydropower reservoirs to enable this load-following;
