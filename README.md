@@ -10,11 +10,11 @@ Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
 ---
-The main objective of the REVUB tool is to model how flexible operation of hydropower plants can help renewable electricity mixes with variable solar and wind power to provide reliable electricity and participate in load-following.
+The main objective of REVUB is to model how flexible operation of hydropower plants can help renewable electricity mixes with variable solar and wind power to provide reliable electricity and participate in load-following.
 This tool was first introduced in the paper "Streamlining hydro, solar and wind power strategies in West Africa from power plant to power pool" (Sterl et al., in preparation); hereafter referred to as "the publication".
 A detailed description of all involved principles and equations can be found in the publication and its SI.
 
-The REVUB tool models reservoir operation and hydro-solar-wind power generation and derives:
+The REVUB code models reservoir operation and hydro-solar-wind power generation and derives:
 
 * Optimal mix of hydro / solar / wind to maximise load-following;
 * Optimal operating rules for hydropower reservoirs to enable this load-following;
@@ -36,7 +36,7 @@ There are three main scripts:
 The first script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
 * **B_REVUB_main_code.m**
 
-The second script runs the REVUB simulation and optimisation.
+The second script runs the actual REVUB model simulation and optimisation.
  
 * **C_REVUB_plotting.m**. 
 
