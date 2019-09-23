@@ -1,10 +1,12 @@
 
-# REVUB (Renewable Electricity Variability, Upscaling and Balancing) <img src="./graphs/header_logo.png" align="right" />
+# REVUB (Renewable Electricity Variability, Upscaling and Balancing) 
+
+# <img src="./graphs/header_logo.png" align="right" />
 
 Authors: Sebastian Sterl
 
 
-Contact author: Sebastian Sterl, sebastian.sterl@vub.be
+Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
 ---
