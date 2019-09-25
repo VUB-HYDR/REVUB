@@ -18,7 +18,7 @@ set(0,'DefaultLineLineWidth',1)
 close all
 
 % [set by user] select hydropower plant and year, month, days for which to display results
-plot_HPP = 2;
+plot_HPP = 1;
 plot_year = 15;
 plot_month = 4;
 plot_day_month = 2;
@@ -76,7 +76,7 @@ colour_STOR = [255, 255, 51] / 255;
 colour_orange = [255, 127, 0] / 255;
 
 colour_hydro_stable = [55, 126, 184] / 255;
-colour_hydro_flexible = [0 255 255] / 255;
+colour_hydro_flexible = [106 226 207] / 255;
 colour_solar = [255, 255, 51] / 255;
 colour_wind = [77, 175, 74] / 255;
 colour_hydro_RoR = [100, 100, 100] / 255;
