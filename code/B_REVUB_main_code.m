@@ -799,8 +799,8 @@ for HPP = [1:HPP_number]
                             end
                             
                             % [calculate] stable hydropower generation in MW (eq. S15)
-                            Q_pot_turb_BAL = min([V_BAL_hourly(n,y,HPP)/secs_hr Q_max_turb(HPP)]);
-                            P_BAL_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_BAL Q_BAL_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
+                            Q_pot_turb_BAL = min([Q_BAL_stable_hourly(n,y,HPP) Q_max_turb(HPP)]);
+                            P_BAL_hydro_stable_hourly(n,y,HPP) = Q_pot_turb_BAL*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
                             
                             % [calculate] hydropower generation from RoR flow component in MW (eq. S32)
                             P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
@@ -1101,8 +1101,8 @@ for HPP = [1:HPP_number]
                     end
                     
                     % [calculate] stable hydropower generation (eq. S15)
-                    Q_pot_turb_BAL = min([V_BAL_hourly(n,y,HPP)/secs_hr Q_max_turb(HPP)]);
-                    P_BAL_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_BAL Q_BAL_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
+                    Q_pot_turb_BAL = min([Q_BAL_stable_hourly(n,y,HPP) Q_max_turb(HPP)]);
+                    P_BAL_hydro_stable_hourly(n,y,HPP) = Q_pot_turb_BAL*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
                     
                     % [calculate] hydropower generation from RoR flow component in MW (eq. S32)
                     P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
@@ -1605,8 +1605,8 @@ for HPP = [1:HPP_number]
                                 end
                                 
                                 % [calculate] stable hydropower generation in MW (eq. S15)
-                                Q_pot_turb_STOR = min([V_STOR_hourly_upper(n,y,HPP)/secs_hr Q_max_turb(HPP)]);
-                                P_STOR_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_STOR Q_STOR_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6;
+                                Q_pot_turb_STOR = min([Q_STOR_stable_hourly(n,y,HPP) Q_max_turb(HPP)]);
+                                P_STOR_hydro_stable_hourly(n,y,HPP) = Q_pot_turb_STOR*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6;
                                 
                                 % [calculate] spilling component of upper reservoir in m^3/s (eq. S19)
                                 if V_STOR_hourly_upper(n,y,HPP)/V_max(HPP) < f_spill
@@ -1950,8 +1950,8 @@ for HPP = [1:HPP_number]
                         end
                         
                         % [calculate] stable hydropower generation in MW (eq. S15)
-                        Q_pot_turb_STOR = min([V_STOR_hourly_upper(n,y,HPP)/secs_hr Q_max_turb(HPP)]);
-                        P_STOR_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_STOR Q_STOR_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6;
+                        Q_pot_turb_STOR = min([Q_STOR_stable_hourly(n,y,HPP) Q_max_turb(HPP)]);
+                        P_STOR_hydro_stable_hourly(n,y,HPP) = Q_pot_turb_STOR*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6;
                         
                         % [calculate] spilling component of upper reservoir in m^3/s (eq. S19)
                         if V_STOR_hourly_upper(n,y,HPP)/V_max(HPP) < f_spill
