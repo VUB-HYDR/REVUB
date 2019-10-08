@@ -526,16 +526,11 @@ for HPP = [1:HPP_number]
             Q_CONV_out_hourly(n,y,HPP) = Q_CONV_stable_hourly(n,y,HPP) + Q_CONV_spill_hourly(n,y,HPP) + Q_in_RoR_hourly(n,y,HPP);
             
             % [calculate] hydropower generation in MW (eq. S8)
-            Q_pot_turb_CONV = min([V_CONV_hourly(n,y,HPP)/secs_hr Q_max_turb(HPP)]);
-            P_CONV_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_CONV Q_CONV_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
+            Q_pot_turb_CONV = min([Q_CONV_stable_hourly(n,y,HPP) Q_max_turb(HPP)]);
+            P_CONV_hydro_stable_hourly(n,y,HPP) = Q_pot_turb_CONV*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
             
             % [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-            P_CONV_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) Q_max_turb(HPP) - Q_CONV_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;  % in MW
-            
-            % [check] if turbine capacity is already exhausted by stable outflow, RoR generation is zero
-            if P_CONV_hydro_RoR_hourly(n,y,HPP) < 0
-                P_CONV_hydro_RoR_hourly(n,y,HPP) = 0;
-            end
+            P_CONV_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_CONV_stable_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
             
             % [calculate] reservoir volume in m^3 at next time step (eq. S3, S31)
             V_CONV_hourly(n+1,y,HPP) = V_CONV_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP)  - Q_CONV_stable_hourly(n,y,HPP) - Q_CONV_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_CONV_hourly(n,y,HPP)/rho).*secs_hr;      % in m^3/s
@@ -779,7 +774,7 @@ for HPP = [1:HPP_number]
                             
                             % [calculate] flexible hydropower generation in MW (eq. S16 & S17)
                             if P_BAL_difference_hourly(n,y,HPP) < 0
-                                Q_BAL_pot_turb_flexible(n,y,HPP) = min([V_BAL_hourly(n,y,HPP)/secs_hr Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP)]) * hydro_BAL_curtailment_factor_hourly(n,y,HPP);
+                                Q_BAL_pot_turb_flexible(n,y,HPP) = max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP)]) * hydro_BAL_curtailment_factor_hourly(n,y,HPP);
                                 % [calculate] if ramping up
                                 if temp_sgn_turb == 1
                                     P_BAL_hydro_flexible_hourly(n,y,HPP) = min([Q_BAL_pot_turb_flexible(n,y,HPP)*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6 min([abs(P_BAL_difference_hourly(n,y,HPP)) P_BAL_ramp_restr_hourly(n,y,HPP)]) ]);
@@ -808,12 +803,7 @@ for HPP = [1:HPP_number]
                             P_BAL_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_BAL Q_BAL_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
                             
                             % [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                            P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;  % in MW
-                            
-                            % [check] if turbine capacity is already exhausted by stable outflow, RoR generation is zero
-                            if P_BAL_hydro_RoR_hourly(n,y,HPP) < 0
-                                P_BAL_hydro_RoR_hourly(n,y,HPP) = 0;
-                            end
+                            P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
                             
                             % [calculate] spilling component in m^3/s (eq. S19)
                             if V_BAL_hourly(n,y,HPP)/V_max(HPP) < f_spill
@@ -936,6 +926,7 @@ for HPP = [1:HPP_number]
             if sum(isnan(psi_BAL)) == length(psi_BAL) && f_demand_BAL(1) == 0
                 f_demand_opt_BAL = 0;
                 psi_BAL_opt = 0;
+                break
             else
                 crossing_BAL = find(psi_BAL == min(psi_BAL));
                 f_demand_opt_BAL = f_demand_BAL(crossing_BAL);
@@ -1084,7 +1075,7 @@ for HPP = [1:HPP_number]
                     
                     % [calculate] flexible hydropower generation in MW (eq. S16 & S17)
                     if P_BAL_difference_hourly(n,y,HPP) < 0
-                        Q_BAL_pot_turb_flexible(n,y,HPP) = min([V_BAL_hourly(n,y,HPP)/secs_hr Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP)]) * hydro_BAL_curtailment_factor_hourly(n,y,HPP);
+                        Q_BAL_pot_turb_flexible(n,y,HPP) = max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP)]) * hydro_BAL_curtailment_factor_hourly(n,y,HPP);
                         % [calculate] if ramping up
                         if temp_sgn_turb == 1
                             P_BAL_hydro_flexible_hourly(n,y,HPP) = min([Q_BAL_pot_turb_flexible(n,y,HPP)*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6 min([abs(P_BAL_difference_hourly(n,y,HPP)) P_BAL_ramp_restr_hourly(n,y,HPP)]) ]);
@@ -1114,12 +1105,7 @@ for HPP = [1:HPP_number]
                     P_BAL_hydro_stable_hourly(n,y,HPP) = min([Q_pot_turb_BAL Q_BAL_stable_hourly(n,y,HPP)])*eta_turb*rho*g*h_BAL_hourly(n,y,HPP)/10^6;
                     
                     % [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                    P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;  % in MW
-                    
-                    % [check] if turbine capacity is already exhausted by stable outflow, RoR generation is zero
-                    if P_BAL_hydro_RoR_hourly(n,y,HPP) < 0
-                        P_BAL_hydro_RoR_hourly(n,y,HPP) = 0;
-                    end
+                    P_BAL_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
                     
                     % [calculate] spilling component in m^3/s (eq. S19)
                     if V_BAL_hourly(n,y,HPP)/V_max(HPP) < f_spill
@@ -1577,7 +1563,7 @@ for HPP = [1:HPP_number]
                                 
                                 % [calculate] flexible hydropower generation in MW (eq. S16, S17)
                                 if P_STOR_difference_hourly(n,y,HPP) < 0
-                                    Q_STOR_pot_turb_flexible(n,y,HPP) = min([V_STOR_hourly_upper(n,y,HPP)/secs_hr Q_max_turb(HPP) - Q_STOR_stable_hourly(n,y,HPP)]) * hydro_STOR_curtailment_factor_hourly(n,y,HPP);
+                                    Q_STOR_pot_turb_flexible(n,y,HPP) = max([0 Q_max_turb(HPP) - Q_STOR_stable_hourly(n,y,HPP)]) * hydro_STOR_curtailment_factor_hourly(n,y,HPP);
                                     % [calculate] if ramping up
                                     if temp_sgn_turb == 1
                                         P_STOR_hydro_flexible_hourly(n,y,HPP) = min([Q_STOR_pot_turb_flexible(n,y,HPP)*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6 min([abs(P_STOR_difference_hourly(n,y,HPP)) P_STOR_ramp_restr_hourly(n,y,HPP)]) ]);
@@ -1751,6 +1737,7 @@ for HPP = [1:HPP_number]
                 if sum(isnan(psi_STOR)) == length(psi_STOR) && f_demand_STOR(1) == 0
                     f_demand_opt_STOR = 0;
                     psi_STOR_opt = 0;
+                    break
                 else
                     crossing_STOR = find(psi_STOR == min(psi_STOR));
                     f_demand_opt_STOR = f_demand_STOR(crossing_STOR);
@@ -1921,7 +1908,7 @@ for HPP = [1:HPP_number]
                         
                         % [calculate] flexible hydropower generation in MW (eq. S16 & S17)
                         if P_STOR_difference_hourly(n,y,HPP) < 0
-                            Q_STOR_pot_turb_flexible(n,y,HPP) = min([V_STOR_hourly_upper(n,y,HPP)/secs_hr Q_max_turb(HPP) - Q_STOR_stable_hourly(n,y,HPP)]) * hydro_STOR_curtailment_factor_hourly(n,y,HPP);
+                            Q_STOR_pot_turb_flexible(n,y,HPP) = max([0 Q_max_turb(HPP) - Q_STOR_stable_hourly(n,y,HPP)]) * hydro_STOR_curtailment_factor_hourly(n,y,HPP);
                             % [calculate] if ramping up
                             if temp_sgn_turb == 1
                                 P_STOR_hydro_flexible_hourly(n,y,HPP) = min([Q_STOR_pot_turb_flexible(n,y,HPP)*eta_turb*rho*g*h_STOR_hourly(n,y,HPP)/10^6 min([abs(P_STOR_difference_hourly(n,y,HPP)) P_STOR_ramp_restr_hourly(n,y,HPP)]) ]);
