@@ -4,7 +4,7 @@
 
 % © 2019 CIREG project
 % Author: Sebastian Sterl, Vrije Universiteit Brussel
-% This code accompanies the paper "Streamlining hydro, solar and wind energy strategies in West Africa from power plant to power pool" by Sterl et al.
+% This code accompanies the paper "Smart renewable portfolios to displace fossil fuels and avoid hydropower overexploitation" by Sterl et al.
 % All equation, section &c. numbers refer to that paper and its Supplementary Materials, unless otherwise mentioned.
 
 set(groot, 'defaultTextInterpreter','latex');
