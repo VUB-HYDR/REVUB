@@ -187,20 +187,20 @@ CF_wind_hourly(:,:,2) = xlsread('minimum_example_CF_wind.xlsx','CIV');
 % [read] Calibration curves used during simulations
 temp = xlsread('minimum_example_bathymetry.xlsx','Bui');
 % [extract] volume (m^3)
-calibrate_volume(:,1) = temp(:,1);
+calibrate_volume(1:length(temp(:,1)),1) = temp(:,1);
 % [extract] area (m^2)
-calibrate_area(:,1) = temp(:,2);
+calibrate_area(1:length(temp(:,2)),1) = temp(:,2);
 % [extract] head (m)
-calibrate_head(:,1) = temp(:,3);
+calibrate_head(1:length(temp(:,3)),1) = temp(:,3);
 
 % [read] Calibration curves used during simulations
 temp = xlsread('minimum_example_bathymetry.xlsx','Buyo');
 % [extract] volume (m^3)
-calibrate_volume(:,2) = temp(:,1);
+calibrate_volume(1:length(temp(:,1)),2) = temp(:,1);
 % [extract] area (m^2)
-calibrate_area(:,2) = temp(:,2);
+calibrate_area(1:length(temp(:,2)),2) = temp(:,2);
 % [extract] head (m)
-calibrate_head(:,2) = temp(:,3);
+calibrate_head(1:length(temp(:,3)),2) = temp(:,3);
 
 clear temp
 
