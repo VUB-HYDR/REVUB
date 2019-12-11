@@ -450,7 +450,7 @@ if STOR_break(plot_HPP) == 0
     xtickangle(90)
     ylabel 'Power generation (MWh/h)'
     plot(1:months_yr,L_norm_STOR_bymonth(:,y_plot_median(end),plot_HPP).*ELCC_STOR_byyear(y_plot_median(end),plot_HPP),'k','LineWidth',3)
-    legend 'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Hydropower (RoR)' 'Load followed (ELCC)'
+    legend 'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
     title('monthly generation in median year (STOR)')
     
     % [plot] multi-year average monthly power mix in user-selected year
@@ -469,7 +469,7 @@ if STOR_break(plot_HPP) == 0
     xtickangle(90)
     ylabel 'Power generation (MWh/h)'
     plot(1:months_yr,L_norm_STOR_bymonth(:,plot_year,plot_HPP).*ELCC_STOR_byyear(plot_year,plot_HPP),'k','LineWidth',3)
-    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Hydropower (RoR)' 'Load followed (ELCC)'
+    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
     title(strcat('monthly generation in ', '$\mbox{ }$', num2str(simulation_years(plot_year)),'$\mbox{ }$(STOR)'))
     
     
