@@ -23,8 +23,8 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 # 2. Installation
 ---
 To run the model, the user should be able to operate in a MATLAB environment.
-The code was written for MATLAB R2017b.
-The files given in this GitHub folder contain code and data needed to run a minimum working example.
+The code was written for MATLAB R2017b. The files given in this GitHub folder contain code and data needed to run a minimum working example.
+A Python version of the model is under development and will be made available on GitHub once finalised.
 
 # 3. Tool's structure
 ---
