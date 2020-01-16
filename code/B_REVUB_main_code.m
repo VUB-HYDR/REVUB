@@ -365,8 +365,8 @@ ratio_ELCC_E_hydro_STOR_median = NaN.*ones(1,HPP_number);
 CF_hydro_CONV_yearly = NaN.*ones(length(simulation_years),HPP_number);
 
 % [preallocate] Hourly capacity factor for BAL and STOR scenario (%)
-CF_hydro_BAL_hourly = NaN.*ones(366*24,length(simulation_years),HPP_number);
-CF_hydro_STOR_hourly = NaN.*ones(366*24,length(simulation_years),HPP_number);
+CF_hydro_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+CF_hydro_STOR_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
 % [preallocate] RLDC = Residual Load Duration Curve; sorted array of P_stable +
 % P_flexible + P_solar + P_wind (- P_pump) (in MW or MWh/h)
