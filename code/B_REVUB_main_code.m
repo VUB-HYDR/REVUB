@@ -228,9 +228,9 @@ P_STOR_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simula
 
 % [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
 % or shut off in case of extreme drought (0) (see section S3.1 and S8)
-hydro_CONV_curtailment_factor_hourly = ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-hydro_BAL_curtailment_factor_hourly = ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-hydro_STOR_curtailment_factor_hourly = ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+hydro_CONV_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+hydro_BAL_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+hydro_STOR_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
 
 %%%%% LOAD PROFILE DATA %%%%%
