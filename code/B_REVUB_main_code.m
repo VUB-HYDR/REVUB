@@ -397,7 +397,7 @@ close all
 % [loop] to classify all HPPs
 for HPP = 1:HPP_number
     
-    % [calculate] f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29
+    % [calculate] f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
     f_reg(HPP) = (V_max(HPP)/(min(sum(days_year,1))*hrs_day*secs_hr*T_fill_thres))/mean(nanmean(Q_in_nat_hourly(:,:,HPP)));
     
     % [calculate] Determine dam category based on f_reg (section A5)
