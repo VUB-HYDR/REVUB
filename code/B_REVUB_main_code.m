@@ -1263,7 +1263,7 @@ for HPP = [1:HPP_number]
                 ELCC_BAL_yearly(y,HPP) = sum(L_followed_BAL_hourly(hrs_year,y,HPP));
                 
                 % [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
-                L_res_BAL_hourly(hrs_year,y,HPP) = P_followed_BAL_range(y,P_followed_BAL_index(y,HPP),HPP).*L_norm(hrs_year,y,HPP) - total_power_supply_BAL';
+                L_res_BAL_hourly(hrs_year,y,HPP) = L_followed_BAL_hourly(hrs_year,y,HPP) - total_power_supply_BAL';
                 
                 % [arrange] mean fraction of unmet load by month
                 for m = 1:months_yr
@@ -2115,7 +2115,7 @@ for HPP = [1:HPP_number]
                     ELCC_STOR_yearly(y,HPP) = sum(L_followed_STOR_hourly(hrs_year,y,HPP));
                     
                     % [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC)
-                    L_res_STOR_hourly(hrs_year,y,HPP) = P_followed_STOR_range(y,P_followed_STOR_index(y,HPP),HPP).*L_norm(hrs_year,y,HPP) - total_power_supply_STOR';
+                    L_res_STOR_hourly(hrs_year,y,HPP) = L_followed_STOR_hourly(hrs_year,y,HPP) - total_power_supply_STOR';
                     
                     % [arrange] mean fraction of unmet load by month
                     for m = 1:months_yr
