@@ -44,7 +44,7 @@ N_refine_STOR = 3;
 % are performed. This number can be increased to speed up the simulation.
 psi_min_threshold = 0.00;
 
-% [set by user] Number of loops for iterative estimation of P_stable,BAL (see eq. S9 & explanation below eq. S19)
+% [set by user] Number of loops for iterative estimation of P_stable,BAL/STOR (see eq. S9 & explanation below eq. S19)
 % Typically, 3-6 iterations suffice until convergence is achieved.
 X_max_BAL = 6;
 X_max_STOR = 6;
