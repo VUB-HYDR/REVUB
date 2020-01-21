@@ -1238,10 +1238,10 @@ for HPP = [1:HPP_number]
                 
                 % [preallocate] range in which to identify ELCC
                 P_followed_BAL_range(y,:,HPP) = linspace(0,N_power_supply_BAL,N_ELCC);
-                power_unmet_BAL = zeros(1,size(P_followed_BAL_range,2));
+                power_unmet_BAL = zeros(1,N_ELCC);
                 
                 % [loop] to identify ELCC under optimal BAL solution
-                for n = 1:size(P_followed_BAL_range,2)
+                for n = 1:N_ELCC
                     temp = total_power_supply_BAL - P_followed_BAL_range(y,n,HPP).*L_norm(hrs_year,y,HPP)';
                     if abs(mean(temp(temp<=0))) > 0
                         power_unmet_BAL(n) = abs(sum(temp(temp<=0)))./sum(P_followed_BAL_range(y,n,HPP).*L_norm(hrs_year,y,HPP));
@@ -2090,10 +2090,10 @@ for HPP = [1:HPP_number]
                     
                     % [preallocate] range in which to identify ELCC
                     P_followed_STOR_range(y,:,HPP) = linspace(0,N_power_supply_STOR,N_ELCC);
-                    power_unmet_STOR = zeros(1,size(P_followed_STOR_range,2));
+                    power_unmet_STOR = zeros(1,N_ELCC);
                     
                     % [loop] to identify ELCC under optimal STOR solution
-                    for n = 1:size(P_followed_STOR_range,2)
+                    for n = 1:N_ELCC
                         temp = total_power_supply_STOR - P_followed_STOR_range(y,n,HPP).*L_norm(hrs_year,y,HPP)';
                         if abs(mean(temp(temp<=0))) > 0
                             power_unmet_STOR(n) = abs(sum(temp(temp<=0)))./sum(P_followed_STOR_range(y,n,HPP).*L_norm(hrs_year,y,HPP));
