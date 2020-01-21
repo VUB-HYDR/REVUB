@@ -1326,7 +1326,7 @@ for HPP = [1:HPP_number]
         E_hydro_BAL_nonRoR_statistics_median(HPP) = 1e-3.*median(E_hydro_BAL_nonRoR_yearly(:,HPP));
         E_hydro_BAL_RoR_statistics_median(HPP) = 1e-3.*median(E_hydro_BAL_RoR_yearly(:,HPP));
         
-        % [arrange] yearly totals of HSW generation in GWh/year
+        % [arrange] yearly totals of HSW generation in MWh/year
         E_HSW_BAL_yearly(:,HPP) = E_hydro_BAL_flexible_yearly(:,HPP) + E_hydro_BAL_stable_yearly(:,HPP) + E_solar_BAL_yearly(:,HPP) + E_wind_BAL_yearly(:,HPP);
         
         % [arrange] medians and IQ ranges of HSW generation and ELCC in GWh/year
@@ -2177,7 +2177,7 @@ for HPP = [1:HPP_number]
             % [arrange] medians in hydropower generation in GWh/year
             E_hydro_STOR_statistics_median(HPP) = 1e-3.*(median(E_hydro_STOR_yearly(:,HPP)));
             
-            % [arrange] yearly totals of HSW generation in GWh/year
+            % [arrange] yearly totals of HSW generation in MWh/year
             E_HSW_STOR_yearly(:,HPP) = E_hydro_STOR_yearly(:,HPP) + E_solar_STOR_yearly(:,HPP) + E_wind_STOR_yearly(:,HPP);
             
             % [arrange] medians and IQ ranges of HSW generation and ELCC in GWh/year
