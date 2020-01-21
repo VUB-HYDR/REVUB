@@ -60,7 +60,7 @@ str_axis(ismissing(str_axis)) = [];
 
 % [arrange] number of days per month as 1D array
 temp = days_year(:);
-% [prealocate] cumulative number of hours since start of simulation period
+% [preallocate] cumulative number of hours since start of simulation period
 N_hours_cumulative = zeros(1,size(days_year,1)*size(days_year,2));
 % [loop] over all days in the simulation to calculate cumulative number of hours
 for n = 1:size(days_year,1)*size(days_year,2)
