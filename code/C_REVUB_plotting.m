@@ -76,7 +76,7 @@ colour_STOR = [255, 255, 51] / 255;
 colour_orange = [255, 127, 0] / 255;
 
 colour_hydro_stable = [55, 126, 184] / 255;
-colour_hydro_flexible = [106 226 207] / 255;
+colour_hydro_flexible = [106, 226, 207] / 255;
 colour_solar = [255, 255, 51] / 255;
 colour_wind = [77, 175, 74] / 255;
 colour_hydro_RoR = [100, 100, 100] / 255;
