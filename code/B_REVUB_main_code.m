@@ -1357,7 +1357,7 @@ for HPP = [1:HPP_number]
         CF_hydro_BAL_hourly(:,:,HPP) = (P_BAL_hydro_stable_hourly(:,:,HPP) + P_BAL_hydro_flexible_hourly(:,:,HPP) + P_BAL_hydro_RoR_hourly(:,:,HPP))./(P_r_turb(HPP));
         
         % [calculate] turbine exhaustion factor k_turb in BAL (eq. S28)
-        k_turb_hourly_BAL(:,:,HPP) = (Q_BAL_stable_hourly(:,:,HPP) + Q_BAL_flexible_hourly(:,:,HPP))/Q_max_turb(:,HPP);
+        k_turb_hourly_BAL(:,:,HPP) = (Q_BAL_stable_hourly(:,:,HPP) + Q_BAL_flexible_hourly(:,:,HPP))/Q_max_turb(HPP);
         temp_hydro_exhausted_BAL = k_turb_hourly_BAL(:,:,HPP);
         
         % [check] if criterion on k_turb is met for BAL, wrap up simulation and write data
@@ -2207,7 +2207,7 @@ for HPP = [1:HPP_number]
             CF_hydro_STOR_hourly(:,:,HPP) = (P_STOR_hydro_stable_hourly(:,:,HPP) + P_STOR_hydro_flexible_hourly(:,:,HPP))./(P_r_turb(HPP));
             
             % [calculate] turbine exhaustion factor k_turb in STOR (eq. S28)
-            k_turb_hourly_STOR(:,:,HPP) = (Q_STOR_stable_hourly(:,:,HPP) + Q_STOR_flexible_hourly(:,:,HPP))/Q_max_turb(:,HPP);
+            k_turb_hourly_STOR(:,:,HPP) = (Q_STOR_stable_hourly(:,:,HPP) + Q_STOR_flexible_hourly(:,:,HPP))/Q_max_turb(HPP);
             temp_hydro_exhausted_STOR = k_turb_hourly_STOR(:,:,HPP);
             
             % [check] if criterion on k_turb is met for STOR, wrap up simulation and write data
