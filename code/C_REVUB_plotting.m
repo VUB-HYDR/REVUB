@@ -123,16 +123,16 @@ for HPP = 1:HPP_number
             E_wind_BAL_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_hydro_BAL_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_hydro_BAL_RoR_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_RoR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            L_norm_BAL_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,1))*hrs_day + 1 : sum(days_year(1:m,1))*hrs_day,y,HPP));
-            hydro_BAL_curtailment_factor_monthly(m,y,HPP) = min(hydro_BAL_curtailment_factor_hourly(sum(days_year(1:m-1,1))*hrs_day + 1 : sum(days_year(1:m,1))*hrs_day,y,HPP));
+            L_norm_BAL_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
+            hydro_BAL_curtailment_factor_monthly(m,y,HPP) = min(hydro_BAL_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
             
             E_hydro_STOR_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_solar_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_solar_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_wind_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_hydro_STOR_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             E_hydro_pump_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_pump_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            L_norm_STOR_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,1))*hrs_day + 1 : sum(days_year(1:m,1))*hrs_day,y,HPP));
-            hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,1))*hrs_day + 1 : sum(days_year(1:m,1))*hrs_day,y,HPP));
+            L_norm_STOR_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
+            hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
             
             Q_in_nat_monthly_total(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
         end
