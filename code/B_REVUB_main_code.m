@@ -1237,7 +1237,7 @@ for HPP = [1:HPP_number]
                 N_power_supply_BAL = ceil(max(total_power_supply_BAL));
                 
                 % [preallocate] range in which to identify ELCC
-                P_followed_BAL_range(y,:,HPP) = linspace(0,N_power_supply_BAL,10^3);
+                P_followed_BAL_range(y,:,HPP) = linspace(0,N_power_supply_BAL,N_ELCC);
                 power_unmet_BAL = zeros(1,size(P_followed_BAL_range,2));
                 
                 % [loop] to identify ELCC under optimal BAL solution
@@ -2089,7 +2089,7 @@ for HPP = [1:HPP_number]
                     N_power_supply_STOR = ceil(max(total_power_supply_STOR));
                     
                     % [preallocate] range in which to identify ELCC
-                    P_followed_STOR_range(y,:,HPP) = linspace(0,N_power_supply_STOR,10^3);
+                    P_followed_STOR_range(y,:,HPP) = linspace(0,N_power_supply_STOR,N_ELCC);
                     power_unmet_STOR = zeros(1,size(P_followed_STOR_range,2));
                     
                     % [loop] to identify ELCC under optimal STOR solution
