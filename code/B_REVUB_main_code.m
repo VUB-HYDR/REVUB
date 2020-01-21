@@ -1709,8 +1709,6 @@ for HPP = [1:HPP_number]
                     % [arrange] complete time series of water volume for eq. S20
                     for y = 1:length(simulation_years)
                         V_STOR_hourly_upper(hrs_byyear(y) + 1,y,HPP) = NaN;
-                        A_STOR_hourly_upper(hrs_byyear(y) + 1,y,HPP) = NaN;
-                        h_STOR_hourly(hrs_byyear(y) + 1,y,HPP) = NaN;
                     end
                     temp_volume_upper_STOR_series = V_STOR_hourly_upper(:,:,HPP);
                     temp_volume_upper_STOR_series = temp_volume_upper_STOR_series(:);
