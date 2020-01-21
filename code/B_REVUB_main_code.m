@@ -533,7 +533,7 @@ for HPP = [1:HPP_number]
             P_CONV_hydro_RoR_hourly(n,y,HPP) = min([Q_in_RoR_hourly(n,y,HPP) max([0 Q_max_turb(HPP) - Q_CONV_stable_hourly(n,y,HPP)]) ])*eta_turb*rho*g*h_CONV_hourly(n,y,HPP)/10^6;
             
             % [calculate] reservoir volume in m^3 at next time step (eq. S3, S31)
-            V_CONV_hourly(n+1,y,HPP) = V_CONV_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP)  - Q_CONV_stable_hourly(n,y,HPP) - Q_CONV_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_CONV_hourly(n,y,HPP)/rho).*secs_hr;      % in m^3/s
+            V_CONV_hourly(n+1,y,HPP) = V_CONV_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP)  - Q_CONV_stable_hourly(n,y,HPP) - Q_CONV_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_CONV_hourly(n,y,HPP)/rho).*secs_hr;
             
             % [calculate] reservoir lake area in m^2 and hydraulic head in m from bathymetric relationship
             h_temp = find(abs(calibrate_volume(:,HPP) - V_CONV_hourly(n+1,y,HPP)) == min(abs(calibrate_volume(:,HPP) - V_CONV_hourly(n+1,y,HPP))),1);
@@ -1122,7 +1122,7 @@ for HPP = [1:HPP_number]
                     Q_BAL_out_hourly(n,y,HPP) = Q_BAL_stable_hourly(n,y,HPP) + Q_BAL_flexible_hourly(n,y,HPP) + Q_BAL_spill_hourly(n,y,HPP) + Q_in_RoR_hourly(n,y,HPP);
                     
                     % [calculate] reservoir volume in m^3 at next time step (eq. S3, S31)
-                    V_BAL_hourly(n+1,y,HPP) = V_BAL_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP) - Q_BAL_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_BAL_hourly(n,y,HPP)/rho).*secs_hr;      % in m^3/s
+                    V_BAL_hourly(n+1,y,HPP) = V_BAL_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP) - Q_BAL_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_BAL_hourly(n,y,HPP)/rho).*secs_hr;
                     
                     % [check] prevent unreal values when lake levels drop low
                     if V_BAL_hourly(n+1,y,HPP) < 0
@@ -1132,7 +1132,7 @@ for HPP = [1:HPP_number]
                         P_BAL_hydro_flexible_hourly(n,y,HPP) = 0;
                         Q_BAL_out_hourly(n,y,HPP) = Q_BAL_stable_hourly(n,y,HPP) + Q_BAL_flexible_hourly(n,y,HPP) + Q_BAL_spill_hourly(n,y,HPP) + Q_in_RoR_hourly(n,y,HPP);
                         A_BAL_hourly(n,y,HPP) = 0;
-                        V_BAL_hourly(n+1,y,HPP) = V_BAL_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP) - Q_BAL_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_BAL_hourly(n,y,HPP)/rho).*secs_hr;      % in m^3/s
+                        V_BAL_hourly(n+1,y,HPP) = V_BAL_hourly(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_BAL_stable_hourly(n,y,HPP) - Q_BAL_flexible_hourly(n,y,HPP) - Q_BAL_spill_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_BAL_hourly(n,y,HPP)/rho).*secs_hr;
                     end
 
                     % [calculate] reservoir lake area in m^2 and hydraulic head in m from bathymetric relationship
@@ -1595,8 +1595,8 @@ for HPP = [1:HPP_number]
                                 
                                 % [calculate] flexible turbined flow (eq. S18) and pumped flow (eq. 39) in m^3/s
                                 if h_STOR_hourly(n,y,HPP) > 0
-                                    Q_STOR_flexible_hourly(n,y,HPP) = P_STOR_hydro_flexible_hourly(n,y,HPP)/(eta_turb*rho*g*h_STOR_hourly(n,y,HPP))*10^6;             % in m^3/s
-                                    Q_STOR_pump_hourly(n,y,HPP) = P_STOR_pump_hourly(n,y,HPP)/(eta_pump^(-1)*rho*g*h_STOR_hourly(n,y,HPP))*10^6;        % in m^3/s
+                                    Q_STOR_flexible_hourly(n,y,HPP) = P_STOR_hydro_flexible_hourly(n,y,HPP)/(eta_turb*rho*g*h_STOR_hourly(n,y,HPP))*10^6;
+                                    Q_STOR_pump_hourly(n,y,HPP) = P_STOR_pump_hourly(n,y,HPP)/(eta_pump^(-1)*rho*g*h_STOR_hourly(n,y,HPP))*10^6;
                                 else
                                     % [check] cannot be negative
                                     h_STOR_hourly(n,y,HPP) = 0;
@@ -1630,8 +1630,8 @@ for HPP = [1:HPP_number]
                                 Q_STOR_out_hourly(n,y,HPP) = Q_STOR_stable_hourly(n,y,HPP) + Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_spill_hourly_lower(n,y,HPP);
                                 
                                 % [calculate] reservoir volume in m^3 at next time step (eq. S34, S35)
-                                V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;  % in m^3/s
-                                V_STOR_hourly_lower(n+1,y,HPP) = V_STOR_hourly_lower(n,y,HPP) + (Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_pump_hourly(n,y,HPP) - Q_STOR_spill_hourly_lower(n,y,HPP)).*secs_hr;                                 % in m^3/s
+                                V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;
+                                V_STOR_hourly_lower(n+1,y,HPP) = V_STOR_hourly_lower(n,y,HPP) + (Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_pump_hourly(n,y,HPP) - Q_STOR_spill_hourly_lower(n,y,HPP)).*secs_hr;
                                 
                                 % [check] prevent unreal values when lake levels drop low
                                 if V_STOR_hourly_upper(n+1,y,HPP) < 0
@@ -1641,7 +1641,7 @@ for HPP = [1:HPP_number]
                                     P_STOR_hydro_flexible_hourly(n,y,HPP) = 0;
                                     Q_STOR_out_hourly(n,y,HPP) = Q_STOR_stable_hourly(n,y,HPP) + Q_STOR_flexible_hourly(n,y,HPP) + Q_STOR_spill_hourly_upper(n,y,HPP) + Q_in_RoR_hourly(n,y,HPP);
                                     A_STOR_hourly_upper(n,y,HPP) = 0;
-                                    V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;      % in m^3/s
+                                    V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;
                                 end
                                 
                                 % [calculate] reservoir lake area in m^2 and hydraulic head in m from bathymetric relationship
@@ -1975,8 +1975,8 @@ for HPP = [1:HPP_number]
                         Q_STOR_out_hourly(n,y,HPP) = Q_STOR_stable_hourly(n,y,HPP) + Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_spill_hourly_lower(n,y,HPP);
                         
                         % [calculate] reservoir volume in m^3 at next time step (eq. S34, S35)
-                        V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;  % in m^3/s
-                        V_STOR_hourly_lower(n+1,y,HPP) = V_STOR_hourly_lower(n,y,HPP) + (Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_pump_hourly(n,y,HPP) - Q_STOR_spill_hourly_lower(n,y,HPP)).*secs_hr;                                 % in m^3/s
+                        V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;
+                        V_STOR_hourly_lower(n+1,y,HPP) = V_STOR_hourly_lower(n,y,HPP) + (Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_pump_hourly(n,y,HPP) - Q_STOR_spill_hourly_lower(n,y,HPP)).*secs_hr;
                         
                         % [check] prevent unreal values when lake levels drop low
                         if V_STOR_hourly_upper(n+1,y,HPP) < 0
@@ -1986,7 +1986,7 @@ for HPP = [1:HPP_number]
                             P_STOR_hydro_flexible_hourly(n,y,HPP) = 0;
                             Q_STOR_out_hourly(n,y,HPP) = Q_STOR_stable_hourly(n,y,HPP) + Q_STOR_flexible_hourly(n,y,HPP) + Q_STOR_spill_hourly_upper(n,y,HPP) + Q_in_RoR_hourly(n,y,HPP);
                             A_STOR_hourly_upper(n,y,HPP) = 0;
-                            V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;      % in m^3/s
+                            V_STOR_hourly_upper(n+1,y,HPP) = V_STOR_hourly_upper(n,y,HPP) + (Q_in_frac_hourly(n,y,HPP) - Q_STOR_stable_hourly(n,y,HPP) - Q_STOR_flexible_hourly(n,y,HPP) - Q_STOR_spill_hourly_upper(n,y,HPP) + Q_STOR_pump_hourly(n,y,HPP) + (precipitation_flux_hourly(n,y,HPP) - evaporation_flux_hourly(n,y,HPP)).*A_STOR_hourly_upper(n,y,HPP)/rho).*secs_hr;
                         end
                         
                         % [calculate] reservoir lake area in m^2 and hydraulic head in m from bathymetric relationship
