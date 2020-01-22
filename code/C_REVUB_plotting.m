@@ -242,8 +242,8 @@ if STOR_break(plot_HPP) == 0
 else
     legend 'CONV' 'BAL'
 end
-xticks(N_hours_cumulative - N_hours_cumulative(1))
-xticklabels(months_byyear(:))
+xticks(cumsum(positions(end,:) - 1) - positions(end,1) + 1)
+xticklabels(simulation_years)
 xtickangle(90)
 ylim([0 h_max(plot_HPP)])
 xlabel 'time'
