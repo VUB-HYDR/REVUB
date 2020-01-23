@@ -26,7 +26,7 @@ plot_num_days = 3;
 
 % [set by user] select months and hours of day for which to show release rules
 plot_rules_month = 4;
-plot_rules_hr = [9 21];
+plot_rules_hr = [8 20];
 
 % [read] vector with hours in each year
 hrs_year = 1:hrs_byyear(plot_year);
@@ -564,7 +564,7 @@ legendIndex = 0;
 
 
 % [loop] across selected hours of day
-for hr = plot_rules_hr
+for hr = plot_rules_hr + 1
     
     % [loop] across selected months
     for m = plot_rules_month
@@ -606,11 +606,11 @@ for hr = plot_rules_hr
         temp_Q_std(isnan(temp_Q_std)) = [];
         
         errorbar(temp_h,temp_Q,temp_Q_std,'^','LineWidth',2)
-        legendItem(legendIndex) = strcat('total outflow$\mbox{ }$', [num2str(hr) 'h$\mbox{ }$'], months_names_full(m));
+        legendItem(legendIndex) = strcat('total outflow$\mbox{ }$', [num2str(hr - 1) 'h$\mbox{ }$'], months_names_full(m));
         legendIndex = legendIndex + 1;
         hold on
         [temp_fit, ~] = polyfit(temp_h,temp_Q,1);
-        legendItem(legendIndex) = strcat('total outflow$\mbox{ }$', [num2str(hr) 'h$\mbox{ }$'], months_names_full(m), '$\mbox{ }$fit');
+        legendItem(legendIndex) = strcat('total outflow$\mbox{ }$', [num2str(hr - 1) 'h$\mbox{ }$'], months_names_full(m), '$\mbox{ }$fit');
         plot(temp_h,temp_fit(2) + temp_fit(1).*temp_h,'k--')
         
     end
