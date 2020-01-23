@@ -164,11 +164,11 @@ L_norm(:,:,1) = xlsread('minimum_example_load.xlsx','GH');
 L_norm(:,:,2) = xlsread('minimum_example_load.xlsx','CIV');
 
 % [read] Precipitation and evaporation flux (kg/m^2/s)
-precipitation_flux_hourly(:,:,1) = xlsread('minimum_example_precipitation','Bui');
-precipitation_flux_hourly(:,:,2) = xlsread('minimum_example_precipitation','Buyo');
+precipitation_flux_hourly(:,:,1) = xlsread('minimum_example_precipitation.xlsx','Bui');
+precipitation_flux_hourly(:,:,2) = xlsread('minimum_example_precipitation.xlsx','Buyo');
 
-evaporation_flux_hourly(:,:,1) = xlsread('minimum_example_evaporation','Bui');
-evaporation_flux_hourly(:,:,2) = xlsread('minimum_example_evaporation','Buyo');
+evaporation_flux_hourly(:,:,1) = xlsread('minimum_example_evaporation.xlsx','Bui');
+evaporation_flux_hourly(:,:,2) = xlsread('minimum_example_evaporation.xlsx','Buyo');
 
 % [read] natural inflow at hourly timescale (m^3/s)
 Q_in_nat_hourly(:,:,1) = xlsread('minimum_example_inflow.xlsx','Bui');
