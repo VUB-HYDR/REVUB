@@ -515,9 +515,7 @@ end
 
 
 % [preallocate] vectors for adapted rules under BAL
-h_BAL_rules_stable_bymonth = zeros(months_yr,length(simulation_years));
 h_BAL_rules_total_bymonth = zeros(months_yr,length(simulation_years),max(max(days_year)),hrs_day);
-Q_out_net_BAL_rules_stable_bymonth = NaN.*ones(months_yr,length(simulation_years));
 Q_out_net_BAL_rules_total_bymonth = NaN.*ones(months_yr,length(simulation_years),max(max(days_year)),hrs_day);
 
 % [loop] across all simulation years to calculate release for each day, hour, month and year
@@ -529,24 +527,6 @@ for y = 1:length(simulation_years)
         % [arrange] hourly head and outflow values for each month
         temp_head_BAL_bymonth = h_BAL_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
         temp_Q_BAL_bymonth = Q_BAL_out_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_in_RoR_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
-        
-        % [arrange] get unique values (because head determination happens at accuracy given by N_calibration)
-        temp_head_unique = unique(temp_head_BAL_bymonth);
-        temp_Q_unique = unique(temp_Q_BAL_bymonth);
-        
-        % [preallocate] minimum environmental flow rule
-        temp_Q_out_net_BAL_rules_stable = zeros(1,length(temp_head_unique));
-        
-        % [loop] to find minimum flow
-        for n = 1:length(temp_head_unique)
-            temp_head = temp_head_BAL_bymonth(temp_head_BAL_bymonth == temp_head_unique(n));
-            temp_Q_out_rules = temp_Q_BAL_bymonth(temp_head_BAL_bymonth == temp_head_unique(n));
-            temp_Q_out_net_BAL_rules_stable(n) = min(temp_Q_out_rules);
-        end
-        
-        % [calculate] average head and outflow in each month
-        h_BAL_rules_stable_bymonth(m,y) = mean(temp_head_BAL_bymonth);
-        Q_out_net_BAL_rules_stable_bymonth(m,y) = min(temp_Q_out_net_BAL_rules_stable);
         
         % [arrange] according to specific hours of day
         % [loop] across all hours of the day
