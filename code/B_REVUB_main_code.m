@@ -37,8 +37,8 @@ f_init_STOR_end = 3;
 
 % [set by user] Number of refinement loops for equilibrium search for min(Psi) (see eq. S21)
 % Every +1 increases precision by one digit. Typically, 2 or 3 iterations suffice.
-N_refine_BAL = 3;
-N_refine_STOR = 3;
+N_refine_BAL = 2;
+N_refine_STOR = 2;
 
 % [set by user] When min(Psi) (eq. S21) is lower than this threshold, no further refinement loops
 % are performed. This number can be increased to speed up the simulation.
@@ -46,8 +46,8 @@ psi_min_threshold = 0.00;
 
 % [set by user] Number of loops for iterative estimation of P_stable,BAL/STOR (see eq. S9 & explanation below eq. S19)
 % Typically, 3-6 iterations suffice until convergence is achieved.
-X_max_BAL = 6;
-X_max_STOR = 6;
+X_max_BAL = 3;
+X_max_STOR = 3;
 
 
 
@@ -437,7 +437,7 @@ for HPP = 1:HPP_number
     
 end
 
-% [initialize] store Q_in_nat_out and Q_in_nat_flex; these may change during the simulations
+% [initialize] store Q_in_frac_hourly and Q_in_RoR_hourly; these may change during the simulations
 % but need to be reinitialized for every iteration step (e.g. every new c_solar, c_wind in eq. S9)
 Q_in_frac_store = Q_in_frac_hourly;
 Q_in_RoR_store = Q_in_RoR_hourly;
