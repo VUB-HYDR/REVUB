@@ -51,7 +51,7 @@ str = strings;
 for y = 1:length(simulation_years)
     for m = 1:months_yr
         for d = 1:days_year(m,y)
-            str(d,m,y) = strcat(num2str(d), months_names_full(m), num2str(simulation_years(y)));
+            str(d,m,y) = strcat(num2str(d), months_names_full(m), 'Yr', num2str(y));
         end
     end
 end
@@ -243,10 +243,10 @@ else
     legend 'CONV' 'BAL'
 end
 xticks(cumsum(positions(end,:) - 1) - positions(end,1) + 1)
-xticklabels(simulation_years)
+xticklabels([1:length(simulation_years)])
 xtickangle(90)
 ylim([0 h_max(plot_HPP)])
-xlabel 'time'
+xlabel 'time (years)'
 ylabel '$h(t)$ (m)'
 title 'time series of hydraulic head'
 
@@ -305,11 +305,11 @@ if STOR_break(plot_HPP) == 0
 else
     legend 'CONV' 'BAL'
 end
-xticks(N_hours_cumulative - N_hours_cumulative(1))
-xticklabels(months_byyear(:))
+xticks([cumsum(positions(end,:) - 1) - (positions(end,1) - 1) sum(positions(end,:) - 1)])
+xticklabels([1:length(simulation_years) + 1])
 xtickangle(90)
 ylim([0 V_max(plot_HPP)])
-xlabel 'time'
+xlabel 'time (years)'
 ylabel '$V(t)$ (m$^3$)'
 title 'time series of lake volume'
 
@@ -328,11 +328,11 @@ if STOR_break(plot_HPP) == 0
 else
     legend '$Q_{in}$' '$Q_{out,CONV}$' '$Q_{out,BAL}$'
 end
-xticks(1:length(temp(:)))
-xticklabels(months_byyear(:))
+xticks([1:months_yr:months_yr*(length(simulation_years) + 2)])
+xticklabels([1:length(simulation_years) + 2])
 xtickangle(90)
-xlim([1 length(temp(:))])
-xlabel 'time (months)'
+xlim([1 months_yr*(length(simulation_years)) + 2])
+xlabel 'time (years)'
 ylabel '$Q(t)$ (m$^3$/s)'
 title 'inflow vs. outflow (monthly)'
 
@@ -397,8 +397,9 @@ h(4).FaceColor = colour_solar;
 h(5).FaceColor = colour_hydro_RoR;
 xlim([simulation_years(1) - 1 simulation_years(end) + 1])
 xticks(simulation_years(1):simulation_years(end))
-xticklabels(simulation_years(1):simulation_years(end))
+xticklabels([1:length(simulation_years)])
 ylim([0 max(sum(E_generated_BAL_bymonth_sum,1))*1.1])
+xlabel 'year'
 ylabel 'Power generation (GWh/year)'
 yyaxis right
 plot(simulation_years,ELCC_BAL_yearly(:,plot_HPP)./10^3,'k','LineWidth',2)
@@ -484,8 +485,9 @@ if STOR_break(plot_HPP) == 0
     h(5).FaceColor = colour_hydro_pumped;
     xlim([simulation_years(1) - 1 simulation_years(end) + 1])
     xticks(simulation_years(1):simulation_years(end))
-    xticklabels(simulation_years(1):simulation_years(end))
+    xticklabels([1:length(simulation_years)])
     ylim([0 max(sum(E_generated_STOR_bymonth_sum,1))*1.1])
+    xlabel 'year'
     ylabel 'Power generation (GWh/year)'
     yyaxis right
     plot(simulation_years,ELCC_STOR_yearly(:,plot_HPP)./10^3,'k','LineWidth',2)
