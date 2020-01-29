@@ -22,30 +22,31 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 
 # 2. Installation
 ---
-To run the model, the user should be able to operate in a MATLAB environment.
-The code was written for MATLAB R2017b. The files given in this GitHub folder contain code and data needed to run a minimum working example.
-A Python version of the model is under development and will be made available on GitHub once finalised.
+The model exists in two languages: a MATLAB version (written for MATLAB R2017b) and a Python version (written for Python 2.7.9). 
+The files given in this GitHub folder contain code and data needed to run the same minimum working example for both languages. 
+Note that the Python code has not been parallelized as of yet and runs slower than the MATLAB code.
 
 # 3. Tool's structure
 ---
 
 ### Scripts
 There are three main scripts:
-* **A_REVUB_initialise_minimum_example.m**
+* **A_REVUB_initialise_minimum_example**
 
 The first script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
-* **B_REVUB_main_code.m**
+* **B_REVUB_main_code**
 
 The second script runs the actual REVUB model simulation and optimisation.
  
-* **C_REVUB_plotting.m**. 
+* **C_REVUB_plotting**
 
-The third script produces figure outputs for Bui (set plot_HPP = 1) or Buyo (set plot_HPP = 2), most of which can also be found in the publication or its SI (for the same example).
+The third script produces figure outputs for Bui (set plot_HPP = 1 in MATLAB or plot_HPP = 0 in Python) or Buyo (set plot_HPP = 2 in MATLAB or plot_HPP = 1 in Python), most of which can also be found in the publication or its SI (for the same example).
 
-To produce the figure outputs, simply run the scripts in order of numbering. The second script may take several minutes to run.
+To produce the figure outputs, simply run the scripts (.m for MATLAB, .py for Python) in the order A-B-C.
 
 ## Versions
-Version 0.1.0 - September 2019  
+Version 0.1.0 - September 2019 (MATLAB)
+Version 0.1.0 - January 2020 (Python)
 
 ## License
 See also the [LICENSE](./LICENSE.md) file.
