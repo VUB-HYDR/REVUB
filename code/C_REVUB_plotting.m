@@ -18,7 +18,7 @@ set(0,'DefaultLineLineWidth',1)
 close all
 
 % [set by user] select hydropower plant and year, month, days for which to display results
-plot_HPP = 1;
+plot_HPP = 2;
 plot_year = 15;
 plot_month = 4;
 plot_day_month = 2;
@@ -528,7 +528,7 @@ for y = 1:length(simulation_years)
         
         % [arrange] hourly head and outflow values for each month
         temp_head_BAL_bymonth = h_BAL_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
-        temp_Q_BAL_bymonth = Q_BAL_out_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_in_RoR_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
+        temp_Q_BAL_bymonth = Q_BAL_out_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_in_RoR_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_BAL_spill_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
         
         % [arrange] according to specific hours of day
         % [loop] across all hours of the day
@@ -571,43 +571,50 @@ for hr = plot_rules_hr + 1
     % [loop] across selected months
     for m = plot_rules_month
         
-        
         % [calculate] new legend index
         legendIndex = legendIndex + 1;
         
         % [preallocate] temporary vectors to store head and outflow
         temp_h = zeros(1,length(simulation_years));
         temp_Q = zeros(1,length(simulation_years));
-        temp_Q_std = zeros(1,length(simulation_years));
+        temp_Q_025 = zeros(1,length(simulation_years));
+        temp_Q_075 = zeros(1,length(simulation_years));
         
         % [loop] across all simulation years
         for y = 1:length(simulation_years)
             
             % [calculate] head at given hour of day for all days in a single month in a single year
             temp = h_BAL_rules_total_bymonth(m,y,1:days_year(m,y),hr);
+            
             % [calculate] take the mean for that time of day in that month
-            temp_h(y) = nanmean(temp(:));
+            temp_h(y) = nanmedian(temp(:));
             
             % [calculate] outflow at given hour of day for all days in a single month in a single year
             temp = Q_out_net_BAL_rules_total_bymonth(m,y,1:days_year(m,y),hr);
+            
             % [calculate] take the mean for that time of day in that month
-            temp_Q(y) = nanmean(temp(:));
-            temp_Q_std(y) = nanstd(temp(:));
+            temp_Q(y) = nanmedian(temp(:));
+            temp_Q_025(y) = prctile(temp(:),25);
+            temp_Q_075(y) = prctile(temp(:),75);
             
             % [check] mark drought incidences
             if hydro_BAL_curtailment_factor_monthly(m,y,plot_HPP) == 0
                 temp_Q(y) = NaN;
                 temp_h(y) = NaN;
-                temp_Q_std(y) = NaN;
+                temp_Q_025(y) = NaN;
+                temp_Q_075(y) = NaN;
             end
+            
         end
         
         % [check] remove drought incidences
         temp_Q(isnan(temp_Q)) = [];
         temp_h(isnan(temp_h)) = [];
-        temp_Q_std(isnan(temp_Q_std)) = [];
+        temp_Q_025(isnan(temp_Q_025)) = [];
+        temp_Q_075(isnan(temp_Q_075)) = [];
         
-        errorbar(temp_h,temp_Q,temp_Q_std,'^','LineWidth',2)
+        errorbar(temp_h,temp_Q,temp_Q - temp_Q_025, temp_Q_075 - temp_Q, '^', 'LineWidth', 2)
+        
         legendItem(legendIndex) = strcat('total outflow$\mbox{ }$', [num2str(hr - 1) 'h$\mbox{ }$'], months_names_full(m));
         legendIndex = legendIndex + 1;
         hold on
