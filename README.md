@@ -46,6 +46,7 @@ To produce the figure outputs, simply run the scripts (.m for MATLAB, .py for Py
 
 ## Versions
 Version 0.1.0 - September 2019 (MATLAB)
+
 Version 0.1.0 - January 2020 (Python)
 
 ## License
