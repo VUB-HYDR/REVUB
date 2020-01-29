@@ -18,7 +18,7 @@ set(0,'DefaultLineLineWidth',1)
 close all
 
 % [set by user] select hydropower plant and year, month, days for which to display results
-plot_HPP = 2;
+plot_HPP = 1;
 plot_year = 15;
 plot_month = 4;
 plot_day_month = 2;
@@ -529,6 +529,7 @@ for y = 1:length(simulation_years)
         % [arrange] hourly head and outflow values for each month
         temp_head_BAL_bymonth = h_BAL_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
         temp_Q_BAL_bymonth = Q_BAL_out_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_in_RoR_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP) - Q_BAL_spill_hourly(positions(m,y):positions(m+1,y) - 1,y,plot_HPP);
+        temp_Q_BAL_bymonth(temp_Q_BAL_bymonth < 0) = NaN;
         
         % [arrange] according to specific hours of day
         % [loop] across all hours of the day

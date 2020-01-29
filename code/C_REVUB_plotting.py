@@ -424,6 +424,7 @@ for y in range(len(simulation_years)):
         # [arrange] hourly head and outflow values for each month
         temp_head_BAL_bymonth = h_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
         temp_Q_BAL_bymonth = Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_in_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_BAL_spill_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
+        temp_Q_BAL_bymonth[temp_Q_BAL_bymonth < 0] = np.nan
         
         # [arrange] according to specific hours of day
         # [loop] across all hours of the day
