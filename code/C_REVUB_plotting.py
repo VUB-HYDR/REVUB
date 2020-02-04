@@ -191,8 +191,6 @@ ax1.set_ylim([0, h_max[plot_HPP]*1.1])
 ax1.set_xlabel('$V$ (m$^3$)')
 ax1.set_ylabel('$h$ (m)')
 ax1.set_title('head vs. volume')
-#plt.tight_layout()
-#plt.show
 
 # [plot] reservoir bathymetric relationship: area-volume
 ax2.plot(calibrate_volume[:,plot_HPP], calibrate_area[:,plot_HPP])
