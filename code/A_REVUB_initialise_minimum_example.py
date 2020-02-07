@@ -22,21 +22,21 @@ import numbers as nb
 
 ## pre.1) Time-related parameters
 
-# [define] number of hydropower plants in this simulation
+# [set by user] number of hydropower plants in this simulation
 HPP_number = 2
 
-# [define] The reference years used in the simulation
+# [set by user] The reference years used in the simulation
 year_start = 1998
 year_end = 2014
 simulation_years = list(range(year_start, year_end + 1))
 
-# [define] number of hours in a day
+# [constant] number of hours in a day
 hrs_day = 24
 
-# [define] number of months in a year
+# [constant] number of months in a year
 months_yr = 12
 
-# [define] number of seconds and minutes in an hour
+# [constant] number of seconds and minutes in an hour
 secs_hr = 3600
 mins_hr = 60
 
@@ -130,23 +130,23 @@ f_size = 90
 
 ## pre.3) Static parameters
 
-# [read] name of hydropower plant
+# [set by user] name of hydropower plant
 HPP_name = ["Bui", "Buyo"]
 
-# [read] relative capacity of solar and wind to be installed
+# [set by user] relative capacity of solar and wind to be installed
 c_solar_relative = np.array([0.573210768220617, 1])
 c_wind_relative = 1 - c_solar_relative
 
-# [read] maximum head (m)
+# [set by user] maximum head (m)
 h_max = np.array([80, 36.1])
 
-# [read] maximum lake area (m^2)
+# [set by user] maximum lake area (m^2)
 A_max = np.array([4.4e8, 9e8])
 
-# [read] maximum storage volume (m^3)
+# [set by user] maximum storage volume (m^3)
 V_max = np.array([1.257e10, 8.3e9])
 
-# [CHANGED] [read] turbine capacity (MW)
+# [set by user] turbine capacity (MW)
 P_r_turb = np.array([400, 165])
 
 # [set by user] if using STOR scenario: lower reservoir capacity (MW)
@@ -170,11 +170,11 @@ Q_in_nat_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years
 CF_solar_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 
-# [read] Load curves (L_norm; see eq. S10)
+# [set by user] Load curves (L_norm; see eq. S10)
 L_norm[:,:,0] = pd.read_excel (r'minimum_example_load.xlsx', sheet_name = 'GH', header = None)
 L_norm[:,:,1] = pd.read_excel (r'minimum_example_load.xlsx', sheet_name = 'CIV', header = None)
 
-# [read] Precipitation and evaporation flux (kg/m^2/s)
+# [set by user] Precipitation and evaporation flux (kg/m^2/s)
 eta_flux = 0.6
 evaporation_flux_hourly[:,:,0] = pd.read_excel (r'minimum_example_evaporation.xlsx', sheet_name = 'Bui', header = None)
 evaporation_flux_hourly[:,:,1] = pd.read_excel (r'minimum_example_evaporation.xlsx', sheet_name = 'Buyo', header = None)
@@ -182,11 +182,11 @@ evaporation_flux_hourly[:,:,1] = pd.read_excel (r'minimum_example_evaporation.xl
 precipitation_flux_hourly[:,:,0] = pd.read_excel (r'minimum_example_precipitation.xlsx', sheet_name = 'Bui', header = None)
 precipitation_flux_hourly[:,:,1] = pd.read_excel (r'minimum_example_precipitation.xlsx', sheet_name = 'Buyo', header = None)
 
-# [read] natural inflow at hourly timescale (m^3/s)
+# [set by user] natural inflow at hourly timescale (m^3/s)
 Q_in_nat_hourly[:,:,0] = pd.read_excel (r'minimum_example_inflow.xlsx', sheet_name = 'Bui', header = None)
 Q_in_nat_hourly[:,:,1] = pd.read_excel (r'minimum_example_inflow.xlsx', sheet_name = 'Buyo', header = None)
 
-# [read] capacity factors weighted by location (eq. S12)
+# [set by user] capacity factors weighted by location (eq. S12)
 CF_solar_hourly[:,:,0] = pd.read_excel (r'minimum_example_CF_solar.xlsx', sheet_name = 'GH', header = None)
 CF_solar_hourly[:,:,1] = pd.read_excel (r'minimum_example_CF_solar.xlsx', sheet_name = 'CIV', header = None)
 
@@ -196,7 +196,7 @@ CF_wind_hourly[:,:,1] = pd.read_excel (r'minimum_example_CF_wind.xlsx', sheet_na
 
 ## pre.5) Bathymetry
 
-# [read] Calibration curves used during simulations
+# [set by user] Calibration curves used during simulations
 temp = pd.read_excel (r'minimum_example_bathymetry.xlsx', sheet_name = 'Bui', header = None)
 
 # [preallocate]
@@ -214,7 +214,7 @@ calibrate_area[0:len(temp.iloc[:,1]),0] = temp.iloc[:,1]
 calibrate_head[0:len(temp.iloc[:,2]),0] = temp.iloc[:,2]
 
 
-# [read] Calibration curves used during simulations
+# [set by user] Calibration curves used during simulations
 temp = pd.read_excel (r'minimum_example_bathymetry.xlsx', sheet_name = 'Buyo', header = None)
 
 # [extract] volume (m^3)

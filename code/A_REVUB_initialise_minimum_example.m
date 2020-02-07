@@ -14,19 +14,19 @@ clc; clear all; close all
 
 %% pre.1) Time-related parameters
 
-% [define] number of hydropower plants in this simulation
+% [set by user] number of hydropower plants in this simulation
 HPP_number = 2;
 
-% [define] The reference years used in the simulation
+% [set by user] The reference years used in the simulation
 simulation_years = 1998:2014;
 
-% [define] number of hours in a day
+% [constant] number of hours in a day
 hrs_day = 24;
 
-% [define] number of months in a year
+% [constant] number of months in a year
 months_yr = 12;
 
-% [define] number of seconds and minutes in an hour
+% [constant] number of seconds and minutes in an hour
 secs_hr = 3600;
 mins_hr = 60;
 
@@ -126,23 +126,23 @@ f_size = 90;
 
 %% pre.3) Static parameters
 
-% [read] name of hydropower plant
+% [set by user] name of hydropower plant
 HPP_name = ["Bui" "Buyo"];
 
-% [read] relative capacity of solar and wind to be installed
+% [set by user] relative capacity of solar and wind to be installed
 c_solar_relative = [0.573210768220617 1];
 c_wind_relative = 1 - c_solar_relative;
 
-% [read] maximum head (m)
+% [set by user] maximum head (m)
 h_max = [80 36.1];
 
-% [read] maximum lake area (m^2)
+% [set by user] maximum lake area (m^2)
 A_max = [4.4e8 9e8];
 
-% [read] maximum storage volume (m^3)
+% [set by user] maximum storage volume (m^3)
 V_max = [1.257e10 8.3e9];
 
-% [read] turbine capacity (MW)
+% [set by user] turbine capacity (MW)
 P_r_turb = [400 165];
 
 % [set by user] if using STOR scenario: lower reservoir capacity (MW)
@@ -159,22 +159,22 @@ Q_max_pump = P_r_pump./(eta_pump^(-1)*rho*g*h_max)*10^6;
 
 %% pre.4) Time series
 
-% [read] Load curves (L_norm; see eq. S10)
+% [set by user] Load curves (L_norm; see eq. S10)
 L_norm(:,:,1) = xlsread('minimum_example_load.xlsx','GH');
 L_norm(:,:,2) = xlsread('minimum_example_load.xlsx','CIV');
 
-% [read] Precipitation and evaporation flux (kg/m^2/s)
+% [set by user] Precipitation and evaporation flux (kg/m^2/s)
 precipitation_flux_hourly(:,:,1) = xlsread('minimum_example_precipitation.xlsx','Bui');
 precipitation_flux_hourly(:,:,2) = xlsread('minimum_example_precipitation.xlsx','Buyo');
 
 evaporation_flux_hourly(:,:,1) = xlsread('minimum_example_evaporation.xlsx','Bui');
 evaporation_flux_hourly(:,:,2) = xlsread('minimum_example_evaporation.xlsx','Buyo');
 
-% [read] natural inflow at hourly timescale (m^3/s)
+% [set by user] natural inflow at hourly timescale (m^3/s)
 Q_in_nat_hourly(:,:,1) = xlsread('minimum_example_inflow.xlsx','Bui');
 Q_in_nat_hourly(:,:,2) = xlsread('minimum_example_inflow.xlsx','Buyo');
 
-% [read] capacity factors weighted by location (eq. S12)
+% [set by user] capacity factors weighted by location (eq. S12)
 CF_solar_hourly(:,:,1) = xlsread('minimum_example_CF_solar.xlsx','GH');
 CF_solar_hourly(:,:,2) = xlsread('minimum_example_CF_solar.xlsx','CIV');
 
@@ -184,7 +184,7 @@ CF_wind_hourly(:,:,2) = xlsread('minimum_example_CF_wind.xlsx','CIV');
 
 %% pre.5) Bathymetry
 
-% [read] Calibration curves used during simulations
+% [set by user] Calibration curves used during simulations
 temp = xlsread('minimum_example_bathymetry.xlsx','Bui');
 % [extract] volume (m^3)
 calibrate_volume(1:length(temp(:,1)),1) = temp(:,1);
@@ -193,7 +193,7 @@ calibrate_area(1:length(temp(:,2)),1) = temp(:,2);
 % [extract] head (m)
 calibrate_head(1:length(temp(:,3)),1) = temp(:,3);
 
-% [read] Calibration curves used during simulations
+% [set by user] Calibration curves used during simulations
 temp = xlsread('minimum_example_bathymetry.xlsx','Buyo');
 % [extract] volume (m^3)
 calibrate_volume(1:length(temp(:,1)),2) = temp(:,1);
