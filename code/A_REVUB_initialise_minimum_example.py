@@ -155,7 +155,7 @@ V_lower_max = V_max/10**3
 # [set by user] if using STOR scenario (only for Bui): pump capacity (MW)
 P_r_pump = np.array([100, np.nan])
 
-# [CHANGED] [calculate] turbine and pump throughput (m^3/s, see explanation following eq. S8)
+# [calculate] turbine and pump throughput (m^3/s, see explanation following eq. S8)
 Q_max_turb = (P_r_turb) / (eta_turb*rho*g*h_max) * 10**6
 Q_max_pump = (P_r_pump) / (eta_turb**(-1)*rho*g*h_max) * 10**6
 
@@ -175,7 +175,6 @@ L_norm[:,:,0] = pd.read_excel (r'minimum_example_load.xlsx', sheet_name = 'GH', 
 L_norm[:,:,1] = pd.read_excel (r'minimum_example_load.xlsx', sheet_name = 'CIV', header = None)
 
 # [set by user] Precipitation and evaporation flux (kg/m^2/s)
-eta_flux = 0.6
 evaporation_flux_hourly[:,:,0] = pd.read_excel (r'minimum_example_evaporation.xlsx', sheet_name = 'Bui', header = None)
 evaporation_flux_hourly[:,:,1] = pd.read_excel (r'minimum_example_evaporation.xlsx', sheet_name = 'Buyo', header = None)
 
