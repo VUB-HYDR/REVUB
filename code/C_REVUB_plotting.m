@@ -339,33 +339,8 @@ title 'inflow vs. outflow (monthly)'
 
 % [figure] (cf. Fig. S4a, S9a)
 
-% [find] median year in terms of ELCC
-temp_ELCC = ELCC_BAL_byyear(:,plot_HPP);
-y_plot_median = find(temp_ELCC == median(temp_ELCC),1);
-clear temp_ELCC
-
-% [plot] multi-year average monthly power mix in median year
-figure()
-subplot(1,2,1)
-area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth(:,y_plot_median(end),plot_HPP)'; E_hydro_BAL_flexible_bymonth(:,y_plot_median(end),plot_HPP)'; E_wind_BAL_bymonth(:,y_plot_median(end),plot_HPP)'; E_solar_BAL_bymonth(:,y_plot_median(end),plot_HPP)'; E_hydro_BAL_RoR_bymonth(:,y_plot_median(end),plot_HPP)']./days_year(:,y_plot_median(end))'.*10^3/hrs_day;
-h = area(1:12,area_mix_BAL_bymonth','FaceColor','flat');
-h(1).FaceColor = colour_hydro_stable;
-h(2).FaceColor = colour_hydro_flexible;
-h(3).FaceColor = colour_wind;
-h(4).FaceColor = colour_solar;
-h(5).FaceColor = colour_hydro_RoR;
-hold on
-xlim([1 months_yr])
-xticks(1:months_yr)
-xticklabels(months_names_full)
-xtickangle(90)
-ylabel 'Power generation (MWh/h)'
-plot(1:months_yr,L_norm_bymonth(:,y_plot_median(end),plot_HPP).*ELCC_BAL_byyear(y_plot_median(end),plot_HPP),'k','LineWidth',3)
-legend 'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Hydropower (RoR)' 'Load followed (ELCC)'
-title('monthly generation in median year (BAL)')
-
 % [plot] multi-year average monthly power mix in user-selected year
-subplot(1,2,2)
+figure()
 area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_BAL_bymonth(:,plot_year,plot_HPP)'; E_solar_BAL_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_RoR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
 h = area(1:12,area_mix_BAL_bymonth','FaceColor','flat');
 h(1).FaceColor = colour_hydro_stable;
@@ -434,26 +409,6 @@ title 'Daily generation \& load profiles (BAL)'
 if STOR_break(plot_HPP) == 0
     
     figure()
-    subplot(1,2,1)
-    area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth(:,y_plot_median(end),plot_HPP)'; E_hydro_STOR_flexible_bymonth(:,y_plot_median(end),plot_HPP)'; E_wind_STOR_bymonth(:,y_plot_median(end),plot_HPP)'; E_solar_STOR_bymonth(:,y_plot_median(end),plot_HPP)'; -1.*E_hydro_pump_STOR_bymonth(:,y_plot_median(end),plot_HPP)']./days_year(:,y_plot_median(end))'.*10^3/hrs_day;
-    h = area(1:12,area_mix_STOR_bymonth','FaceColor','flat');
-    h(1).FaceColor = colour_hydro_stable;
-    h(2).FaceColor = colour_hydro_flexible;
-    h(3).FaceColor = colour_wind;
-    h(4).FaceColor = colour_solar;
-    h(5).FaceColor = colour_hydro_pumped;
-    hold on
-    xlim([1 months_yr])
-    xticks(1:months_yr)
-    xticklabels(months_names_full)
-    xtickangle(90)
-    ylabel 'Power generation (MWh/h)'
-    plot(1:months_yr,L_norm_bymonth(:,y_plot_median(end),plot_HPP).*ELCC_STOR_byyear(y_plot_median(end),plot_HPP),'k','LineWidth',3)
-    legend 'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
-    title('monthly generation in median year (STOR)')
-    
-    % [plot] multi-year average monthly power mix in user-selected year
-    subplot(1,2,2)
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_STOR_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_STOR_bymonth(:,plot_year,plot_HPP)'; E_solar_STOR_bymonth(:,plot_year,plot_HPP)'; -1.*E_hydro_pump_STOR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
     h = area(1:12,area_mix_STOR_bymonth','FaceColor','flat');
     h(1).FaceColor = colour_hydro_stable;
