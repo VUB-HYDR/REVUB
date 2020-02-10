@@ -889,7 +889,6 @@ for HPP in range(HPP_number):
                 elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop*V_max[HPP] and np.nanmin(V_BAL_hourly[:,:,HPP]) < f_stop*V_max[HPP]:
                     psi_BAL[f] = np.nan
                 
-            # psi_BAL
             
             # [identify] minimum in psi (eq. S21)
             if np.sum(np.isnan(psi_BAL)) == len(psi_BAL) and f_demand_BAL[0] == 0:
@@ -1620,7 +1619,6 @@ for HPP in range(HPP_number):
                     elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop*V_max[HPP] and np.nanmin(V_STOR_hourly_upper[:,:,HPP]) < f_stop*V_max[HPP]:
                         psi_STOR[f] = np.nan
                     
-                # psi_STOR
                 
                 # [identify] minimum in psi (eq. S21)
                 if np.sum(np.isnan(psi_STOR)) == len(psi_STOR) and f_demand_STOR[0] == 0:
