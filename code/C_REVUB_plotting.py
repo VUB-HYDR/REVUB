@@ -16,8 +16,8 @@ import numbers as nb
 import matplotlib.pyplot as plt
 import numpy.matlib
 
-# [set by user] select hydropower plant and year for which to display results
-plot_HPP = 1
+# [set by user] select hydropower plant (starting count at zero) and year (starting count at zero) for which to display results
+plot_HPP = 0
 plot_year = 14
 
 # [set by user] select month of year (1 = Jan, 2 = Feb, &c.) and day of month, and number of days to display results
@@ -311,7 +311,7 @@ plt.show
 fig = plt.figure()
 area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
 labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
-labels_load = 'Total load'
+labels_load = 'ELCC'
 plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
 plt.plot(np.array(range(months_yr)), L_norm_bymonth[:,plot_year,plot_HPP]*ELCC_BAL_byyear[plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -330,7 +330,7 @@ plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[1], 
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[2], bottom = np.sum(E_generated_BAL_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[3], bottom = np.sum(E_generated_BAL_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[4], bottom = np.sum(E_generated_BAL_bymonth_sum[0:4], axis = 0), label = 'Hydropower (RoR)', color = colour_hydro_RoR)
-plt.plot(np.array(range(len(simulation_years))), ELCC_BAL_yearly[:,plot_HPP]/10**3, label = 'Total load', color = 'black', linewidth = 3)
+plt.plot(np.array(range(len(simulation_years))), ELCC_BAL_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
 plt.xlabel('year')
@@ -346,7 +346,7 @@ fig = plt.figure()
 area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
 plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
 ELCC_BAL_byday = P_followed_BAL_range[plot_year, int(P_followed_BAL_index[plot_year,plot_HPP]), plot_HPP]*L_norm[hrs_year,plot_year,plot_HPP]
-plt.plot(np.array(hrs_year), ELCC_BAL_byday, label = 'Total load', color = 'black', linewidth = 3)
+plt.plot(np.array(hrs_year), ELCC_BAL_byday, label = 'ELCC', color = 'black', linewidth = 3)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
 plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
@@ -365,7 +365,7 @@ if STOR_break[plot_HPP] == 0:
     fig = plt.figure()
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_pump_STOR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
     labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Pump-stored excess']
-    labels_load = 'Total load'
+    labels_load = 'ELCC'
     plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
     plt.plot(np.array(range(months_yr)), L_norm_bymonth[:,plot_year,plot_HPP]*ELCC_STOR_byyear[plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -383,7 +383,7 @@ if STOR_break[plot_HPP] == 0:
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Pump-stored excess', color = colour_hydro_pumped)
-    plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'Total load', color = 'black', linewidth = 3)
+    plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
     plt.xlabel('year')
@@ -398,7 +398,7 @@ if STOR_break[plot_HPP] == 0:
     area_mix_full = [P_STOR_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_STOR_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_STOR_wind_hourly[hrs_year,plot_year,plot_HPP], P_STOR_solar_hourly[hrs_year,plot_year,plot_HPP], -1*P_STOR_pump_hourly[hrs_year,plot_year,plot_HPP]]
     plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
     ELCC_STOR_byday = P_followed_STOR_range[plot_year, int(P_followed_STOR_index[plot_year,plot_HPP]), plot_HPP]*L_norm[hrs_year,plot_year,plot_HPP]
-    plt.plot(np.array(hrs_year), ELCC_STOR_byday, label = 'Total load', color = 'black', linewidth = 3)
+    plt.plot(np.array(hrs_year), ELCC_STOR_byday, label = 'ELCC', color = 'black', linewidth = 3)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
     plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
