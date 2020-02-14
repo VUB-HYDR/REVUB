@@ -58,16 +58,6 @@ end
 str_axis = str(:,:,plot_year);
 str_axis(ismissing(str_axis)) = [];
 
-% [arrange] number of days per month as 1D array
-temp = days_year(:);
-% [preallocate] cumulative number of hours since start of simulation period
-N_hours_cumulative = zeros(1,size(days_year,1)*size(days_year,2));
-% [loop] over all days in the simulation to calculate cumulative number of hours
-for n = 1:size(days_year,1)*size(days_year,2)
-    N_hours_cumulative(n) = sum(temp(1:n))*hrs_day;
-end
-clear temp
-
 % [colours] for plotting
 colour_nat = [77, 175, 74] / 255;
 colour_CONV = [55, 126, 184] / 255;
