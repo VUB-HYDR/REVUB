@@ -22,7 +22,7 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 
 # 2. Installation
 ---
-The model exists in two languages: a MATLAB version (written for MATLAB R2017b) and a Python version (written for Python 2.7.9). 
+The model exists in two languages: a MATLAB version (written for MATLAB R2017b) and a Python version (written for Python 3.7). 
 The files given in this GitHub folder contain code and data needed to run the same minimum working example for both languages. 
 Note that the Python code has not been parallelized as of yet and runs slower than the MATLAB code.
 
