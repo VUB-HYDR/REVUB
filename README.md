@@ -22,7 +22,7 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 
 # 2. Installation
 ---
-The model exists in two languages: a MATLAB version (written for MATLAB R2017b) and a Python version (written for Python 3.7). 
+The model exists in two languages: a Python version (written for Python 3.7) and a MATLAB version (written for MATLAB R2017b).
 The files given in this GitHub folder contain code and data needed to run the same minimum working example for both languages. 
 Note that the Python code has not been parallelized as of yet and runs slower than the MATLAB code.
 
@@ -40,9 +40,9 @@ The second script runs the actual REVUB model simulation and optimisation.
  
 * **C_REVUB_plotting**
 
-The third script produces figure outputs for Bui (set plot_HPP = 1 in MATLAB or plot_HPP = 0 in Python) or Buyo (set plot_HPP = 2 in MATLAB or plot_HPP = 1 in Python), most of which can also be found in the publication or its SI (for the same example).
+The third script produces figure outputs for Bui (set plot_HPP = 0 in Python or plot_HPP = 1 in MATLAB) or Buyo (set plot_HPP = 1 in Python or plot_HPP = 2 in MATLAB), most of which can also be found in the publication or its SI (for the same example).
 
-To produce the figure outputs, simply run the scripts (.m for MATLAB, .py for Python) in the order A-B-C.
+To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
 
 ## Versions
 Version 0.1.0 - September 2019 (MATLAB)
