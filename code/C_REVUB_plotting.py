@@ -388,7 +388,7 @@ if STOR_break[plot_HPP] == 0:
     plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
     plt.xlabel('year')
     plt.ylabel('Power generation (GWh/year)')
-    plt.ylim([0, np.max(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
+    plt.ylim([0, np.max(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
     plt.title('Multiannual generation (STOR)')
     plt.savefig("Fig5_b.png", dpi = 300, bbox_inches = 'tight')
     
