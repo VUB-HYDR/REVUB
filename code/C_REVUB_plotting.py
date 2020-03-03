@@ -325,7 +325,7 @@ plt.savefig("Fig4.png", dpi = 300, bbox_inches = 'tight')
 # [plot] power mix by year
 fig = plt.figure()
 E_generated_BAL_bymonth_sum = [np.sum(E_hydro_BAL_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_BAL_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_BAL_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_BAL_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP], axis = 0)]
-plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[0], bottom = np.sum(E_generated_BAL_bymonth_sum[0:0], axis = 0), color = colour_hydro_stable, label = 'Hydropower (stable)')
+plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[0], bottom = np.sum(E_generated_BAL_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[1], bottom = np.sum(E_generated_BAL_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[2], bottom = np.sum(E_generated_BAL_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[3], bottom = np.sum(E_generated_BAL_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
@@ -378,7 +378,7 @@ if STOR_break[plot_HPP] == 0:
     # [plot] power mix by year
     fig = plt.figure()
     E_generated_STOR_bymonth_sum = [np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_STOR_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_STOR_bymonth[:,:,plot_HPP], axis = 0), -1*np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP], axis = 0)]
-    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[0], bottom = np.sum(E_generated_STOR_bymonth_sum[0:0], axis = 0), color = colour_hydro_stable, label = 'Hydropower (stable)')
+    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[0], bottom = np.sum(E_generated_STOR_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
