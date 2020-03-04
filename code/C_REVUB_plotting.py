@@ -60,7 +60,6 @@ colour_nat = np.array([77, 175, 74]) / 255
 colour_CONV = np.array([55, 126, 184]) / 255
 colour_BAL = np.array([228, 26, 28]) / 255
 colour_STOR = np.array([255, 255, 51]) / 255
-colour_orange = np.array([255, 127, 0]) / 255
 colour_hydro_stable = np.array([55, 126, 184]) / 255
 colour_hydro_flexible = np.array([106, 226, 207]) / 255
 colour_solar = np.array([255, 255, 51]) / 255
@@ -364,7 +363,7 @@ if STOR_break[plot_HPP] == 0:
     # [plot] power mix by month in selected year
     fig = plt.figure()
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_pump_STOR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
-    labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Pump-stored excess']
+    labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored VRE']
     labels_load = 'ELCC'
     plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
     plt.plot(np.array(range(months_yr)), L_norm_bymonth[:,plot_year,plot_HPP]*ELCC_STOR_byyear[plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
@@ -382,7 +381,7 @@ if STOR_break[plot_HPP] == 0:
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
-    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Pump-stored excess', color = colour_hydro_pumped)
+    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
     plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
