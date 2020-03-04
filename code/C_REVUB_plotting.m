@@ -413,7 +413,7 @@ if STOR_break(plot_HPP) == 0
     xtickangle(90)
     ylabel 'Power generation (MWh/h)'
     plot(1:months_yr,L_norm_bymonth(:,plot_year,plot_HPP).*ELCC_STOR_byyear(plot_year,plot_HPP),'k','LineWidth',3)
-    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
+    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     title(strcat('monthly generation in ', '$\mbox{ }$', 'year', '$\mbox{ }$', num2str(plot_year),'$\mbox{ }$(BAL)'))
 
     
@@ -437,7 +437,7 @@ if STOR_break(plot_HPP) == 0
     yyaxis right
     plot(simulation_years,ELCC_STOR_yearly(:,plot_HPP)./10^3,'k','LineWidth',2)
     ylim([0 max(sum(E_generated_STOR_bymonth_sum,1))*1.1])
-    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
+    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     title 'Multiannual generation (STOR)'
     
     figure()
@@ -454,7 +454,7 @@ if STOR_break(plot_HPP) == 0
     xlim([hrs_day*plot_day_load hrs_day*(plot_day_load + plot_num_days)])
     xticks(hrs_year(1) - 1:hrs_day:hrs_year(end))
     xticklabels(str_axis)
-    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Excess RE stored by pumping' 'Load followed (ELCC)'
+    legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     xlabel 'day of the year'
     ylabel 'Power generation (MWh/h)'
     title 'Daily generation \& load profiles (STOR)'
