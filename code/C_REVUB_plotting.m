@@ -328,7 +328,7 @@ title 'inflow vs. outflow (monthly)'
 
 
 % [figure] (cf. Fig. S4a, S9a)
-% [plot] multi-year average monthly power mix in user-selected year
+% [plot] average monthly power mix in user-selected year
 figure()
 area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_BAL_bymonth(:,plot_year,plot_HPP)'; E_solar_BAL_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_RoR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
 h = area(1:12,area_mix_BAL_bymonth','FaceColor','flat');
@@ -397,7 +397,7 @@ title 'Daily generation \& load profiles (BAL)'
 if STOR_break(plot_HPP) == 0
     
     % [figure] (cf. Fig. S4a, S9a)
-    % [plot] multi-year average monthly power mix in user-selected year
+    % [plot] average monthly power mix in user-selected year
     figure()
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_STOR_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_STOR_bymonth(:,plot_year,plot_HPP)'; E_solar_STOR_bymonth(:,plot_year,plot_HPP)'; -1.*E_hydro_pump_STOR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
     h = area(1:12,area_mix_STOR_bymonth','FaceColor','flat');

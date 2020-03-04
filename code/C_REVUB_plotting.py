@@ -306,7 +306,7 @@ plt.show
 
 
 # [figure] (cf. Fig. S4a, S9a)
-# [plot] multi-year average monthly power mix in user-selected year
+# [plot] average monthly power mix in user-selected year
 fig = plt.figure()
 area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
 labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
@@ -360,7 +360,7 @@ plt.savefig("Fig6.png", dpi = 300, bbox_inches = 'tight')
 if STOR_break[plot_HPP] == 0:
     
     # [figure] (cf. Fig. S4a, S9a)
-    # [plot] multi-year average monthly power mix in user-selected year
+    # [plot] average monthly power mix in user-selected year
     fig = plt.figure()
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_pump_STOR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
     labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored VRE']
