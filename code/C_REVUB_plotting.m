@@ -328,7 +328,6 @@ title 'inflow vs. outflow (monthly)'
 
 
 % [figure] (cf. Fig. S4a, S9a)
-
 % [plot] multi-year average monthly power mix in user-selected year
 figure()
 area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_BAL_bymonth(:,plot_year,plot_HPP)'; E_solar_BAL_bymonth(:,plot_year,plot_HPP)'; E_hydro_BAL_RoR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
@@ -394,10 +393,11 @@ xlabel 'Day of the year'
 ylabel 'Power generation (MWh/h)'
 title 'Daily generation \& load profiles (BAL)'
 
-% [figure] if STOR scenario available
-% STOR
+% [check] if STOR scenario available
 if STOR_break(plot_HPP) == 0
     
+    % [figure] (cf. Fig. S4a, S9a)
+    % [plot] multi-year average monthly power mix in user-selected year
     figure()
     area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth(:,plot_year,plot_HPP)'; E_hydro_STOR_flexible_bymonth(:,plot_year,plot_HPP)'; E_wind_STOR_bymonth(:,plot_year,plot_HPP)'; E_solar_STOR_bymonth(:,plot_year,plot_HPP)'; -1.*E_hydro_pump_STOR_bymonth(:,plot_year,plot_HPP)']./days_year(:,plot_year)'.*10^3/hrs_day;
     h = area(1:12,area_mix_STOR_bymonth','FaceColor','flat');
@@ -416,7 +416,6 @@ if STOR_break(plot_HPP) == 0
     legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     title(strcat('monthly generation in ', '$\mbox{ }$', 'year', '$\mbox{ }$', num2str(plot_year),'$\mbox{ }$(BAL)'))
 
-    
     % [figure] (cf. Fig. S4b, S9b)
     % [plot] power mix by year
     figure()
@@ -440,6 +439,8 @@ if STOR_break(plot_HPP) == 0
     legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     title 'Multiannual generation (STOR)'
     
+    % [figure] (cf. Fig. 2 main paper, Fig. S5)
+    % [plot] power mix for selected days of selected month
     figure()
     area_mix_full = [P_STOR_hydro_stable_hourly(hrs_year,plot_year,plot_HPP)'; P_STOR_hydro_flexible_hourly(hrs_year,plot_year,plot_HPP)'; P_STOR_wind_hourly(hrs_year,plot_year,plot_HPP)'; P_STOR_solar_hourly(hrs_year,plot_year,plot_HPP)'; -1.*P_STOR_pump_hourly(hrs_year,plot_year,plot_HPP)';];
     h = area(hrs_year - 1,area_mix_full','FaceColor','flat');
