@@ -95,7 +95,7 @@ E_hydro_STOR_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_num
 E_hydro_pump_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
 
-% [preallocate] extra variables to plot ELCC_tot
+% [preallocate] to plot ELCC at hourly and monthly timestep
 ELCC_BAL_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 ELCC_STOR_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 ELCC_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
@@ -131,7 +131,7 @@ for HPP = 1:HPP_number
                 
     end
     
-    % [calculate] ELCC_tot across assessed HPPs (MWh/h)
+    % [calculate] ELCC at hourly and monthly timestep (MWh/h)
     ELCC_BAL_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
     ELCC_BAL_bymonth(:,:,HPP) = L_norm_bymonth(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
     ELCC_STOR_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_STOR_yearly(:,HPP)'./hrs_byyear;

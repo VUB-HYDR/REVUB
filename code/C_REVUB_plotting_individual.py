@@ -90,7 +90,7 @@ E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years
 E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
-# [preallocate] extra variables to plot ELCC_tot
+# [preallocate] to plot ELCC at hourly and monthly timestep
 ELCC_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
 ELCC_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
 ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
@@ -126,7 +126,7 @@ for HPP in range(HPP_number):
                 Q_in_nat_monthly_total[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 
             
-    # [calculate] ELCC_tot across assessed HPPs (MWh/h)
+    # [calculate] ELCC at hourly and monthly timestep (MWh/h)
     ELCC_BAL_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
     ELCC_BAL_bymonth[:,:,HPP] = L_norm_bymonth[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
     ELCC_STOR_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_STOR_yearly[:,HPP]/hrs_byyear
