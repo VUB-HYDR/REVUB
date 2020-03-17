@@ -25,7 +25,7 @@ plot_month_multiple = 4
 plot_day_month_multiple = 2
 plot_num_days_multiple = 3
 
-# [set] total electricity demand to be met (MW)
+# [set] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = 400
 P_total_hourly = P_total_av*L_norm[:,:,0]
 
