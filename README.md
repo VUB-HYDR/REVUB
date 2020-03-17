@@ -33,14 +33,19 @@ Note that the Python code has not been parallelized as of yet and runs slower th
 There are three main scripts:
 * **A_REVUB_initialise_minimum_example**
 
-The first script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
+This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
+
 * **B_REVUB_main_code**
 
-The second script runs the actual REVUB model simulation and optimisation.
+This script runs the actual REVUB model simulation and optimisation.
  
-* **C_REVUB_plotting**
+* **C_REVUB_plotting_individual**
 
-The third script produces figure outputs for Bui (set plot_HPP = 0 in Python or plot_HPP = 1 in MATLAB) or Buyo (set plot_HPP = 1 in Python or plot_HPP = 2 in MATLAB), most of which can also be found in the publication or its SI (for the same example).
+This script produces figure outputs for the individually simulated plants, in this case Bui (set plot_HPP = 0 in Python or plot_HPP = 1 in MATLAB) or Buyo (set plot_HPP = 1 in Python or plot_HPP = 2 in MATLAB), most of which can also be found in the publication or its SI (for the same example).
+
+* **C_REVUB_plotting_nultiple**
+
+This script produces figure outputs for a user-defined ensemble of the simulated plants (e.g. setting plot_HPP_multiple = np.array([0, 1]) in Python or plot_HPP_multiple = [1 2] in MATLAB will provide aggregate results for Bui and Buyo).
 
 To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
 

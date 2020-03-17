@@ -314,7 +314,6 @@ P_followed_BAL_index = np.zeros(shape = (len(simulation_years), HPP_number))
 P_followed_STOR_index = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Achieved ELCC (MWh/year)
-ELCC_CONV_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 ELCC_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
@@ -356,9 +355,6 @@ E_wind_STOR_statistics_pct25 = np.full(HPP_number, np.nan)
 E_wind_STOR_statistics_pct75 = np.full(HPP_number, np.nan)
 
 # [preallocate] Achieved ELCC - statistics (GWh/year)
-ELCC_CONV_statistics_median = np.full(HPP_number, np.nan)
-ELCC_CONV_statistics_pct25 = np.full(HPP_number, np.nan)
-ELCC_CONV_statistics_pct75 = np.full(HPP_number, np.nan)
 ELCC_BAL_statistics_median = np.full(HPP_number, np.nan)
 ELCC_BAL_statistics_pct25 = np.full(HPP_number, np.nan)
 ELCC_BAL_statistics_pct75 = np.full(HPP_number, np.nan)
@@ -391,14 +387,6 @@ L_res_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_
 # is distributed over different months.
 L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
-
-
-##### DATA OUTPUT FILE #####
-
-
-# [preallocate] Table with main output parameters for post-processing (column 7-12 in Table S3-7)
-data_SI_B_BAL = np.full([HPP_number, 7], np.nan)
-data_SI_B_STOR = np.full([HPP_number, 7], np.nan)
 
 
 
@@ -1293,8 +1281,6 @@ for HPP in range(HPP_number):
         
         # [check] if criterion on k_turb is met for BAL, wrap up simulation and write data
         if np.median(np.nanpercentile(k_turb_hourly_BAL[:,:,HPP],99,0)) < 1:
-            # [arrange] data for tables in SI B (column 7-12 in Table S3-7)
-            data_SI_B_BAL[HPP,:] = np.array([P_r_turb[HPP], C_OR_range_BAL[q], E_hydro_BAL_nonRoR_statistics_median[HPP], E_hydro_BAL_RoR_statistics_median[HPP], E_solar_BAL_statistics_median[HPP], E_wind_BAL_statistics_median[HPP], ELCC_BAL_statistics_median[HPP]])
             break
         else:
             # [display] in case k_turb criterion was not met (eq. S28)
@@ -2057,8 +2043,6 @@ for HPP in range(HPP_number):
             
             # [check] if criterion on k_turb is met for STOR, wrap up simulation and write data
             if np.median(np.nanpercentile(k_turb_hourly_STOR[:,:,HPP],99,0)) < 1:
-                # [arrange] data for tables in SI B (column 7-12 in Table S3-7)
-                data_SI_B_STOR[HPP,:] = np.array([P_r_turb[HPP], C_OR_range_STOR[q], E_hydro_STOR_statistics_median[HPP], 0, E_solar_STOR_statistics_median[HPP], E_wind_STOR_statistics_median[HPP], ELCC_STOR_statistics_median[HPP]])
                 break
             else:
                 # [display] in case k_turb criterion was not met (eq. S28)

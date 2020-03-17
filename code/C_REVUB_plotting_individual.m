@@ -79,14 +79,13 @@ Q_in_nat_monthly_total = zeros(months_yr,length(simulation_years),HPP_number);
 E_CONV_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 
 % [preallocate] to aggregate output variables by month for BAL
+L_norm_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_hydro_BAL_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_solar_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_wind_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_hydro_BAL_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_hydro_BAL_RoR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-ELCC_BAL_byyear = zeros(length(simulation_years),HPP_number);
 hydro_BAL_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number); 
-L_norm_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 
 % [preallocate] to aggregate output variables by month for STOR
 E_hydro_STOR_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
@@ -94,8 +93,13 @@ E_solar_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_wind_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_hydro_STOR_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 E_hydro_pump_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-ELCC_STOR_byyear = zeros(length(simulation_years),HPP_number);
 hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
+
+% [preallocate] extra variables to plot ELCC_tot
+ELCC_BAL_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+ELCC_STOR_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+ELCC_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
+ELCC_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 
 % [loop] across all hydropower plants to aggregate output variables by month
 for HPP = 1:HPP_number
@@ -124,22 +128,14 @@ for HPP = 1:HPP_number
             
             Q_in_nat_monthly_total(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
         end
-        
-        % [calculate] achieved ELCC per year for BAL (eq. S23)
-        if P_followed_BAL_index(y,HPP) == 0
-            ELCC_BAL_byyear(y,HPP) = 0;
-        else
-            ELCC_BAL_byyear(y,HPP) = P_followed_BAL_range(y,P_followed_BAL_index(y,HPP),HPP);
-        end
-        
-        % [calculate] achieved ELCC per year for STOR
-        if P_followed_STOR_index(y,HPP) == 0
-            ELCC_STOR_byyear(y,HPP) = 0;
-        else
-            ELCC_STOR_byyear(y,HPP) = P_followed_STOR_range(y,P_followed_STOR_index(y,HPP),HPP);
-        end
-        
+                
     end
+    
+    % [calculate] ELCC_tot across assessed HPPs (MWh/h)
+    ELCC_BAL_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
+    ELCC_BAL_bymonth(:,:,HPP) = L_norm_bymonth(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
+    ELCC_STOR_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_STOR_yearly(:,HPP)'./hrs_byyear;
+    ELCC_STOR_bymonth(:,:,HPP) = L_norm_bymonth(:,:,HPP).*ELCC_STOR_yearly(:,HPP)'./hrs_byyear;
     
 end
 
@@ -316,7 +312,7 @@ if STOR_break(plot_HPP) == 0
     plot([1:length(temp(:))],temp(:),'Color',colour_STOR,'LineStyle','--')
     legend '$Q_{in}$' '$Q_{out,CONV}$' '$Q_{out,BAL}$' '$Q_{out,STOR}$'
 else
-    legend '$Q_{in}$' '$Q_{out,CONV}$' '$Q_{out,BAL}$'
+    legend '$Q_{in}$' '$Q_{out,BAL}$'
 end
 xticks([1:months_yr:months_yr*(length(simulation_years) + 2)])
 xticklabels([1:length(simulation_years) + 2])
@@ -343,7 +339,7 @@ xticks(1:months_yr)
 xticklabels(months_names_full)
 xtickangle(90)
 ylabel 'Power generation (MWh/h)'
-plot(1:months_yr,L_norm_bymonth(:,plot_year,plot_HPP).*ELCC_BAL_byyear(plot_year,plot_HPP),'k','LineWidth',3)
+plot(1:months_yr,ELCC_BAL_bymonth(:,plot_year,plot_HPP),'k','LineWidth',3)
 legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Hydropower (RoR)' 'Load followed (ELCC)'
 title(strcat('monthly generation in ', '$\mbox{ }$', 'year', '$\mbox{ }$', num2str(plot_year),'$\mbox{ }$(BAL)'))
 
@@ -382,8 +378,7 @@ h(3).FaceColor = colour_wind;
 h(4).FaceColor = colour_solar;
 h(5).FaceColor = colour_hydro_RoR;
 hold on
-ELCC_BAL_byday = P_followed_BAL_range(plot_year,P_followed_BAL_index(plot_year,plot_HPP),plot_HPP).*L_norm(hrs_year,plot_year,plot_HPP);
-plot(hrs_year - 1,ELCC_BAL_byday,'k','LineWidth',2)
+plot(hrs_year - 1,ELCC_BAL_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
 xlim([hrs_day*plot_day_load hrs_day*(plot_day_load + plot_num_days)])
 xticks(hrs_year(1) - 1:hrs_day:hrs_year(end))
 xticklabels(str_axis)
@@ -412,10 +407,10 @@ if STOR_break(plot_HPP) == 0
     xticklabels(months_names_full)
     xtickangle(90)
     ylabel 'Power generation (MWh/h)'
-    plot(1:months_yr,L_norm_bymonth(:,plot_year,plot_HPP).*ELCC_STOR_byyear(plot_year,plot_HPP),'k','LineWidth',3)
+    plot(1:months_yr,ELCC_STOR_bymonth(:,plot_year,plot_HPP),'k','LineWidth',3)
     legend  'Hydropower (stable)' 'Hydropower (flexible)' 'Wind power' 'Solar power' 'Stored VRE' 'Load followed (ELCC)'
     title(strcat('monthly generation in ', '$\mbox{ }$', 'year', '$\mbox{ }$', num2str(plot_year),'$\mbox{ }$(BAL)'))
-
+    
     % [figure] (cf. Fig. S4b, S9b)
     % [plot] power mix by year
     figure()
@@ -450,8 +445,7 @@ if STOR_break(plot_HPP) == 0
     h(4).FaceColor = colour_solar;
     h(5).FaceColor = colour_hydro_pumped;
     hold on
-    ELCC_STOR_byday = P_followed_STOR_range(plot_year,P_followed_STOR_index(plot_year,plot_HPP),plot_HPP).*L_norm(hrs_year,plot_year,plot_HPP);
-    plot(hrs_year - 1,ELCC_STOR_byday,'k','LineWidth',2)
+    plot(hrs_year - 1,ELCC_STOR_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
     xlim([hrs_day*plot_day_load hrs_day*(plot_day_load + plot_num_days)])
     xticks(hrs_year(1) - 1:hrs_day:hrs_year(end))
     xticklabels(str_axis)
