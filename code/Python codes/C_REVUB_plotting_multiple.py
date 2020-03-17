@@ -25,11 +25,11 @@ plot_month_multiple = 4
 plot_day_month_multiple = 2
 plot_num_days_multiple = 3
 
-# [set] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
+# [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = 400
 P_total_hourly = P_total_av*L_norm[:,:,0]
 
-# [set] use STOR equal to BAL for reservoirs where STOR not modelled
+# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
 for HPP in plot_HPP_multiple:
     if STOR_break[HPP] == 1:
         P_STOR_hydro_stable_hourly[:,:,HPP] = P_BAL_hydro_stable_hourly[:,:,HPP]
