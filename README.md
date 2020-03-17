@@ -43,7 +43,7 @@ This script runs the actual REVUB model simulation and optimisation.
 
 This script produces figure outputs for the individually simulated plants, in this case Bui (set plot_HPP = 0 in Python or plot_HPP = 1 in MATLAB) or Buyo (set plot_HPP = 1 in Python or plot_HPP = 2 in MATLAB), most of which can also be found in the publication or its SI (for the same example).
 
-* **C_REVUB_plotting_nultiple**
+* **C_REVUB_plotting_multiple**
 
 This script produces figure outputs for a user-defined ensemble of the simulated plants (e.g. setting plot_HPP_multiple = np.array([0, 1]) in Python or plot_HPP_multiple = [1 2] in MATLAB will provide aggregate results for Bui and Buyo).
 
