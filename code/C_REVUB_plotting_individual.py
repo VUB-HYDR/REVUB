@@ -90,7 +90,7 @@ E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years
 E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
-# [NEW] [preallocate] extra variables to plot ELCC_tot
+# [preallocate] extra variables to plot ELCC_tot
 ELCC_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
 ELCC_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
 ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
@@ -126,7 +126,7 @@ for HPP in range(HPP_number):
                 Q_in_nat_monthly_total[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 
             
-    # [NEW] [calculate] ELCC_tot across assessed HPPs (MWh/h)
+    # [calculate] ELCC_tot across assessed HPPs (MWh/h)
     ELCC_BAL_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
     ELCC_BAL_bymonth[:,:,HPP] = L_norm_bymonth[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
     ELCC_STOR_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_STOR_yearly[:,HPP]/hrs_byyear
@@ -311,8 +311,6 @@ area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydr
 labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
 labels_load = 'ELCC'
 plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-#plt.plot(np.array(range(months_yr)), L_norm_bymonth[:,plot_year,plot_HPP]*ELCC_BAL_byyear[plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
-# [NEW]
 plt.plot(np.array(range(months_yr)),ELCC_BAL_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
@@ -345,9 +343,6 @@ plt.savefig("Fig5.png", dpi = 300, bbox_inches = 'tight')
 fig = plt.figure()
 area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
 plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-#ELCC_BAL_byday = P_followed_BAL_range[plot_year, int(P_followed_BAL_index[plot_year,plot_HPP]), plot_HPP]*L_norm[hrs_year,plot_year,plot_HPP]
-#plt.plot(np.array(hrs_year), ELCC_BAL_byday, label = 'ELCC', color = 'black', linewidth = 3)
-#[NEW]
 plt.plot(np.array(hrs_year),ELCC_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
@@ -369,8 +364,6 @@ if STOR_break[plot_HPP] == 0:
     labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored VRE']
     labels_load = 'ELCC'
     plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-    #plt.plot(np.array(range(months_yr)), L_norm_bymonth[:,plot_year,plot_HPP]*ELCC_STOR_byyear[plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
-    # [NEW]
     plt.plot(np.array(range(months_yr)),ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
@@ -403,9 +396,6 @@ if STOR_break[plot_HPP] == 0:
     fig = plt.figure()
     area_mix_full = [P_STOR_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_STOR_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_STOR_wind_hourly[hrs_year,plot_year,plot_HPP], P_STOR_solar_hourly[hrs_year,plot_year,plot_HPP], -1*P_STOR_pump_hourly[hrs_year,plot_year,plot_HPP]]
     plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-    #ELCC_STOR_byday = P_followed_STOR_range[plot_year, int(P_followed_STOR_index[plot_year,plot_HPP]), plot_HPP]*L_norm[hrs_year,plot_year,plot_HPP]
-    #plt.plot(np.array(hrs_year), ELCC_STOR_byday, label = 'ELCC', color = 'black', linewidth = 3)
-    #[NEW]
     plt.plot(np.array(hrs_year),ELCC_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)

@@ -438,7 +438,7 @@ Q_in_RoR_store = Q_in_RoR_hourly;
 % This section carries out the actual REVUB optimization.
 
 % [loop] carry out CONV, BAL and (optionally) STOR simulation for every HPP
-for HPP = 23%[1:HPP_number]
+for HPP = [1:HPP_number]
     
     % [display] HPP for which simulation is being performed
     disp(strcat('HPP', {' '}, num2str(HPP), '/', num2str(HPP_number), {': '}, HPP_name(HPP)))
