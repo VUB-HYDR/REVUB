@@ -2061,7 +2061,7 @@ for HPP in range(HPP_number):
         E_overproduced_STOR_yearly[:,HPP] = np.nan
         E_SW_STOR_without_overproduction[:,HPP] = np.nan
         ELCC_STOR_yearly[:,HPP] = np.nan
-        
     
+
 # [display] signal simulation end
 print("simulation finished")
