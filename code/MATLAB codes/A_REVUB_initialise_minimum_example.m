@@ -115,7 +115,7 @@ C_OR_range_STOR = 1 - (d_min:0.05:0.9);
 % t_fill (eq. S1) is larger than threshold, classify as "large"
 T_fill_thres = 1.0;
 
-% [set by user] Optional: Requirement on Loss of Energy Expectation  (criterion (ii) on page 1 and Figure S1).
+% [set by user] Optional: Requirement on Loss of Energy Expectation  (criterion (ii) in Figure S1).
 % As default, the HSW mix does not allow for any LOEE. However, this criterion could be relaxed.
 % E.g. LOEE_allowed = 0.01 would mean that criterion (ii) is relaxed to 1% of yearly allowed LOEE instead of 0%.
 LOEE_allowed = 0;
