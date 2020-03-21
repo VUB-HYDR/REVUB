@@ -129,7 +129,8 @@ f_size = 90;
 % [set by user] name of hydropower plant
 HPP_name = ["Bui" "Buyo"];
 
-% [set by user] relative capacity of solar and wind to be installed
+% [set by user] relative capacity of solar vs. wind to be installed (cf. explanation below eq. S13)
+% e.g. c_solar_relative = 1 means only solar deployment, no wind deployment on the grid of each HPP in question.
 c_solar_relative = [0.573210768220617 1];
 c_wind_relative = 1 - c_solar_relative;
 
