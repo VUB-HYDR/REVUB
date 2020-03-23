@@ -200,7 +200,7 @@ ax2.set_ylabel('$A$ (m$^2$)')
 ax2.set_title('area vs. volume')
 
 plt.tight_layout()
-plt.savefig("Fig1.png", dpi = 300)
+plt.savefig(HPP_name[plot_HPP] + '_Fig1.png', dpi = 300)
 plt.show
 
 
@@ -260,7 +260,7 @@ ax3.set_ylabel('$Q$ (m$^3$/s)')
 ax3.set_title('inflow vs. outflow')
 
 plt.tight_layout()
-plt.savefig("Fig2.png", dpi = 300)
+plt.savefig(HPP_name[plot_HPP] + '_Fig2.png', dpi = 300)
 plt.show
 
 
@@ -300,7 +300,7 @@ ax2.set_ylabel('$Q(t)$ (m$^3$/s)')
 ax2.set_title('inflow vs. outflow (monthly)')
 
 plt.tight_layout()
-plt.savefig("Fig3.png", dpi = 300)
+plt.savefig(HPP_name[plot_HPP] + '_Fig3.png', dpi = 300)
 plt.show
 
 
@@ -316,7 +316,7 @@ plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', BAL)')
-plt.savefig("Fig4.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
 
 
 # [figure] (cf. Fig. S4b, S9b)
@@ -335,7 +335,7 @@ plt.xlabel('year')
 plt.ylabel('Power generation (GWh/year)')
 plt.ylim([0, np.max(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
 plt.title('Multiannual generation (BAL)')
-plt.savefig("Fig5.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(HPP_name[plot_HPP] + '_Fig5.png', dpi = 300, bbox_inches = 'tight')
 
 
 # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -351,7 +351,7 @@ plt.ylim([0, np.max(np.sum(area_mix_full, axis = 0)*1.1)])
 plt.xlabel('Day of the year')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('Daily generation & load profiles (BAL)')
-plt.savefig("Fig6.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
 
 
 # [check] if STOR scenario available
@@ -369,7 +369,7 @@ if STOR_break[plot_HPP] == 0:
     plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
     plt.ylabel('Power generation (MWh/h)')
     plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', STOR)')
-    plt.savefig("Fig4_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
     
     
     # [figure] (cf. Fig. S4b, S9b)
@@ -388,7 +388,7 @@ if STOR_break[plot_HPP] == 0:
     plt.ylabel('Power generation (GWh/year)')
     plt.ylim([0, np.max(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
     plt.title('Multiannual generation (STOR)')
-    plt.savefig("Fig5_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(HPP_name[plot_HPP] + '_Fig5_b.png', dpi = 300, bbox_inches = 'tight')
     
     
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -404,7 +404,7 @@ if STOR_break[plot_HPP] == 0:
     plt.xlabel('Day of the year')
     plt.ylabel('Power generation (MWh/h)')
     plt.title('Daily generation & load profiles (STOR)')
-    plt.savefig("Fig6_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
 
 
 # [preallocate] vectors for adapted rules under BAL
@@ -502,5 +502,5 @@ plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xlabel('Hydraulic head (m)')
 plt.ylabel('$Q_{out}$ (m$^3$/s)')
 plt.title('release rules (BAL)')
-plt.savefig("Fig7.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
 
