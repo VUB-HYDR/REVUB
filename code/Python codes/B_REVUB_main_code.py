@@ -283,22 +283,14 @@ E_solar_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Hydro + solar + wind generation in BAL (MWh/year)
-E_SW_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))                     # total yearly SW generation
-E_HSW_BAL_yearly = np.full([len(simulation_years), HPP_number], np.nan)                     # total yearly HSW generation
-E_overproduced_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))           # yearly overproduction compared to ELCC in BAL (MWh/year)
-E_SW_BAL_without_overproduction = np.zeros(shape = (len(simulation_years), HPP_number))     # amount of SW generation minus overproduction in BAL (MWh/year)
-share_SW_BAL = np.zeros(shape = (len(simulation_years), HPP_number))                        # share of solar-to-wind in power generation in BAL (% solar)
+E_HSW_BAL_yearly = np.full([len(simulation_years), HPP_number], np.nan)
 
 # [preallocate] Solar and wind power generation in STOR (MWh/year) (eq. S25)
 E_solar_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Hydro + solar + wind generation in STOR (MWh/year)
-E_SW_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))                    # total yearly SW generation
-E_HSW_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)                    # total yearly HSW generation
-E_overproduced_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))          # yearly overproduction compared to ELCC in STOR (MWh/year)
-E_SW_STOR_without_overproduction = np.zeros(shape = (len(simulation_years), HPP_number))    # amount of SW generation minus overproduction in STOR (MWh/year)
-share_SW_STOR = np.zeros(shape = (len(simulation_years), HPP_number))                       # share of solar-to-wind in power generation in STOR (% solar)
+E_HSW_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)
 
 
 ##### IDENTIFYING THE ACHIEVED ELCC UNDER OPTIMAL HSW COMBINATION #####
@@ -1127,10 +1119,6 @@ for HPP in range(HPP_number):
                 # [calculate] total solar and wind power generation under optimal BAL solution in MWh/year (eq. S25)
                 E_solar_BAL_yearly[y,HPP] = np.sum(P_BAL_solar_hourly[hrs_year,y,HPP])
                 E_wind_BAL_yearly[y,HPP] = np.sum(P_BAL_wind_hourly[hrs_year,y,HPP])
-                E_SW_BAL_yearly[y,HPP] = E_solar_BAL_yearly[y,HPP] + E_wind_BAL_yearly[y,HPP]
-                
-                # [calculate] share of solar (= 1 - share of wind) in the resulting SW mix
-                share_SW_BAL[y,HPP] = E_solar_BAL_yearly[y,HPP]/(E_solar_BAL_yearly[y,HPP] + E_wind_BAL_yearly[y,HPP])
                 
                 # [calculate] total flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
                 E_hydro_BAL_flexible_yearly[y,HPP] = np.sum(P_BAL_hydro_flexible_hourly[hrs_year,y,HPP])
@@ -1143,18 +1131,6 @@ for HPP in range(HPP_number):
                 
                 # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
                 E_hydro_BAL_RoR_yearly[y,HPP] = np.sum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
-                
-                # [calculate] total HSW generation under optimal BAL solution in MWh/year (excluding RoR component)
-                temp_power_delivered_BAL = P_BAL_solar_hourly[hrs_year,y,HPP] + P_BAL_wind_hourly[hrs_year,y,HPP] + P_BAL_hydro_stable_hourly[hrs_year,y,HPP] + P_BAL_hydro_flexible_hourly[hrs_year,y,HPP]
-                
-                # [calculate] net difference between generation and load under optimal BAL solution in MWh/year
-                temp_power_diff_BAL = temp_power_delivered_BAL - L_BAL_hourly[hrs_year,y,HPP]
-
-                # [calculate] yearly overproduction compared to load under optimal BAL solution in MWh/year
-                E_overproduced_BAL_yearly[y,HPP] = np.abs(np.sum(temp_power_diff_BAL[temp_power_diff_BAL > 0]))
-
-                # [calculate] yearly SW generation minus overproduction under optimal BAL solution in MWh/year
-                E_SW_BAL_without_overproduction[y,HPP] = E_solar_BAL_yearly[y,HPP] + E_wind_BAL_yearly[y,HPP] - E_overproduced_BAL_yearly[y,HPP]
                 
                 
                 ##### IDENTIFY YEARLY ELCC #####
@@ -1894,10 +1870,6 @@ for HPP in range(HPP_number):
                     # [calculate] total solar and wind power generation under optimal STOR solution in MWh/year (eq. S24)
                     E_solar_STOR_yearly[y,HPP] = np.sum(P_STOR_solar_hourly[hrs_year,y,HPP])
                     E_wind_STOR_yearly[y,HPP] = np.sum(P_STOR_wind_hourly[hrs_year,y,HPP])
-                    E_SW_STOR_yearly[y,HPP] = E_solar_STOR_yearly[y,HPP] + E_wind_STOR_yearly[y,HPP]
-                    
-                    # [calculate] share of solar (= 1 - share of wind) in the resulting SW mix
-                    share_SW_STOR[y,HPP] = E_solar_STOR_yearly[y,HPP]/(E_solar_STOR_yearly[y,HPP] + E_wind_STOR_yearly[y,HPP])
                     
                     # [calculate] total flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
                     E_hydro_STOR_flexible_yearly[y,HPP] = np.sum(P_STOR_hydro_flexible_hourly[hrs_year,y,HPP])
@@ -1910,19 +1882,7 @@ for HPP in range(HPP_number):
                     
                     # [calculate] total energy pumped up into reservoir in MWh/year
                     E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump
-                    
-                    # [calculate] total HSW generation under optimal STOR solution in MWh/year
-                    temp_power_delivered_STOR = P_STOR_solar_hourly[hrs_year,y,HPP] + P_STOR_wind_hourly[hrs_year,y,HPP] + P_STOR_hydro_stable_hourly[hrs_year,y,HPP] + P_STOR_hydro_flexible_hourly[hrs_year,y,HPP] -1*P_STOR_pump_hourly[hrs_year,y,HPP]
-                    
-                    # [calculate] net difference between generation and load under optimal STOR solution in MWh/year
-                    temp_power_diff_STOR = temp_power_delivered_STOR - L_STOR_hourly[hrs_year,y,HPP]
-                    
-                    # [calculate] yearly overproduction compared to load under optimal STOR solution in MWh/year
-                    E_overproduced_STOR_yearly[y,HPP] = np.abs(np.sum(temp_power_diff_STOR[temp_power_diff_STOR > 0]))
-                    
-                    # [calculate] yearly SW generation minus overproduction under optimal STOR solution in MWh/year
-                    E_SW_STOR_without_overproduction[y,HPP] = E_solar_STOR_yearly[y,HPP] + E_wind_STOR_yearly[y,HPP] - E_hydro_STOR_pump_yearly[y,HPP]/eta_pump - E_overproduced_STOR_yearly[y,HPP]
-                    
+                                          
                     
                     ##### IDENTIFY YEARLY ELCC #####
                     # [calculate] total supplied HSW generation under optimal STOR solution
@@ -2057,9 +2017,6 @@ for HPP in range(HPP_number):
         E_hydro_STOR_pump_yearly[:,HPP] = np.nan
         E_hydro_STOR_flexible_yearly[:,HPP] = np.nan
         E_hydro_STOR_stable_yearly[:,HPP] = np.nan
-        E_SW_STOR_yearly[:,HPP] = np.nan
-        E_overproduced_STOR_yearly[:,HPP] = np.nan
-        E_SW_STOR_without_overproduction[:,HPP] = np.nan
         ELCC_STOR_yearly[:,HPP] = np.nan
     
 
