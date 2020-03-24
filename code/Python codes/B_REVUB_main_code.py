@@ -1961,7 +1961,7 @@ for HPP in range(HPP_number):
                         temp2 = L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
                         L_unmet_STOR_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
                         
-                    # [arrange] yearly average outflow under optimal BAL solution
+                    # [arrange] yearly average outflow under optimal STOR solution
                     Q_STOR_out_yearly[y,HPP] = np.mean(Q_STOR_out_hourly[hrs_year,y,HPP])
                     
                     
@@ -2000,7 +2000,7 @@ for HPP in range(HPP_number):
             temp_head_STOR_series = temp_head_STOR_series[np.isfinite(temp_head_STOR_series)]
             h_STOR_series_hourly[:,HPP] = temp_head_STOR_series
             
-            # [display] once BAL simulation is complete
+            # [display] once STOR simulation is complete
             print("done")
             
             
@@ -2035,10 +2035,10 @@ for HPP in range(HPP_number):
             ratio_ELCC_E_hydro_STOR_yearly[:,HPP] = ELCC_STOR_yearly[:,HPP]/E_hydro_STOR_yearly[:,HPP]
             ratio_ELCC_E_hydro_STOR_median[HPP] = np.nanmedian(ratio_ELCC_E_hydro_STOR_yearly[:,HPP])
 
-            # [calculate] hourly hydropower capacity factor for BAL (eq. S42)
+            # [calculate] hourly hydropower capacity factor for STOR (eq. S42)
             CF_hydro_STOR_hourly[:,:,HPP] = (P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP])/(P_r_turb[HPP])
             
-            # [calculate] turbine exhaustion factor k_turb in BAL (eq. S28)
+            # [calculate] turbine exhaustion factor k_turb in STOR (eq. S28)
             k_turb_hourly_STOR[:,:,HPP] = (Q_STOR_stable_hourly[:,:,HPP] + Q_STOR_flexible_hourly[:,:,HPP])/Q_max_turb[HPP]
             
             # [check] if criterion on k_turb is met for STOR, wrap up simulation and write data
