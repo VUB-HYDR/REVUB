@@ -7,7 +7,7 @@ Created on Tue Jan 21 16:43:56 2020
 
 # © 2019 CIREG project
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper "Smart renewable portfolios to displace fossil fuels and avoid hydropower overexploitation" by Sterl et al.
+# This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
 # All equation, section &c. numbers refer to that paper and its Supplementary Materials, unless otherwise mentioned.
 
 import numpy as np
