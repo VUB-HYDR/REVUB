@@ -46,7 +46,7 @@ This script produces figure outputs for the individually simulated plants, in th
 
 * **C_REVUB_plotting_multiple**
 
-This script produces figure outputs for a user-defined ensemble of the simulated plants (e.g. setting plot_HPP_multiple = np.array([0, 1]) in Python or plot_HPP_multiple = [1 2] in MATLAB will provide aggregate results for Bui and Buyo).
+This script produces figure outputs for a user-defined ensemble of the simulated plants (e.g. setting plot_HPP_multiple = np.array([0, 1]) in Python or plot_HPP_multiple = [1 2] in MATLAB will provide aggregate results for Bui and Buyo), comparing overall hydro-solar-wind power generation to a user-set overall power demand curve.
 
 To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
 
