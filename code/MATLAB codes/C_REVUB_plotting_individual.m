@@ -312,7 +312,7 @@ if STOR_break(plot_HPP) == 0
     plot([1:length(temp(:))],temp(:),'Color',colour_STOR,'LineStyle','--')
     legend '$Q_{in}$' '$Q_{out,CONV}$' '$Q_{out,BAL}$' '$Q_{out,STOR}$'
 else
-    legend '$Q_{in}$' '$Q_{out,BAL}$'
+    legend '$Q_{in}$' '$Q_{out,CONV}$' '$Q_{out,BAL}$'
 end
 xticks([1:months_yr:months_yr*(length(simulation_years) + 2)])
 xticklabels([1:length(simulation_years) + 2])
