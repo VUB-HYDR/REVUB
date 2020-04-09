@@ -7,8 +7,6 @@
 % This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
 % All equation, section &c. numbers refer to that paper and its Supplementary Materials, unless otherwise mentioned.
 
-% This code initialises all data needed for a minimum working example (Bui hydropower plant in Ghana and Buyo hydropower plant in Côte d'Ivoire under the REFERENCE scenario).
-
 clc; clear all; close all
 
 

@@ -95,9 +95,7 @@ E_hydro_STOR_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_num
 E_hydro_pump_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
 
-% [preallocate] to plot ELCC at hourly and monthly timestep
-ELCC_BAL_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-ELCC_STOR_hourly = zeros(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+% [preallocate] to plot ELCC at monthly timestep
 ELCC_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 ELCC_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
 
@@ -107,8 +105,10 @@ for HPP = 1:HPP_number
     % [loop] across all years in the simulation
     for y = 1:length(simulation_years)
         
-        % [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
+        % [loop] across all months of the year
         for m = 1:months_yr
+            
+            % [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
             E_CONV_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_CONV_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             
             E_hydro_BAL_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
@@ -126,17 +126,17 @@ for HPP = 1:HPP_number
             E_hydro_pump_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_pump_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
             
+            % [calculate] monthly outflow (m^3/s)
             Q_in_nat_monthly_total(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
+        
+            % [calculate] ELCC by month (MWh/h)
+            ELCC_BAL_bymonth(m,y,HPP) = sum(L_followed_BAL_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
+            ELCC_STOR_bymonth(m,y,HPP) = sum(L_followed_STOR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
+            
         end
                 
     end
-    
-    % [calculate] ELCC at hourly and monthly timestep (MWh/h)
-    ELCC_BAL_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
-    ELCC_BAL_bymonth(:,:,HPP) = L_norm_bymonth(:,:,HPP).*ELCC_BAL_yearly(:,HPP)'./hrs_byyear;
-    ELCC_STOR_hourly(:,:,HPP) = L_norm(:,:,HPP).*ELCC_STOR_yearly(:,HPP)'./hrs_byyear;
-    ELCC_STOR_bymonth(:,:,HPP) = L_norm_bymonth(:,:,HPP).*ELCC_STOR_yearly(:,HPP)'./hrs_byyear;
-    
+
 end
 
 % [calculate] take Fourier transform of CONV head time series (cf. Fig. S6b)
@@ -378,7 +378,7 @@ h(3).FaceColor = colour_wind;
 h(4).FaceColor = colour_solar;
 h(5).FaceColor = colour_hydro_RoR;
 hold on
-plot(hrs_year - 1,ELCC_BAL_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
+plot(hrs_year - 1,L_followed_BAL_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
 xlim([hrs_day*plot_day_load hrs_day*(plot_day_load + plot_num_days)])
 xticks(hrs_year(1) - 1:hrs_day:hrs_year(end))
 xticklabels(str_axis)
@@ -445,7 +445,7 @@ if STOR_break(plot_HPP) == 0
     h(4).FaceColor = colour_solar;
     h(5).FaceColor = colour_hydro_pumped;
     hold on
-    plot(hrs_year - 1,ELCC_STOR_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
+    plot(hrs_year - 1,L_followed_STOR_hourly(hrs_year,plot_year,plot_HPP),'k','LineWidth',2)
     xlim([hrs_day*plot_day_load hrs_day*(plot_day_load + plot_num_days)])
     xticks(hrs_year(1) - 1:hrs_day:hrs_year(end))
     xticklabels(str_axis)

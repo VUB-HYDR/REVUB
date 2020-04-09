@@ -38,6 +38,7 @@ for HPP in plot_HPP_multiple:
         P_STOR_solar_hourly[:,:,HPP] = P_BAL_solar_hourly[:,:,HPP] 
         P_STOR_pump_hourly[:,:,HPP] = 0
         ELCC_STOR_yearly[:,HPP] = ELCC_BAL_yearly[:,HPP]
+        L_followed_STOR_hourly[:,:,HPP] = L_followed_BAL_hourly[:,:,HPP]
 
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
@@ -107,9 +108,7 @@ E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_numb
 E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
-# [preallocate] to plot ELCC at hourly and monthly timestep
-ELCC_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
-ELCC_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], 0)
+# [preallocate] to plot ELCC at monthly timestep
 ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 ELCC_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
@@ -125,9 +124,10 @@ E_curtailed_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 for HPP in range(HPP_number):
     # [loop] across all years in the simulation
     for y in range(len(simulation_years)):
-        # [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
+        # [loop] across all months of the year
             for m in range(months_yr):
                 
+                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
                 E_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 
                 E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
@@ -142,14 +142,11 @@ for HPP in range(HPP_number):
                 E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                
+                # [calculate] ELCC by month (MWh/h)
+                ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
+                ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
             
-        
-    # [calculate] ELCC at hourly and monthly timestep (MWh/h)
-    ELCC_BAL_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
-    ELCC_BAL_bymonth[:,:,HPP] = L_norm_bymonth[:,:,HPP]*ELCC_BAL_yearly[:,HPP]/hrs_byyear
-    ELCC_STOR_hourly[:,:,HPP] = L_norm[:,:,HPP]*ELCC_STOR_yearly[:,HPP]/hrs_byyear
-    ELCC_STOR_bymonth[:,:,HPP] = L_norm_bymonth[:,:,HPP]*ELCC_STOR_yearly[:,HPP]/hrs_byyear
-
 
 # [loop] across all years in the simulation
 for y in range(len(simulation_years)):
@@ -205,7 +202,7 @@ fig = plt.figure()
 area_mix_full = [np.nansum(P_BAL_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_BAL_thermal_hourly[hrs_year,plot_year_multiple], -1*P_BAL_curtailed_hourly[hrs_year,plot_year_multiple]]
 plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
 plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
-plt.plot(np.array(hrs_year), np.nansum(ELCC_BAL_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+plt.plot(np.array(hrs_year), np.nansum(L_followed_BAL_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
 plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days_multiple)])
@@ -267,7 +264,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
     plt.fill_between(np.array(hrs_year), -1*np.nansum(P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
     plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
-    plt.plot(np.array(hrs_year), np.nansum(ELCC_STOR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+    plt.plot(np.array(hrs_year), np.nansum(L_followed_STOR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(hrs_year), np.zeros(len(hrs_year)), color = 'black', linewidth = 1)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
