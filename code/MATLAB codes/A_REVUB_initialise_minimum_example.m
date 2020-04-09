@@ -1,6 +1,6 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% REVUB initialise minimum working example %%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% REVUB initialise %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % © 2019 CIREG project
 % Author: Sebastian Sterl, Vrije Universiteit Brussel

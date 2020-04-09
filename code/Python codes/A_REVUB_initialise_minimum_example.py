@@ -5,6 +5,10 @@ Created on Thu Jan 16 08:35:12 2020
 @author: ssterl
 """
 
+##########################
+#### REVUB initialise ####
+##########################
+
 # © 2019 CIREG project
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
 # This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
