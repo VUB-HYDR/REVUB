@@ -78,12 +78,12 @@ STOR_break = zeros(1,HPP_number);
 
 %%%%% RESERVOIR OUTFLOW PARAMETERS %%%%%
 
-% [preallocate] Various outflow data arrays (m^3/s) for CONV scenario (section S2, S3.1 and eq. S2)
+% [preallocate] Various outflow data arrays (m^3/s) for CONV scenario (Note 2, 3.1 and eq. S2)
 Q_CONV_stable_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_CONV_spill_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_CONV_out_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
-% [preallocate] Various outflow data arrays (m^3/s) for BAL scenario (section S2, S3.2 and eq. S2)
+% [preallocate] Various outflow data arrays (m^3/s) for BAL scenario (Note 2, 3.2 and eq. S2)
 Q_BAL_stable_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_BAL_flexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_BAL_spill_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -92,7 +92,7 @@ Q_BAL_out_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_yea
 % [preallocate] Potential flexible outflow from eq. S17
 Q_BAL_pot_turb_flexible = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
-% [preallocate] Various outflow data arrays (m^3/s) for optional STOR scenario (section S7)
+% [preallocate] Various outflow data arrays (m^3/s) for optional STOR scenario (Note 7)
 Q_STOR_stable_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_STOR_flexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 Q_STOR_pump_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -227,7 +227,7 @@ P_BAL_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulat
 P_STOR_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
 % [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
-% or shut off in case of extreme drought (0) (see section S3.1 and S8)
+% or shut off in case of extreme drought (0) (see Note 3.1 and 8)
 hydro_CONV_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 hydro_BAL_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 hydro_STOR_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -381,7 +381,7 @@ for HPP = 1:HPP_number
     % [calculate] f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
     f_reg(HPP) = (V_max(HPP)/(min(sum(days_year,1))*hrs_day*secs_hr*T_fill_thres))/mean(nanmean(Q_in_nat_hourly(:,:,HPP)));
     
-    % [calculate] Determine dam category based on f_reg (section A5)
+    % [calculate] Determine dam category based on f_reg (Note 5)
     % Here "large" HPPs are designated by "A", "small" HPPs by "B".
     if f_reg(HPP) < 1
         
@@ -401,7 +401,7 @@ for HPP = 1:HPP_number
         
     end
     
-    % [calculate] the component Q_RoR for small HPPs (section A5)
+    % [calculate] the component Q_RoR for small HPPs (Note 5)
     Q_in_RoR_hourly(:,:,HPP) = Q_in_nat_hourly(:,:,HPP) - Q_in_frac_hourly(:,:,HPP);
     
     
@@ -447,7 +447,7 @@ for HPP = 1:HPP_number
     Q_in_nat_av = mean(nanmean(Q_in_frac_hourly(:,:,HPP)));
     
     % [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
-    % temporary curtailment on hydropower generation (section S3.1)
+    % temporary curtailment on hydropower generation (Note 3.1)
     hydro_CONV_curtailment_factor_hourly(:,:,HPP) = 1;
     
     % [display] CONV simulation underway
@@ -537,7 +537,7 @@ for HPP = 1:HPP_number
             end
             
             % [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
-            % (see section S3.1)
+            % (see Note 3.1)
             if V_CONV_hourly(n+1,y,HPP) < f_stop*V_max(HPP)
                 if n < length(hrs_year)
                     hydro_CONV_curtailment_factor_hourly(n+1,y,HPP) = 0;
@@ -547,7 +547,7 @@ for HPP = 1:HPP_number
             end
             
             % [calculate] restart hydropower generation if reservoir levels have recovered
-            % (see section S3.1)
+            % (see Note 3.1)
             if hydro_CONV_curtailment_factor_hourly(n,y,HPP) == 0 && V_CONV_hourly(n+1,y,HPP) > f_restart*V_max(HPP)
                 if n < length(hrs_year)
                     hydro_CONV_curtailment_factor_hourly(n+1,y,HPP) = 1;
@@ -609,7 +609,7 @@ for HPP = 1:HPP_number
     % [display] start of iterations to find optimal solution for BAL operation
     disp('(ii) finding optimal BAL solution')
     
-    % [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (section S4)
+    % [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 4)
     for q = 1:length(C_OR_range_BAL)
         
         % [calculate] ratio of stable (environmental) to average total outflow (see eq. S14)
@@ -672,7 +672,7 @@ for HPP = 1:HPP_number
                     Q_in_RoR_hourly(:,:,HPP) = Q_in_RoR_store(:,:,HPP);
                     
                     % [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
-                    % temporary curtailment on hydropower generation (section S3.1)
+                    % temporary curtailment on hydropower generation (Note 3.1)
                     hydro_BAL_curtailment_factor_hourly(:,:,HPP) = 1;
                     
                     % [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
@@ -848,7 +848,7 @@ for HPP = 1:HPP_number
                             end
                             
                             % [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
-                            % (see section S3.1)
+                            % (see Note 3.1)
                             if V_BAL_hourly(n+1,y,HPP) < f_stop*V_max(HPP)
                                 if n < length(hrs_year)
                                     hydro_BAL_curtailment_factor_hourly(n+1,y,HPP) = 0;
@@ -858,7 +858,7 @@ for HPP = 1:HPP_number
                             end
                             
                             % [calculate] restart hydropower generation if reservoir levels have recovered
-                            % (see section S3.1)
+                            % (see Note 3.1)
                             if hydro_BAL_curtailment_factor_hourly(n,y,HPP) == 0 && V_BAL_hourly(n+1,y,HPP) > f_restart*V_max(HPP)
                                 if n < length(hrs_year)
                                     hydro_BAL_curtailment_factor_hourly(n+1,y,HPP) = 1;
@@ -970,7 +970,7 @@ for HPP = 1:HPP_number
             Q_in_RoR_hourly(:,:,HPP) = Q_in_RoR_store(:,:,HPP);
             
             % [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
-            % temporary curtailment on hydropower generation (section S3.1)
+            % temporary curtailment on hydropower generation (Note 3.1)
             hydro_BAL_curtailment_factor_hourly(:,:,HPP) = 1;
             
             % [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
@@ -1150,7 +1150,7 @@ for HPP = 1:HPP_number
                     end
                     
                     % [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
-                    % (see section S3.1)
+                    % (see Note 3.1)
                     if V_BAL_hourly(n+1,y,HPP) < f_stop*V_max(HPP)
                         if n < length(hrs_year)
                             hydro_BAL_curtailment_factor_hourly(n+1,y,HPP) = 0;
@@ -1160,7 +1160,7 @@ for HPP = 1:HPP_number
                     end
                     
                     % [calculate] restart hydropower generation if reservoir levels have recovered
-                    % (see section S3.1)
+                    % (see Note 3.1)
                     if hydro_BAL_curtailment_factor_hourly(n,y,HPP) == 0 && V_BAL_hourly(n+1,y,HPP) > f_restart*V_max(HPP)
                         if n < length(hrs_year)
                             hydro_BAL_curtailment_factor_hourly(n+1,y,HPP) = 1;
@@ -1357,7 +1357,7 @@ for HPP = 1:HPP_number
         % [display] start of iterations to find optimal solution for STOR operation
         disp('(iv) finding optimal STOR solution')
         
-        % [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (section S4)
+        % [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 4)
         for q = 1:length(C_OR_range_STOR)
             
             % [calculate] ratio of stable (environmental) to average total outflow (see eq. S14)
@@ -1417,7 +1417,7 @@ for HPP = 1:HPP_number
                         Q_STOR_stable_hourly(:,:,HPP) = Q_stable_ratio.*temp_Q_out_STOR;
                         
                         % [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
-                        % temporary curtailment on hydropower generation (section S3.1)
+                        % temporary curtailment on hydropower generation (Note 3.1)
                         hydro_STOR_curtailment_factor_hourly(:,:,HPP) = 1;
                         
                         % [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
@@ -1647,7 +1647,7 @@ for HPP = 1:HPP_number
                                 end
                                 
                                 % [calculate] restart hydropower generation if reservoir levels have recovered
-                                % (see section S3.1)
+                                % (see Note 3.1)
                                 if hydro_STOR_curtailment_factor_hourly(n,y,HPP) == 0 && V_STOR_hourly_upper(n+1,y,HPP) > f_restart*V_max(HPP)
                                     if n < length(hrs_year)
                                         hydro_STOR_curtailment_factor_hourly(n+1,y,HPP) = 1;
@@ -1757,7 +1757,7 @@ for HPP = 1:HPP_number
                 Q_STOR_stable_hourly(:,:,HPP) = Q_stable_ratio.*temp_Q_out_STOR;
                 
                 % [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
-                % temporary curtailment on hydropower generation (section S3.1)
+                % temporary curtailment on hydropower generation (Note 3.1)
                 hydro_STOR_curtailment_factor_hourly(:,:,HPP) = 1;
                 
                 % [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
@@ -1990,7 +1990,7 @@ for HPP = 1:HPP_number
                         end
                         
                         % [calculate] restart hydropower generation if reservoir levels have recovered
-                        % (see section S3.1)
+                        % (see Note 3.1)
                         if hydro_STOR_curtailment_factor_hourly(n,y,HPP) == 0 && V_STOR_hourly_upper(n+1,y,HPP) > f_restart*V_max(HPP)
                             if n < length(hrs_year)
                                 hydro_STOR_curtailment_factor_hourly(n+1,y,HPP) = 1;

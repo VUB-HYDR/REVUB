@@ -58,7 +58,7 @@ end
 
 %%%%% GENERAL HYDROPOWER DATA %%%%%
 
-% [set by user] wish to model storage (section S7) or not? (0 = no, 1 = yes)
+% [set by user] wish to model storage (Note 7) or not? (0 = no, 1 = yes)
 option_storage = 1;
 
 % [constant] Density of water (kg/m^3) (introduced in eq. S3)
