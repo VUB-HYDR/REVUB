@@ -12,7 +12,7 @@ Contact author: sebastian.sterl@vub.be
 ---
 The main objective of REVUB is to model how flexible operation of hydropower plants can help renewable electricity mixes with variable solar and wind power to provide reliable electricity supply and load-following services.
 This model was first introduced in the paper "Smart renewable electricity portfolios in West Africa" (Sterl et al., in preparation); hereafter referred to as "the publication".
-A detailed description of all involved principles and equations can be found in the publication and its SI.
+A detailed description of all involved principles and equations can be found in the publication and its SI, as well as in the Manual (.pdf file in the "manual" folder).
 
 The REVUB code models reservoir operation and hydro-solar-wind power generation and derives:
 
@@ -30,7 +30,7 @@ Note that the Python code has not been parallelized as of yet and runs slower th
 ---
 
 ### Scripts
-There are four main scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C).
+There are four main scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file, the user is referred to the Manual.
 
 * **A_REVUB_initialise_minimum_example**
 

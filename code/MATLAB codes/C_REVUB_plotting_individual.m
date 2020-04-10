@@ -5,14 +5,13 @@
 % © 2019 CIREG project
 % Author: Sebastian Sterl, Vrije Universiteit Brussel
 % This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
-% All equation, section &c. numbers refer to that paper and its Supplementary Materials, unless otherwise mentioned.
+% All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
 
 set(groot, 'defaultTextInterpreter','latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex');
 set(groot, 'defaultLegendInterpreter','latex');
 set(0,'DefaultAxesFontSize',8)
 set(0,'DefaultLineLineWidth',1)
-
 
 % [initialize] close windows from previous plotting
 close all

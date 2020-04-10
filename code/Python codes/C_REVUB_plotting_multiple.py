@@ -12,7 +12,7 @@ Created on Tue Jan 21 16:43:56 2020
 # © 2019 CIREG project
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
 # This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
-# All equation, section &c. numbers refer to that paper and its Supplementary Materials, unless otherwise mentioned.
+# All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
 
 import numpy as np
 import pandas as pd
