@@ -245,10 +245,6 @@ P_STOR_wind_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP
 P_BAL_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 P_STOR_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] ELCC (Effective Load Carrying Capability = optimal series L(t) in eq. S10; in MW or MWh/h)
-L_followed_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-L_followed_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
 # [preallocate] P_inflexible (stable hydro + solar + wind in eq. S9; in MW or MWh/h)
 P_BAL_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 P_STOR_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -314,6 +310,10 @@ E_wind_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 ##### IDENTIFYING THE ACHIEVED ELCC UNDER OPTIMAL HSW COMBINATION #####
 
+
+# [preallocate] ELCC (Effective Load Carrying Capability = optimal series L(t) in eq. S10; in MW or MWh/h)
+L_followed_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+L_followed_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
 # [preallocate] Range of ELCCs from which to identify the actual one post-simulation
 # (MWh/year). Accuracy is given by the parameter N_ELCC (amount of discrete values).
