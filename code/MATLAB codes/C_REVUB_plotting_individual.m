@@ -125,7 +125,7 @@ for HPP = 1:HPP_number
             E_hydro_pump_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_pump_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
             
-            % [calculate] monthly outflow (m^3/s)
+            % [calculate] monthly inflow (m^3/s)
             Q_in_nat_monthly_total(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
         
             % [calculate] ELCC by month (MWh/h)

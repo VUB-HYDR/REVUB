@@ -126,7 +126,7 @@ for HPP in range(HPP_number):
                 
                 hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                 
-                # [calculate] monthly outflow (m^3/s)
+                # [calculate] monthly inflow (m^3/s)
                 Q_in_nat_monthly_total[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 
                 # [calculate] ELCC by month (MWh/h)
