@@ -33,17 +33,6 @@ plot_num_days_multiple = 3
 P_total_av = 400
 P_total_hourly = P_total_av*L_norm[:,:,0]
 
-# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
-for HPP in plot_HPP_multiple:
-    if STOR_break[HPP] == 1:
-        P_STOR_hydro_stable_hourly[:,:,HPP] = P_BAL_hydro_stable_hourly[:,:,HPP]
-        P_STOR_hydro_flexible_hourly[:,:,HPP] = P_BAL_hydro_flexible_hourly[:,:,HPP]
-        P_STOR_wind_hourly[:,:,HPP] = P_BAL_wind_hourly[:,:,HPP]
-        P_STOR_solar_hourly[:,:,HPP] = P_BAL_solar_hourly[:,:,HPP] 
-        P_STOR_pump_hourly[:,:,HPP] = 0
-        ELCC_STOR_yearly[:,HPP] = ELCC_BAL_yearly[:,HPP]
-        L_followed_STOR_hourly[:,:,HPP] = L_followed_BAL_hourly[:,:,HPP]
-
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
 P_STOR_thermal_hourly = P_total_hourly - np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_STOR_wind_hourly[:,:,plot_HPP_multiple] + P_STOR_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple] - P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2)
@@ -54,6 +43,24 @@ P_STOR_thermal_hourly[P_STOR_thermal_hourly < 0] = 0
 # [calculate] excess (to-be-curtailed) power
 P_BAL_curtailed_hourly = np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2) + P_BAL_thermal_hourly - P_total_hourly
 P_STOR_curtailed_hourly = np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_STOR_wind_hourly[:,:,plot_HPP_multiple] + P_STOR_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple] - P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2) + P_STOR_thermal_hourly - P_total_hourly
+
+# [preallocate] extra variables for thermal power generation assessment
+E_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_thermal_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_thermal_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_curtailed_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_curtailed_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+
+# [loop] across all years in the simulation
+for y in range(len(simulation_years)):
+    # [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
+    for m in range(months_yr):
+        E_total_bymonth[m,y] = 10**(-3)*np.sum(P_total_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_thermal_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_thermal_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_curtailed_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_curtailed_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        
 
 # [read] vector with hours in each year
 hrs_year = range(int(hrs_byyear[plot_year_multiple]))
@@ -91,77 +98,6 @@ colour_hydro_pumped = np.array([77, 191, 237]) / 255
 colour_thermal = np.array([75, 75, 75]) / 255
 colour_curtailed = np.array([200, 200, 200]) / 255
 
-# [preallocate] to aggregate inflow by month
-Q_in_nat_monthly_total = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for CONV
-E_CONV_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for BAL
-L_norm_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for STOR
-E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to plot ELCC at monthly timestep
-ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-ELCC_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] extra variables for thermal power generation assessment
-E_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
-E_thermal_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
-E_thermal_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
-E_curtailed_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
-E_curtailed_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
-
-
-# [loop] across all hydropower plants to aggregate output variables by month
-for HPP in range(HPP_number):
-    # [loop] across all years in the simulation
-    for y in range(len(simulation_years)):
-        # [loop] across all months of the year
-            for m in range(months_yr):
-                
-                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-                E_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                L_norm_bymonth[m,y,HPP] = np.mean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                
-                E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                # [calculate] ELCC by month (MWh/h)
-                ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-                ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-            
-
-# [loop] across all years in the simulation
-for y in range(len(simulation_years)):
-    # [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
-    for m in range(months_yr):
-        E_total_bymonth[m,y] = 10**(-3)*np.sum(P_total_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        E_thermal_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        E_thermal_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        E_curtailed_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        E_curtailed_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        
 
 # [figure] (cf. Fig. S4a, S9a)
 # [plot] average monthly power mix in user-selected year

@@ -71,72 +71,6 @@ colour_wind = [77, 175, 74] / 255;
 colour_hydro_RoR = [100, 100, 100] / 255;
 colour_hydro_pumped = [77, 191, 237] / 255;
 
-% [preallocate] to aggregate inflow by month
-Q_in_nat_monthly_total = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to aggregate output variables by month for CONV
-E_CONV_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to aggregate output variables by month for BAL
-L_norm_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_solar_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_wind_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_RoR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-hydro_BAL_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number); 
-
-% [preallocate] to aggregate output variables by month for STOR
-E_hydro_STOR_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_solar_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_wind_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_STOR_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_pump_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to plot ELCC at monthly timestep
-ELCC_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-ELCC_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [loop] across all hydropower plants to aggregate output variables by month
-for HPP = 1:HPP_number
-    
-    % [loop] across all years in the simulation
-    for y = 1:length(simulation_years)
-        
-        % [loop] across all months of the year
-        for m = 1:months_yr
-            
-            % [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-            E_CONV_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_CONV_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            
-            E_hydro_BAL_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_solar_BAL_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_solar_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_wind_BAL_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_BAL_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_BAL_RoR_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_RoR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            L_norm_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
-            hydro_BAL_curtailment_factor_monthly(m,y,HPP) = min(hydro_BAL_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
-            
-            E_hydro_STOR_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_solar_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_solar_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_wind_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_STOR_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_pump_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_pump_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
-            
-            % [calculate] monthly inflow (m^3/s)
-            Q_in_nat_monthly_total(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-        
-            % [calculate] ELCC by month (MWh/h)
-            ELCC_BAL_bymonth(m,y,HPP) = sum(L_followed_BAL_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
-            ELCC_STOR_bymonth(m,y,HPP) = sum(L_followed_STOR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
-            
-        end
-                
-    end
-
-end
 
 % [calculate] take Fourier transform of CONV head time series (cf. Fig. S6b)
 fft_rep = 1;
@@ -256,13 +190,13 @@ title 'frequency spectrum of hydraulic head'
 % [plot] median + IQ range inflow vs. outflow (Fig. S6c)
 subplot(2,2,[2 4])
 hold on
-patch([1:12 fliplr(1:12)], [prctile(Q_in_nat_monthly_total(:,:,plot_HPP)',25) fliplr(prctile(Q_in_nat_monthly_total(:,:,plot_HPP)',75))],colour_nat,'EdgeColor',colour_nat);
+patch([1:12 fliplr(1:12)], [prctile(Q_in_nat_monthly(:,:,plot_HPP)',25) fliplr(prctile(Q_in_nat_monthly(:,:,plot_HPP)',75))],colour_nat,'EdgeColor',colour_nat);
 patch([1:12 fliplr(1:12)], [prctile(Q_CONV_out_monthly(:,:,plot_HPP)',25) fliplr(prctile(Q_CONV_out_monthly(:,:,plot_HPP)',75))],colour_CONV,'EdgeColor',colour_CONV);
 patch([1:12 fliplr(1:12)], [prctile(Q_BAL_out_monthly(:,:,plot_HPP)',25) fliplr(prctile(Q_BAL_out_monthly(:,:,plot_HPP)',75))],colour_BAL,'EdgeColor',colour_BAL);
 if STOR_break(plot_HPP) == 0
     patch([1:12 fliplr(1:12)], [prctile(Q_STOR_out_monthly(:,:,plot_HPP)',25) fliplr(prctile(Q_STOR_out_monthly(:,:,plot_HPP)',75))],colour_STOR,'EdgeColor',colour_STOR);
 end
-plot(1:12,prctile(Q_in_nat_monthly_total(:,:,plot_HPP)',50),'g--')
+plot(1:12,prctile(Q_in_nat_monthly(:,:,plot_HPP)',50),'g--')
 plot(1:12,prctile(Q_CONV_out_monthly(:,:,plot_HPP)',50),'b--')
 plot(1:12,prctile(Q_BAL_out_monthly(:,:,plot_HPP)',50),'r--')
 if STOR_break(plot_HPP) == 0
@@ -299,7 +233,7 @@ ylabel '$V(t)$ (m$^3$)'
 title 'time series of lake volume'
 
 subplot(2,1,2)
-temp = Q_in_nat_monthly_total(:,:,plot_HPP);
+temp = Q_in_nat_monthly(:,:,plot_HPP);
 plot(1:length(temp(:)),temp(:),'Color',colour_nat)
 hold on
 temp = Q_CONV_out_monthly(:,:,plot_HPP);

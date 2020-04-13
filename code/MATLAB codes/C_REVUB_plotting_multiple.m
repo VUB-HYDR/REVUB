@@ -27,19 +27,6 @@ plot_num_days_multiple = 3;
 P_total_av = 400;
 P_total_hourly = P_total_av.*L_norm(:,:,1);
 
-% [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
-for HPP = plot_HPP_multiple
-    if STOR_break(HPP) == 1
-        P_STOR_hydro_stable_hourly(:,:,HPP) = P_BAL_hydro_stable_hourly(:,:,HPP);
-        P_STOR_hydro_flexible_hourly(:,:,HPP) = P_BAL_hydro_flexible_hourly(:,:,HPP);
-        P_STOR_wind_hourly(:,:,HPP) = P_BAL_wind_hourly(:,:,HPP);
-        P_STOR_solar_hourly(:,:,HPP) = P_BAL_solar_hourly(:,:,HPP); 
-        P_STOR_pump_hourly(:,:,HPP) = 0;
-        ELCC_STOR_yearly(:,HPP) = ELCC_BAL_yearly(:,HPP);
-        L_followed_STOR_hourly(:,:,HPP) = L_followed_BAL_hourly(:,:,HPP);
-    end
-end
-
 % [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - nansum(P_BAL_hydro_stable_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_flexible_hourly(:,:,plot_HPP_multiple) + P_BAL_wind_hourly(:,:,plot_HPP_multiple) + P_BAL_solar_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_RoR_hourly(:,:,plot_HPP_multiple),3);
 P_STOR_thermal_hourly = P_total_hourly - nansum(P_STOR_hydro_stable_hourly(:,:,plot_HPP_multiple) + P_STOR_hydro_flexible_hourly(:,:,plot_HPP_multiple) + P_STOR_wind_hourly(:,:,plot_HPP_multiple) + P_STOR_solar_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_RoR_hourly(:,:,plot_HPP_multiple) - P_STOR_pump_hourly(:,:,plot_HPP_multiple),3);
@@ -49,6 +36,25 @@ P_STOR_thermal_hourly(P_STOR_thermal_hourly < 0) = 0;
 % [calculate] excess (to-be-curtailed) power
 P_BAL_curtailed_hourly = nansum(P_BAL_hydro_stable_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_flexible_hourly(:,:,plot_HPP_multiple) + P_BAL_wind_hourly(:,:,plot_HPP_multiple) + P_BAL_solar_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_RoR_hourly(:,:,plot_HPP_multiple),3) + P_BAL_thermal_hourly - P_total_hourly;
 P_STOR_curtailed_hourly = nansum(P_STOR_hydro_stable_hourly(:,:,plot_HPP_multiple) + P_STOR_hydro_flexible_hourly(:,:,plot_HPP_multiple) + P_STOR_wind_hourly(:,:,plot_HPP_multiple) + P_STOR_solar_hourly(:,:,plot_HPP_multiple) + P_BAL_hydro_RoR_hourly(:,:,plot_HPP_multiple) - P_STOR_pump_hourly(:,:,plot_HPP_multiple),3) + P_STOR_thermal_hourly - P_total_hourly;
+
+% [preallocate] extra variables for thermal power generation assessment
+E_total_bymonth = zeros(months_yr,length(simulation_years));
+E_thermal_BAL_bymonth = zeros(months_yr,length(simulation_years));
+E_thermal_STOR_bymonth = zeros(months_yr,length(simulation_years));
+E_curtailed_BAL_bymonth = zeros(months_yr,length(simulation_years));
+E_curtailed_STOR_bymonth = zeros(months_yr,length(simulation_years));
+
+% [loop] across all years in the simulation
+for y = 1:length(simulation_years) 
+    % [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
+    for m = 1:months_yr
+        E_total_bymonth(m,y) = 1e-3.*sum(P_total_hourly(positions(m,y):positions(m+1,y)-1,y));
+        E_thermal_BAL_bymonth(m,y) = 1e-3.*sum(P_BAL_thermal_hourly(positions(m,y):positions(m+1,y)-1,y));
+        E_thermal_STOR_bymonth(m,y) = 1e-3.*sum(P_STOR_thermal_hourly(positions(m,y):positions(m+1,y)-1,y));   
+        E_curtailed_BAL_bymonth(m,y) = 1e-3.*sum(P_BAL_curtailed_hourly(positions(m,y):positions(m+1,y)-1,y));
+        E_curtailed_STOR_bymonth(m,y) = 1e-3.*sum(P_STOR_curtailed_hourly(positions(m,y):positions(m+1,y)-1,y));     
+    end
+end
 
 % [read] vector with hours in each year
 hrs_year = 1:hrs_byyear(plot_year_multiple);
@@ -89,83 +95,6 @@ colour_hydro_RoR = [100, 100, 100] / 255;
 colour_hydro_pumped = [77, 191, 237] / 255;
 colour_thermal = [75, 75, 75] / 255;
 colour_curtailed = [200, 200, 200] / 255;
-
-% [preallocate] to aggregate output variables by month for CONV
-E_CONV_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to aggregate output variables by month for BAL
-L_norm_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_solar_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_wind_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_BAL_RoR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to aggregate output variables by month for STOR
-E_hydro_STOR_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_solar_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_wind_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_STOR_flexible_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-E_hydro_pump_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] to plot ELCC at monthly timestep
-ELCC_BAL_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-ELCC_STOR_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
-
-% [preallocate] extra variables for thermal power generation assessment
-E_total_bymonth = zeros(months_yr,length(simulation_years));
-E_thermal_BAL_bymonth = zeros(months_yr,length(simulation_years));
-E_thermal_STOR_bymonth = zeros(months_yr,length(simulation_years));
-E_curtailed_BAL_bymonth = zeros(months_yr,length(simulation_years));
-E_curtailed_STOR_bymonth = zeros(months_yr,length(simulation_years));
-
-
-% [loop] across all hydropower plants to aggregate output variables by month
-for HPP = 1:HPP_number
-    
-    % [loop] across all years in the simulation
-    for y = 1:length(simulation_years)
-        
-        % [loop] across all months of the year
-        for m = 1:months_yr
-            
-            % [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-            E_CONV_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_CONV_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            
-            E_hydro_BAL_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_solar_BAL_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_solar_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_wind_BAL_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_BAL_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_BAL_RoR_bymonth(m,y,HPP) = 1e-3.*sum(P_BAL_hydro_RoR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            L_norm_bymonth(m,y,HPP) = mean(L_norm(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
-
-            E_hydro_STOR_stable_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_stable_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_solar_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_solar_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_wind_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_wind_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_STOR_flexible_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_hydro_flexible_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            E_hydro_pump_STOR_bymonth(m,y,HPP) = 1e-3.*sum(P_STOR_pump_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
-            
-            % [calculate] ELCC by month (MWh/h)
-            ELCC_BAL_bymonth(m,y,HPP) = sum(L_followed_BAL_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
-            ELCC_STOR_bymonth(m,y,HPP) = sum(L_followed_STOR_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
-            
-        end
-         
-    end
-
-end
-
-% [loop] across all years in the simulation
-for y = 1:length(simulation_years) 
-    % [loop] across all months of the year, converting hourly values (MW or MWh/h) to GWh/month (see eq. S24, S25)
-    for m = 1:months_yr
-        E_total_bymonth(m,y) = 1e-3.*sum(P_total_hourly(positions(m,y):positions(m+1,y)-1,y));
-        E_thermal_BAL_bymonth(m,y) = 1e-3.*sum(P_BAL_thermal_hourly(positions(m,y):positions(m+1,y)-1,y));
-        E_thermal_STOR_bymonth(m,y) = 1e-3.*sum(P_STOR_thermal_hourly(positions(m,y):positions(m+1,y)-1,y));   
-        E_curtailed_BAL_bymonth(m,y) = 1e-3.*sum(P_BAL_curtailed_hourly(positions(m,y):positions(m+1,y)-1,y));
-        E_curtailed_STOR_bymonth(m,y) = 1e-3.*sum(P_STOR_curtailed_hourly(positions(m,y):positions(m+1,y)-1,y));     
-    end
-end
 
 
 % [figure] (cf. Fig. S4a, S9a)

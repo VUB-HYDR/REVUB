@@ -118,7 +118,10 @@ Q_STOR_pot_turb_flexible = np.full([int(np.max(positions)), len(simulation_years
 # [preallocate] Potential pumped flow from eq. S38
 Q_STOR_pot_pump_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] Outflow data (monthly mean) aggregated by month (m^3/s)
+# [preallocate] monthly average inflow (m^3/s)
+Q_in_nat_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
+# [preallocate] monthly average outflow (m^3/s)
 Q_CONV_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 Q_BAL_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 Q_STOR_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
@@ -126,11 +129,6 @@ Q_STOR_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_num
 # [preallocate] Outflow data (yearly mean) aggregated by year (m^3/s)
 Q_BAL_out_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 Q_STOR_out_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
-
-# [preallocate] Data arrays (monthly mean) aggregated by month, accounting for the simulated actual use
-# of inflow for reservoir filling or direct discharge, depending on water levels (see text below eq. S33) (m^3/s)
-Q_used_as_nonRoR_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
-Q_used_as_RoR_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 
 
 ##### RESERVOIR VOLUME #####
@@ -249,6 +247,10 @@ hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simu
 hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
+# [preallocate] Binary variable indicating hydropower curtailment in given month
+hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 
 ##### LOAD PROFILE DATA #####
 
@@ -257,14 +259,30 @@ hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simu
 L_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 L_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
+# [preallocate] monthly average of load curve (MW or MWh/h)
+L_norm_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 # [preallocate] Optimal E_solar + E_wind identified when looping over a range of possible ELCC
 # values to identify min(Psi) (eq. S21; in MWh/year)
 E_SW_loop_BAL_opt = np.zeros(shape = HPP_number)
 E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
 
 
-##### YEARLY ELECTRICITY GENERATION PARAMETERS (SIMULATION OUTCOMES) #####
+##### MONTHLY/YEARLY ELECTRICITY GENERATION PARAMETERS (SIMULATION OUTCOMES) #####
 
+# [preallocate] monthly average of output energy variables for BAL (GWh/month)
+E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_solar_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_wind_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_BAL_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
+# [preallocate] monthly average of output energy variables for STOR (GWh/month)
+E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_solar_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Hydropower generation in CONV (MWh/year)
 E_hydro_CONV_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
@@ -286,15 +304,9 @@ E_hydro_STOR_pump_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_solar_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
-# [preallocate] Hydro + solar + wind generation in BAL (MWh/year)
-E_HSW_BAL_yearly = np.full([len(simulation_years), HPP_number], np.nan)
-
 # [preallocate] Solar and wind power generation in STOR (MWh/year) (eq. S25)
 E_solar_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
-
-# [preallocate] Hydro + solar + wind generation in STOR (MWh/year)
-E_HSW_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)
 
 
 ##### IDENTIFYING THE ACHIEVED ELCC UNDER OPTIMAL HSW COMBINATION #####
@@ -309,61 +321,17 @@ P_followed_STOR_range = np.zeros(shape = (len(simulation_years), N_ELCC, HPP_num
 P_followed_BAL_index = np.zeros(shape = (len(simulation_years), HPP_number))
 P_followed_STOR_index = np.zeros(shape = (len(simulation_years), HPP_number))
 
-# [preallocate] Achieved ELCC (MWh/year)
+# [preallocate] Monthly ELCC (MWh/h)
+ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+ELCC_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
+# [preallocate] Yearly ELCC (MWh/year)
 ELCC_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 
-##### STATISTICAL OUTCOMES OF POWER GENERATION AND ELCC #####
+##### OTHER PARAMETERS #####
 
-# [preallocate] Hydropower generation under CONV - statistics (GWh/year)
-E_hydro_CONV_stable_statistics_median = np.full(HPP_number, np.nan)
-E_hydro_CONV_RoR_statistics_median = np.full(HPP_number, np.nan)
-
-# [preallocate] Hydropower generation under BAL - statistics(GWh/year)
-E_hydro_BAL_nonRoR_statistics_median = np.full(HPP_number, np.nan)
-E_hydro_BAL_RoR_statistics_median = np.full(HPP_number, np.nan)
-
-# [preallocate] Hydropower generation under STOR - statistics (GWh/year)
-# [note: HPPs with RoR outflow components are not considered for STOR]
-E_hydro_STOR_statistics_median = np.full(HPP_number, np.nan)
-
-# [preallocate] HSW generation under BAL - statistics (GWh/year)
-E_HSW_BAL_statistics_median = np.full(HPP_number, np.nan)
-E_HSW_BAL_statistics_pct25 = np.full(HPP_number, np.nan)
-E_HSW_BAL_statistics_pct75 = np.full(HPP_number, np.nan)
-E_solar_BAL_statistics_median = np.full(HPP_number, np.nan)
-E_solar_BAL_statistics_pct25 = np.full(HPP_number, np.nan)
-E_solar_BAL_statistics_pct75 = np.full(HPP_number, np.nan)
-E_wind_BAL_statistics_median = np.full(HPP_number, np.nan)
-E_wind_BAL_statistics_pct25 = np.full(HPP_number, np.nan)
-E_wind_BAL_statistics_pct75 = np.full(HPP_number, np.nan)
-
-# [preallocate] HSW generation under STOR - statistics (GWh/year)
-E_HSW_STOR_statistics_median = np.full(HPP_number, np.nan)
-E_HSW_STOR_statistics_pct25 = np.full(HPP_number, np.nan)
-E_HSW_STOR_statistics_pct75 = np.full(HPP_number, np.nan)
-E_solar_STOR_statistics_median = np.full(HPP_number, np.nan)
-E_solar_STOR_statistics_pct25 = np.full(HPP_number, np.nan)
-E_solar_STOR_statistics_pct75 = np.full(HPP_number, np.nan)
-E_wind_STOR_statistics_median = np.full(HPP_number, np.nan)
-E_wind_STOR_statistics_pct25 = np.full(HPP_number, np.nan)
-E_wind_STOR_statistics_pct75 = np.full(HPP_number, np.nan)
-
-# [preallocate] Achieved ELCC - statistics (GWh/year)
-ELCC_BAL_statistics_median = np.full(HPP_number, np.nan)
-ELCC_BAL_statistics_pct25 = np.full(HPP_number, np.nan)
-ELCC_BAL_statistics_pct75 = np.full(HPP_number, np.nan)
-ELCC_STOR_statistics_median = np.full(HPP_number, np.nan)
-ELCC_STOR_statistics_pct25 = np.full(HPP_number, np.nan)
-ELCC_STOR_statistics_pct75 = np.full(HPP_number, np.nan)
-
-# [preallocate] Ratio of ELCC to total hydropower generation (see Table B1).
-# This is a measure of how "good" the HPP is at supporting SW in the given SW mix
-ratio_ELCC_E_hydro_BAL_yearly = np.full([len(simulation_years), HPP_number], np.nan)
-ratio_ELCC_E_hydro_BAL_median = np.full(HPP_number, np.nan)
-ratio_ELCC_E_hydro_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)
-ratio_ELCC_E_hydro_STOR_median = np.full(HPP_number, np.nan)
 
 # [preallocate] Yearly average capacity factor of HPP turbines (%)
 CF_hydro_CONV_yearly = np.full([len(simulation_years), HPP_number], np.nan)
@@ -383,7 +351,6 @@ L_res_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_
 # is distributed over different months.
 L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
-
 
 
 ## REVUB.3) Classify HPPs
@@ -572,10 +539,6 @@ for HPP in range(HPP_number):
             E_hydro_CONV_stable_yearly[y,HPP] = np.sum(P_CONV_hydro_stable_hourly[hrs_year,y,HPP])
             E_hydro_CONV_RoR_yearly[y,HPP] = np.sum(P_CONV_hydro_RoR_hourly[hrs_year,y,HPP])
             
-            # [arrange] aggregate hourly outflow by month
-            for m in range(months_yr):
-                Q_CONV_out_monthly[m,y,HPP] = np.mean(Q_CONV_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
     
     # [arrange] complete time series of water volume, area and levels
     for y in range(len(simulation_years)): 
@@ -1120,22 +1083,6 @@ for HPP in range(HPP_number):
                             hydro_BAL_curtailment_factor_hourly[0,y+1,HPP] = 0
                             
                     
-                # [calculate] total solar and wind power generation under optimal BAL solution in MWh/year (eq. S25)
-                E_solar_BAL_yearly[y,HPP] = np.sum(P_BAL_solar_hourly[hrs_year,y,HPP])
-                E_wind_BAL_yearly[y,HPP] = np.sum(P_BAL_wind_hourly[hrs_year,y,HPP])
-                
-                # [calculate] total flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-                E_hydro_BAL_flexible_yearly[y,HPP] = np.sum(P_BAL_hydro_flexible_hourly[hrs_year,y,HPP])
-                
-                # [calculate] total stable hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-                E_hydro_BAL_stable_yearly[y,HPP] = np.sum(P_BAL_hydro_stable_hourly[hrs_year,y,HPP])
-                
-                # [calculate] total stable + flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-                E_hydro_BAL_nonRoR_yearly[y,HPP] = E_hydro_BAL_flexible_yearly[y,HPP] + E_hydro_BAL_stable_yearly[y,HPP]
-                
-                # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
-                E_hydro_BAL_RoR_yearly[y,HPP] = np.sum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
-                
                 
                 ##### IDENTIFY YEARLY ELCC #####
 
@@ -1162,9 +1109,6 @@ for HPP in range(HPP_number):
                 
                 # [identify] hourly time series of L_followed (MW) (eq. S23)
                 L_followed_BAL_hourly[hrs_year,y,HPP] = P_followed_BAL_range[y,int(P_followed_BAL_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
-                
-                # [calculate] ELCC by year (MWh/year) (eq. S23)
-                ELCC_BAL_yearly[y,HPP] = np.sum(L_followed_BAL_hourly[hrs_year,y,HPP])
 
                 # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
                 L_res_BAL_hourly[hrs_year,y,HPP] = L_followed_BAL_hourly[hrs_year,y,HPP] - total_power_supply_BAL
@@ -1174,22 +1118,11 @@ for HPP in range(HPP_number):
                     temp1 = L_res_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
                     temp2 = L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
                     L_unmet_BAL_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
-                    
-                # [arrange] yearly average outflow under optimal BAL solution
-                Q_BAL_out_yearly[y,HPP] = np.mean(Q_BAL_out_hourly[hrs_year,y,HPP])
                 
                 
             # [check] to check convergence of solution towards P_stable
             convergence_test_BAL[x] = np.nanmean(P_BAL_hydro_stable_hourly[:,:,HPP])
             
-            
-        # [arrange] outflow data by month
-        for y in range(len(simulation_years)):
-            for m in range(months_yr):
-                Q_BAL_out_monthly[m,y,HPP] = np.mean(Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                Q_used_as_nonRoR_monthly[m,y,HPP] = np.mean(Q_in_frac_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                Q_used_as_RoR_monthly[m,y,HPP] = np.mean(Q_in_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
         
         # [arrange] complete time series of water volume, area and levels
         for y in range(len(simulation_years)): 
@@ -1217,38 +1150,8 @@ for HPP in range(HPP_number):
         
         
         ###############################################################
-        ############----STATISTICS FOR DATA PARSING -------############
+        ############------ CHECK NEED TO RESIMULATE -------############
         ###############################################################
-        
-        # [arrange] medians in hydropower generation in GWh/year
-        E_hydro_CONV_stable_statistics_median[HPP] = 1e-3*np.median(E_hydro_CONV_stable_yearly[:,HPP])
-        E_hydro_CONV_RoR_statistics_median[HPP] = 1e-3*np.median(E_hydro_CONV_RoR_yearly[:,HPP])
-        E_hydro_BAL_nonRoR_statistics_median[HPP] = 1e-3*np.median(E_hydro_BAL_nonRoR_yearly[:,HPP])
-        E_hydro_BAL_RoR_statistics_median[HPP] = 1e-3*np.median(E_hydro_BAL_RoR_yearly[:,HPP])
-        
-        # [arrange] yearly totals of HSW generation in MWh/year
-        E_HSW_BAL_yearly[:,HPP] = E_hydro_BAL_flexible_yearly[:,HPP] + E_hydro_BAL_stable_yearly[:,HPP] + E_solar_BAL_yearly[:,HPP] + E_wind_BAL_yearly[:,HPP]
-        
-        # [arrange] medians and IQ ranges of HSW generation and ELCC in GWh/year
-        E_HSW_BAL_statistics_median[HPP] = 1e-3*np.median(E_HSW_BAL_yearly[:,HPP])
-        E_HSW_BAL_statistics_pct25[HPP] = 1e-3*np.percentile(E_HSW_BAL_yearly[:,HPP],25)
-        E_HSW_BAL_statistics_pct75[HPP] = 1e-3*np.percentile(E_HSW_BAL_yearly[:,HPP],75)
-        
-        E_solar_BAL_statistics_median[HPP] = 1e-3*np.median(E_solar_BAL_yearly[:,HPP])
-        E_solar_BAL_statistics_pct25[HPP] = 1e-3*np.percentile(E_solar_BAL_yearly[:,HPP],25)
-        E_solar_BAL_statistics_pct75[HPP] = 1e-3*np.percentile(E_solar_BAL_yearly[:,HPP],75)
-        
-        E_wind_BAL_statistics_median[HPP] = 1e-3*np.median(E_wind_BAL_yearly[:,HPP])
-        E_wind_BAL_statistics_pct25[HPP] = 1e-3*np.percentile(E_solar_BAL_yearly[:,HPP],25)
-        E_wind_BAL_statistics_pct75[HPP] = 1e-3*np.percentile(E_solar_BAL_yearly[:,HPP],75)
-        
-        ELCC_BAL_statistics_median[HPP] = 1e-3*np.median(ELCC_BAL_yearly[:,HPP])
-        ELCC_BAL_statistics_pct25[HPP] = 1e-3*np.percentile(ELCC_BAL_yearly[:,HPP],25)
-        ELCC_BAL_statistics_pct75[HPP] = 1e-3*np.percentile(ELCC_BAL_yearly[:,HPP],75)
-        
-        # [arrange] ratio of yearly ELCC to yearly hydropower generation (BAL)
-        ratio_ELCC_E_hydro_BAL_yearly[:,HPP] = ELCC_BAL_yearly[:,HPP]/(E_hydro_BAL_nonRoR_yearly[:,HPP] + E_hydro_BAL_RoR_yearly[:,HPP])
-        ratio_ELCC_E_hydro_BAL_median[HPP] = np.nanmedian(ratio_ELCC_E_hydro_BAL_yearly[:,HPP])
         
         # [calculate] yearly hydropower capacity factor for CONV
         CF_hydro_CONV_yearly[:,HPP] = (E_hydro_CONV_stable_yearly[:,HPP] + E_hydro_CONV_RoR_yearly[:,HPP])/((P_r_turb[HPP])*hrs_byyear)
@@ -1870,23 +1773,6 @@ for HPP in range(HPP_number):
                             elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                                 hydro_STOR_curtailment_factor_hourly[0,y+1,HPP] = 0
                         
-                        
-                    # [calculate] total solar and wind power generation under optimal STOR solution in MWh/year (eq. S24)
-                    E_solar_STOR_yearly[y,HPP] = np.sum(P_STOR_solar_hourly[hrs_year,y,HPP])
-                    E_wind_STOR_yearly[y,HPP] = np.sum(P_STOR_wind_hourly[hrs_year,y,HPP])
-                    
-                    # [calculate] total flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-                    E_hydro_STOR_flexible_yearly[y,HPP] = np.sum(P_STOR_hydro_flexible_hourly[hrs_year,y,HPP])
-                                            
-                    # [calculate] total stable hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-                    E_hydro_STOR_stable_yearly[y,HPP] = np.sum(P_STOR_hydro_stable_hourly[hrs_year,y,HPP])
-                    
-                    # [calculate] total stable + flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-                    E_hydro_STOR_yearly[y,HPP] = E_hydro_STOR_flexible_yearly[y,HPP] + E_hydro_STOR_stable_yearly[y,HPP]
-                    
-                    # [calculate] total energy pumped up into reservoir in MWh/year
-                    E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump
-                                          
                     
                     ##### IDENTIFY YEARLY ELCC #####
                     # [calculate] total supplied HSW generation under optimal STOR solution
@@ -1912,9 +1798,6 @@ for HPP in range(HPP_number):
                     
                     # [identify] hourly time series of L_followed (MW) (eq. S23)
                     L_followed_STOR_hourly[hrs_year,y,HPP] = P_followed_STOR_range[y,int(P_followed_STOR_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
-                    
-                    # [calculate] ELCC by year (MWh/year) (eq. S23)
-                    ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
     
                     # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
                     L_res_STOR_hourly[hrs_year,y,HPP] = L_followed_STOR_hourly[hrs_year,y,HPP] - total_power_supply_STOR
@@ -1924,19 +1807,12 @@ for HPP in range(HPP_number):
                         temp1 = L_res_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
                         temp2 = L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
                         L_unmet_STOR_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
-                        
-                    # [arrange] yearly average outflow under optimal STOR solution
-                    Q_STOR_out_yearly[y,HPP] = np.mean(Q_STOR_out_hourly[hrs_year,y,HPP])
                     
                     
                 # [check] to check convergence of solution towards P_stable
                 convergence_test_STOR[x] = np.nanmean(P_STOR_hydro_stable_hourly[:,:,HPP])
                 
-            # [arrange] outflow data by month
-            for y in range(len(simulation_years)):
-                for m in range(months_yr):
-                    Q_STOR_out_monthly[m,y,HPP] = np.mean(Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
+            
             # [arrange] complete time series of water volume, area and levels
             for y in range(len(simulation_years)): 
                 V_STOR_hourly_upper[int(hrs_byyear[y]),y,HPP] = np.nan
@@ -1969,36 +1845,9 @@ for HPP in range(HPP_number):
             
             
             ###############################################################
-            ############----STATISTICS FOR DATA PARSING -------############
+            ############------ CHECK NEED TO RESIMULATE -------############
             ###############################################################
             
-            # [arrange] medians in hydropower generation in GWh/year
-            E_hydro_STOR_statistics_median[HPP] = 1e-3*np.median(E_hydro_STOR_yearly[:,HPP])
-
-            # [arrange] yearly totals of HSW generation in MWh/year
-            E_HSW_STOR_yearly[:,HPP] = E_hydro_STOR_flexible_yearly[:,HPP] + E_hydro_STOR_stable_yearly[:,HPP] + E_solar_STOR_yearly[:,HPP] + E_wind_STOR_yearly[:,HPP]
-            
-            # [arrange] medians and IQ ranges of HSW generation and ELCC in GWh/year
-            E_HSW_STOR_statistics_median[HPP] = 1e-3*np.median(E_HSW_STOR_yearly[:,HPP])
-            E_HSW_STOR_statistics_pct25[HPP] = 1e-3*np.percentile(E_HSW_STOR_yearly[:,HPP],25)
-            E_HSW_STOR_statistics_pct75[HPP] = 1e-3*np.percentile(E_HSW_STOR_yearly[:,HPP],75)
-            
-            E_solar_STOR_statistics_median[HPP] = 1e-3*np.median(E_solar_STOR_yearly[:,HPP])
-            E_solar_STOR_statistics_pct25[HPP] = 1e-3*np.percentile(E_solar_STOR_yearly[:,HPP],25)
-            E_solar_STOR_statistics_pct75[HPP] = 1e-3*np.percentile(E_solar_STOR_yearly[:,HPP],75)
-            
-            E_wind_STOR_statistics_median[HPP] = 1e-3*np.median(E_wind_STOR_yearly[:,HPP])
-            E_wind_STOR_statistics_pct25[HPP] = 1e-3*np.percentile(E_solar_STOR_yearly[:,HPP],25)
-            E_wind_STOR_statistics_pct75[HPP] = 1e-3*np.percentile(E_solar_STOR_yearly[:,HPP],75)
-            
-            ELCC_STOR_statistics_median[HPP] = 1e-3*np.median(ELCC_STOR_yearly[:,HPP])
-            ELCC_STOR_statistics_pct25[HPP] = 1e-3*np.percentile(ELCC_STOR_yearly[:,HPP],25)
-            ELCC_STOR_statistics_pct75[HPP] = 1e-3*np.percentile(ELCC_STOR_yearly[:,HPP],75)
-            
-            # [arrange] ratio of yearly ELCC to yearly hydropower generation (STOR)
-            ratio_ELCC_E_hydro_STOR_yearly[:,HPP] = ELCC_STOR_yearly[:,HPP]/E_hydro_STOR_yearly[:,HPP]
-            ratio_ELCC_E_hydro_STOR_median[HPP] = np.nanmedian(ratio_ELCC_E_hydro_STOR_yearly[:,HPP])
-
             # [calculate] hourly hydropower capacity factor for STOR (eq. S42)
             CF_hydro_STOR_hourly[:,:,HPP] = (P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP])/(P_r_turb[HPP])
             
@@ -2016,12 +1865,113 @@ for HPP in range(HPP_number):
     else:
         
         c_multiplier_STOR[:,HPP] = np.nan
-        E_solar_STOR_yearly[:,HPP] = np.nan
-        E_wind_STOR_yearly[:,HPP] = np.nan
-        E_hydro_STOR_pump_yearly[:,HPP] = np.nan
-        E_hydro_STOR_flexible_yearly[:,HPP] = np.nan
-        E_hydro_STOR_stable_yearly[:,HPP] = np.nan
-        ELCC_STOR_yearly[:,HPP] = np.nan
+        
+    
+
+## REVUB.5) Post-processing
+
+# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
+for HPP in range(HPP_number):
+    if STOR_break[HPP] == 1:
+        P_STOR_hydro_stable_hourly[:,:,HPP] = P_BAL_hydro_stable_hourly[:,:,HPP]
+        P_STOR_hydro_flexible_hourly[:,:,HPP] = P_BAL_hydro_flexible_hourly[:,:,HPP]
+        P_STOR_wind_hourly[:,:,HPP] = P_BAL_wind_hourly[:,:,HPP]
+        P_STOR_solar_hourly[:,:,HPP] = P_BAL_solar_hourly[:,:,HPP] 
+        P_STOR_pump_hourly[:,:,HPP] = 0
+        ELCC_STOR_yearly[:,HPP] = ELCC_BAL_yearly[:,HPP]
+        L_followed_STOR_hourly[:,:,HPP] = L_followed_BAL_hourly[:,:,HPP]
+
+
+# [loop] across all HPPs
+for HPP in range(HPP_number):
+    
+    # [loop] across all simulation years
+    for y in range(len(simulation_years)):
+             
+        # [loop] across all months of the year
+        for m in range(months_yr):
+            
+            # [calculate] monthly outflows (m^3/s)
+            Q_CONV_out_monthly[m,y,HPP] = np.mean(Q_CONV_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            Q_BAL_out_monthly[m,y,HPP] = np.mean(Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            Q_STOR_out_monthly[m,y,HPP] = np.mean(Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            
+            # [calculate] load profile by month
+            L_norm_bymonth[m,y,HPP] = np.mean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+            
+            # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
+            E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            
+            E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            
+            # [calculate] binary variable indicating hydropower curtailment in given month
+            hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+            hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+            
+            # [calculate] monthly inflow (m^3/s)
+            Q_in_nat_monthly[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            
+            # [calculate] ELCC by month (MWh/h)
+            ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
+            ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
+            
+        
+        # [read] vector with hours in each year
+        hrs_year = range(int(hrs_byyear[y]))
+        
+        # [arrange] yearly average outflow under optimal BAL solution (m^3/s)
+        Q_BAL_out_yearly[y,HPP] = np.mean(Q_BAL_out_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total solar and wind power generation under optimal BAL solution in MWh/year (eq. S25)
+        E_solar_BAL_yearly[y,HPP] = np.sum(P_BAL_solar_hourly[hrs_year,y,HPP])
+        E_wind_BAL_yearly[y,HPP] = np.sum(P_BAL_wind_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+        E_hydro_BAL_flexible_yearly[y,HPP] = np.sum(P_BAL_hydro_flexible_hourly[hrs_year,y,HPP])
+                
+        # [calculate] total stable hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+        E_hydro_BAL_stable_yearly[y,HPP] = np.sum(P_BAL_hydro_stable_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total stable + flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+        E_hydro_BAL_nonRoR_yearly[y,HPP] = E_hydro_BAL_flexible_yearly[y,HPP] + E_hydro_BAL_stable_yearly[y,HPP]
+        
+        # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
+        E_hydro_BAL_RoR_yearly[y,HPP] = np.sum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
+        
+        # [calculate] ELCC by year in MWh/year (eq. S23)
+        ELCC_BAL_yearly[y,HPP] = np.sum(L_followed_BAL_hourly[hrs_year,y,HPP])
+        
+            
+        # [arrange] yearly average outflow under optimal STOR solution (m^3/s)
+        Q_STOR_out_yearly[y,HPP] = np.mean(Q_STOR_out_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total solar and wind power generation under optimal STOR solution in MWh/year (eq. S24)
+        E_solar_STOR_yearly[y,HPP] = np.sum(P_STOR_solar_hourly[hrs_year,y,HPP])
+        E_wind_STOR_yearly[y,HPP] = np.sum(P_STOR_wind_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+        E_hydro_STOR_flexible_yearly[y,HPP] = np.sum(P_STOR_hydro_flexible_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total stable hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+        E_hydro_STOR_stable_yearly[y,HPP] = np.sum(P_STOR_hydro_stable_hourly[hrs_year,y,HPP])
+        
+        # [calculate] total stable + flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+        E_hydro_STOR_yearly[y,HPP] = E_hydro_STOR_flexible_yearly[y,HPP] + E_hydro_STOR_stable_yearly[y,HPP]
+        
+        # [calculate] total energy pumped up into reservoir in MWh/year
+        E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump
+        
+        # [calculate] ELCC by year in MWh/year (eq. S23)
+        ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
+        
     
 
 # [display] signal simulation end

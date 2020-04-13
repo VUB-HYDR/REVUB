@@ -71,68 +71,6 @@ colour_wind = np.array([77, 175, 74]) / 255
 colour_hydro_RoR = np.array([100, 100, 100]) / 255
 colour_hydro_pumped = np.array([77, 191, 237]) / 255
 
-# [preallocate] to aggregate inflow by month
-Q_in_nat_monthly_total = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for CONV
-E_CONV_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for BAL
-L_norm_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_BAL_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to aggregate output variables by month for STOR
-E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] to plot ELCC at monthly timestep
-ELCC_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-ELCC_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-
-# [loop] across all hydropower plants to aggregate output variables by month
-for HPP in range(HPP_number):
-    # [loop] across all years in the simulation
-    for y in range(len(simulation_years)):
-        # [loop] across all months of the year
-            for m in range(months_yr):
-                
-                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-                E_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                L_norm_bymonth[m,y,HPP] = np.mean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                
-                E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                
-                # [calculate] monthly inflow (m^3/s)
-                Q_in_nat_monthly_total[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-                # [calculate] ELCC by month (MWh/h)
-                ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-                ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-            
 
 # [calculate] take Fourier transform of CONV head time series (cf. Fig. S6b)
 fft_rep = 1
@@ -242,12 +180,12 @@ ax2.set_ylabel('F[$h(t)$]')
 ax2.set_title('frequency spectrum of hydraulic head')
 
 # [plot] median + IQ range inflow vs. outflow (Fig. S6c)
-ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly_total[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_in_nat_monthly_total[:,:,plot_HPP], 75, axis = 1), facecolor = colour_nat)
+ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_nat)
 ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP],25, axis = 1), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP],75, axis = 1), facecolor = colour_CONV)
 ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_BAL)
 if STOR_break[plot_HPP] == 0:
     ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_STOR_out_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_STOR_out_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_STOR)
-ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly_total[:,:,plot_HPP], 50, axis = 1), color = 'green')
+ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 50, axis = 1), color = 'green')
 ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP], 50, axis = 1), color = 'blue')
 ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 50, axis = 1), color = 'red')
 if STOR_break[plot_HPP] == 0:
@@ -282,7 +220,7 @@ ax1.set_xlabel('time (years)')
 ax1.set_ylabel('$V(t)$ (m$^3$)')
 ax1.set_title('time series of lake volume')
 
-temp = Q_in_nat_monthly_total[:,:,plot_HPP]
+temp = Q_in_nat_monthly[:,:,plot_HPP]
 ax2.plot((np.transpose(temp)).ravel(), color = colour_nat)
 temp = Q_CONV_out_monthly[:,:,plot_HPP]
 ax2.plot((np.transpose(temp)).ravel(), color = colour_CONV)
