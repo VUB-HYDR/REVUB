@@ -53,7 +53,9 @@ X_max_STOR = 6;
 
 %% REVUB.2) Preallocate variables for REVUB simulation
 
+
 %%%%% RESERVOIR INFLOW PARAMETERS %%%%%
+
 
 % [preallocate] Part of inflow that can be stored on annual timescales
 Q_in_frac_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -67,6 +69,7 @@ HPP_category = strings(1,HPP_number);
 
 %%%%% HPP OPERATIONAL PARAMETERS %%%%%
 
+
 % [preallocate] Parameters tau_fill (eq. S1), phi (eq. S6), kappa (eq. S5) and f_reg (eq. S30) for each HPP
 tau_fill = NaN.*ones(1,HPP_number);
 phi = NaN.*ones(1,HPP_number);
@@ -76,7 +79,9 @@ f_reg = zeros(1,HPP_number);
 % [preallocate] Option for STOR scenario
 STOR_break = zeros(1,HPP_number);
 
+
 %%%%% RESERVOIR OUTFLOW PARAMETERS %%%%%
+
 
 % [preallocate] Various outflow data arrays (m^3/s) for CONV scenario (Note 2, 3.1 and eq. S2)
 Q_CONV_stable_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -120,6 +125,7 @@ Q_STOR_out_yearly = zeros(length(simulation_years),HPP_number);
 
 %%%%% RESERVOIR VOLUME %%%%%
 
+
 % [preallocate] Reservoir volume data (in m^3)
 V_CONV_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
 V_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
@@ -135,6 +141,7 @@ V_STOR_series_hourly_lower = NaN.*ones(sum(hrs_byyear),HPP_number);
 
 %%%%% RESERVOIR LAKE AREA %%%%%
 
+
 % [preallocate] Lake surface area (in m^2)
 A_CONV_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
 A_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
@@ -148,6 +155,7 @@ A_STOR_series_hourly_upper = NaN.*ones(sum(hrs_byyear),HPP_number);
 
 %%%%% RESERVOIR WATER LEVEL / HYDRAULIC HEAD %%%%%
 
+
 % [preallocate] hydraulic head from water level to turbine (in m)
 h_CONV_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
 h_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day + 1,length(simulation_years),HPP_number);
@@ -159,8 +167,8 @@ h_BAL_series_hourly = NaN.*ones(sum(hrs_byyear),HPP_number);
 h_STOR_series_hourly = NaN.*ones(sum(hrs_byyear),HPP_number);
 
 
-
 %%%%% SOLAR AND WIND CAPACITY %%%%%
+
 
 % [preallocate] Yearly power generation by each MW of solar+wind capacity with solar-wind ratio
 % given by c_solar: c_wind (needed to calculate multipliers, below)
@@ -173,8 +181,8 @@ c_multiplier_BAL = zeros(length(simulation_years),HPP_number);
 c_multiplier_STOR = zeros(length(simulation_years),HPP_number);
 
 
-
 %%%%% POWER GENERATION PARAMETERS: HYDRO %%%%%
+
 
 % [preallocate] Hydropower generation in CONV scenario (in MW or MWh/h)
 P_CONV_hydro_stable_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -200,8 +208,19 @@ P_STOR_ramp_restr_pump_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(s
 k_turb_hourly_BAL = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 k_turb_hourly_STOR = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
+% [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
+% or shut off in case of extreme drought (0) (see Note 3.1 and 8)
+hydro_CONV_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+hydro_BAL_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+hydro_STOR_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
+
+% [preallocate] Binary variable indicating hydropower curtailment in given month
+hydro_BAL_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
+hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
+
 
 %%%%% POWER GENERATION PARAMETERS: SOLAR & WIND %%%%%
+
 
 % [preallocate] Power generation from solar and wind power (MW or MWh/h)
 P_BAL_solar_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -211,6 +230,7 @@ P_STOR_wind_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_y
 
 
 %%%%% POWER GENERATION PARAMETERS: HYDRO-SOLAR-WIND %%%%%
+
 
 % [preallocate] Load difference (eq. S9; in MW or MWh/h)
 P_BAL_difference_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -224,18 +244,9 @@ L_followed_STOR_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulati
 P_BAL_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 P_STOR_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
-% [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
-% or shut off in case of extreme drought (0) (see Note 3.1 and 8)
-hydro_CONV_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-hydro_BAL_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-hydro_STOR_curtailment_factor_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
-
-% [preallocate] Binary variable indicating hydropower curtailment in given month
-hydro_BAL_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
-hydro_STOR_curtailment_factor_monthly = zeros(months_yr,length(simulation_years),HPP_number);
-
 
 %%%%% LOAD PROFILE DATA %%%%%
+
 
 % [preallocate] Load curve L(t) from eq. S9 (MW or MWh/h)
 L_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
@@ -251,6 +262,7 @@ E_SW_loop_STOR_opt = zeros(1,HPP_number);
 
 
 %%%%% MONTHLY/YEARLY ELECTRICITY GENERATION PARAMETERS (SIMULATION OUTCOMES) %%%%%
+
 
 % [preallocate] monthly average of output energy variables for BAL (GWh/month)
 E_hydro_BAL_stable_bymonth = zeros(months_yr,length(simulation_years),HPP_number);
@@ -293,6 +305,7 @@ E_wind_STOR_yearly = zeros(length(simulation_years),HPP_number);
 
 %%%%% IDENTIFYING THE ACHIEVED ELCC UNDER OPTIMAL HSW COMBINATION %%%%%
 
+
 % [preallocate] Range of ELCCs from which to identify the actual one post-simulation
 % (MWh/year). Accuracy is given by the parameter N_ELCC (amount of discrete values).
 P_followed_BAL_range = zeros(length(simulation_years),N_ELCC,HPP_number);
@@ -312,6 +325,7 @@ ELCC_STOR_yearly  = zeros(length(simulation_years),HPP_number);
 
 
 %%%%% OTHER PARAMETERS %%%%%
+
 
 % [preallocate] Yearly average capacity factor of HPP turbines (%)
 CF_hydro_CONV_yearly = NaN.*ones(length(simulation_years),HPP_number);

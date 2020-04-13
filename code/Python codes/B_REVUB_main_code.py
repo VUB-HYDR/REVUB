@@ -62,6 +62,7 @@ X_max_STOR = 3
 
 ##### RESERVOIR INFLOW PARAMETERS #####
 
+
 # [preallocate] Part of inflow that can be stored on annual timescales
 Q_in_frac_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 Q_in_frac_store = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -216,8 +217,19 @@ P_STOR_ramp_restr_pump_hourly = np.full([int(np.max(positions)), len(simulation_
 k_turb_hourly_BAL = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 k_turb_hourly_STOR = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
+# [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
+# or shut off in case of extreme drought (0) (see Note 3.1 and 8)
+hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] Binary variable indicating hydropower curtailment in given month
+hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 
 ##### POWER GENERATION PARAMETERS: SOLAR & WIND #####
+
 
 # [preallocate] Power generation from solar and wind power (MW or MWh/h)
 P_BAL_solar_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -241,16 +253,6 @@ L_followed_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years),
 P_BAL_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 P_STOR_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
-# or shut off in case of extreme drought (0) (see Note 3.1 and 8)
-hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] Binary variable indicating hydropower curtailment in given month
-hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
 
 ##### LOAD PROFILE DATA #####
 
@@ -269,6 +271,7 @@ E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
 
 
 ##### MONTHLY/YEARLY ELECTRICITY GENERATION PARAMETERS (SIMULATION OUTCOMES) #####
+
 
 # [preallocate] monthly average of output energy variables for BAL (GWh/month)
 E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
