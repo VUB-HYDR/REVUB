@@ -71,6 +71,9 @@ Q_in_frac_store = np.full([int(np.max(positions)), len(simulation_years), HPP_nu
 Q_in_RoR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 Q_in_RoR_store = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
+# [preallocate] monthly average inflow (m^3/s)
+Q_in_nat_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 # [preallocate] HPP category
 HPP_category = ["" for x in range(HPP_number)]
 
@@ -119,10 +122,7 @@ Q_STOR_pot_turb_flexible = np.full([int(np.max(positions)), len(simulation_years
 # [preallocate] Potential pumped flow from eq. S38
 Q_STOR_pot_pump_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] monthly average inflow (m^3/s)
-Q_in_nat_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] monthly average outflow (m^3/s)
+# [preallocate] Monthly average outflow (m^3/s)
 Q_CONV_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 Q_BAL_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 Q_STOR_out_monthly = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
@@ -165,7 +165,7 @@ A_STOR_series_hourly_upper = np.full([int(sum(hrs_byyear)), HPP_number], np.nan)
 ##### RESERVOIR WATER LEVEL / HYDRAULIC HEAD #####
 
 
-# [preallocate] hydraulic head from water level to turbine (in m)
+# [preallocate] Hydraulic head from water level to turbine (in m)
 h_CONV_hourly = np.full([int(np.max(positions)) + 1, len(simulation_years), HPP_number], np.nan)
 h_BAL_hourly = np.full([int(np.max(positions)) + 1, len(simulation_years), HPP_number], np.nan)
 h_STOR_hourly = np.full([int(np.max(positions)) + 1, len(simulation_years), HPP_number], np.nan)
@@ -188,6 +188,11 @@ E_SW_per_MW_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 # equals the factor c_solar in eq. S9; idem for wind)
 c_multiplier_BAL = np.zeros(shape = (len(simulation_years), HPP_number))
 c_multiplier_STOR = np.zeros(shape = (len(simulation_years), HPP_number))
+
+# [preallocate] Optimal E_solar + E_wind identified when looping over a range of possible ELCC
+# values to identify min(Psi) (eq. S21; in MWh/year)
+E_SW_loop_BAL_opt = np.zeros(shape = HPP_number)
+E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
 
 
 ##### POWER GENERATION PARAMETERS: HYDRO #####
@@ -217,69 +222,13 @@ P_STOR_ramp_restr_pump_hourly = np.full([int(np.max(positions)), len(simulation_
 k_turb_hourly_BAL = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 k_turb_hourly_STOR = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
-# or shut off in case of extreme drought (0) (see Note 3.1 and 8)
-hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] Binary variable indicating hydropower curtailment in given month
-hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-
-##### POWER GENERATION PARAMETERS: SOLAR & WIND #####
-
-
-# [preallocate] Power generation from solar and wind power (MW or MWh/h)
-P_BAL_solar_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_BAL_wind_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_STOR_solar_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_STOR_wind_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-
-##### POWER GENERATION PARAMETERS: HYDRO-SOLAR-WIND #####
-
-
-# [preallocate] Load difference (eq. S9; in MW or MWh/h)
-P_BAL_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_STOR_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] P_inflexible (stable hydro + solar + wind in eq. S9; in MW or MWh/h)
-P_BAL_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_STOR_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-
-##### LOAD PROFILE DATA #####
-
-
-# [preallocate] Load curve L(t) from eq. S9 (MW or MWh/h)
-L_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-L_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] monthly average of load curve (MW or MWh/h)
-L_norm_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-
-# [preallocate] Optimal E_solar + E_wind identified when looping over a range of possible ELCC
-# values to identify min(Psi) (eq. S21; in MWh/year)
-E_SW_loop_BAL_opt = np.zeros(shape = HPP_number)
-E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
-
-
-##### MONTHLY/YEARLY ELECTRICITY GENERATION PARAMETERS (SIMULATION OUTCOMES) #####
-
-
-# [preallocate] monthly average of output energy variables for BAL (GWh/month)
+# [preallocate] Monthly average of output energy variables for BAL (GWh/month)
 E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_BAL_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
-# [preallocate] monthly average of output energy variables for STOR (GWh/month)
+# [preallocate] Monthly average of output energy variables for STOR (GWh/month)
 E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_solar_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
@@ -299,13 +248,72 @@ E_hydro_STOR_flexible_yearly = np.zeros(shape = (len(simulation_years), HPP_numb
 E_hydro_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_STOR_pump_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
-# [preallocate] Solar and wind power generation in BAL (MWh/year) (eq. S25)
+# [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
+# or shut off in case of extreme drought (0) (see Note 3.1 and 8)
+hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] Binary variable indicating hydropower curtailment in given month
+hydro_BAL_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
+# [preallocate] Yearly average capacity factor of HPP turbines (%)
+CF_hydro_CONV_yearly = np.full([len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] Hourly capacity factor for BAL and STOR scenario (%)
+CF_hydro_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+CF_hydro_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+
+##### POWER GENERATION PARAMETERS: SOLAR & WIND #####
+
+
+# [preallocate] Power generation from solar and wind power (MW or MWh/h)
+P_BAL_solar_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+P_BAL_wind_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+P_STOR_solar_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+P_STOR_wind_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] Monthly average of output energy variables (GWh/month)
+E_solar_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_wind_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_solar_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_wind_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
+# [preallocate] Solar and wind power generation (MWh/year) (eq. S25)
 E_solar_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
-
-# [preallocate] Solar and wind power generation in STOR (MWh/year) (eq. S25)
 E_solar_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_wind_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
+
+
+##### POWER GENERATION PARAMETERS: HYDRO-SOLAR-WIND #####
+
+
+# [preallocate] Load difference (eq. S9; in MW or MWh/h)
+P_BAL_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+P_STOR_difference_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] P_inflexible (stable hydro + solar + wind in eq. S9; in MW or MWh/h)
+P_BAL_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+P_STOR_inflexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] RLDC = Residual Load Duration Curve; sorted array of P_stable +
+# P_flexible + P_solar + P_wind (- P_pump) (in MW or MWh/h)
+L_res_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+L_res_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+
+##### LOAD PROFILE DATA #####
+
+
+# [preallocate] Load curve L(t) from eq. S9 (MW or MWh/h)
+L_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+L_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+
+# [preallocate] monthly average of load curve (MW or MWh/h)
+L_norm_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 
 ##### IDENTIFYING THE ACHIEVED ELCC UNDER OPTIMAL HSW COMBINATION #####
@@ -331,22 +339,6 @@ ELCC_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number
 # [preallocate] Yearly ELCC (MWh/year)
 ELCC_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
-
-
-##### OTHER PARAMETERS #####
-
-
-# [preallocate] Yearly average capacity factor of HPP turbines (%)
-CF_hydro_CONV_yearly = np.full([len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] Hourly capacity factor for BAL and STOR scenario (%)
-CF_hydro_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-CF_hydro_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-
-# [preallocate] RLDC = Residual Load Duration Curve; sorted array of P_stable +
-# P_flexible + P_solar + P_wind (- P_pump) (in MW or MWh/h)
-L_res_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-L_res_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
 # [preallocate] Fraction of ELCC unmet by HSW operation. note: as long as the parameter
 # "LOEE_allowed" is set to zero, these arrays will be zero.
