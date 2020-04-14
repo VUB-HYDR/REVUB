@@ -1886,8 +1886,11 @@ for HPP in range(HPP_number):
              
         # [loop] across all months of the year
         for m in range(months_yr):
+                        
+            # [calculate] average monthly inflow (m^3/s)
+            Q_in_nat_monthly[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             
-            # [calculate] monthly outflows (m^3/s)
+            # [calculate] average monthly outflows (m^3/s)
             Q_CONV_out_monthly[m,y,HPP] = np.mean(Q_CONV_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             Q_BAL_out_monthly[m,y,HPP] = np.mean(Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             Q_STOR_out_monthly[m,y,HPP] = np.mean(Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
@@ -1911,10 +1914,7 @@ for HPP in range(HPP_number):
             # [calculate] binary variable indicating hydropower curtailment in given month
             hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
             hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-            
-            # [calculate] monthly inflow (m^3/s)
-            Q_in_nat_monthly[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            
+
             # [calculate] ELCC by month (MWh/h)
             ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
             ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day

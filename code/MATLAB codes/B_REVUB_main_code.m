@@ -2050,7 +2050,10 @@ for HPP = 1:HPP_number
         % [loop] across all months of the year
         for m = 1:months_yr
             
-            % [calculate] monthly outflows (m^3/s)
+            % [calculate] average monthly inflow (m^3/s)
+            Q_in_nat_monthly(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
+            
+            % [calculate] average monthly outflows (m^3/s)
             Q_CONV_out_monthly(m,y,HPP) = mean(Q_CONV_out_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             Q_BAL_out_monthly(m,y,HPP) = mean(Q_BAL_out_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             Q_STOR_out_monthly(m,y,HPP) = mean(Q_STOR_out_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
@@ -2074,9 +2077,6 @@ for HPP = 1:HPP_number
             % [calculate] binary variable indicating hydropower curtailment in given month
             hydro_BAL_curtailment_factor_monthly(m,y,HPP) = min(hydro_BAL_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
             hydro_STOR_curtailment_factor_monthly(m,y,HPP) = min(hydro_STOR_curtailment_factor_hourly(sum(days_year(1:m-1,y))*hrs_day + 1 : sum(days_year(1:m,y))*hrs_day,y,HPP));
-            
-            % [calculate] average monthly inflow (m^3/s)
-            Q_in_nat_monthly(m,y,HPP) = mean(Q_in_nat_hourly(positions(m,y):positions(m+1,y)-1,y,HPP));
             
             % [calculate] ELCC by month (MWh/h)
             ELCC_BAL_bymonth(m,y,HPP) = sum(L_followed_BAL_hourly(positions(m,y):positions(m+1,y)-1,y,HPP))./days_year(m,y)'/hrs_day;
