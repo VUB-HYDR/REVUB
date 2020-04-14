@@ -290,8 +290,8 @@ P_STOR_difference_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simula
 P_BAL_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 P_STOR_inflexible_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
-% [preallocate] RLDC = Residual Load Duration Curve; sorted array of P_stable +
-% P_flexible + P_solar + P_wind (- P_pump) (in MW or MWh/h)
+% [preallocate] RLDC = Residual Load Duration Curve; sorted array of L_followed - 
+% (P_stable + P_flexible + P_solar + P_wind (- P_pump)) (in MW or MWh/h)
 L_res_BAL_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 L_res_STOR_hourly = NaN.*ones(max(sum(days_year,1))*hrs_day,length(simulation_years),HPP_number);
 
@@ -1219,13 +1219,7 @@ for HPP = 1:HPP_number
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%%%%%%%%%%%------ CHECK NEED TO RESIMULATE -------%%%%%%%%%%%%
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        % [calculate] yearly hydropower capacity factor for CONV
-        CF_hydro_CONV_yearly(:,HPP) = (E_hydro_CONV_stable_yearly(:,HPP) + E_hydro_CONV_RoR_yearly(:,HPP))./(P_r_turb(HPP).*hrs_byyear');
-        
-        % [calculate] hourly hydropower capacity factor for BAL (eq. S42)
-        CF_hydro_BAL_hourly(:,:,HPP) = (P_BAL_hydro_stable_hourly(:,:,HPP) + P_BAL_hydro_flexible_hourly(:,:,HPP) + P_BAL_hydro_RoR_hourly(:,:,HPP))./(P_r_turb(HPP));
-        
+
         % [calculate] turbine exhaustion factor k_turb in BAL (eq. S28)
         k_turb_hourly_BAL(:,:,HPP) = (Q_BAL_stable_hourly(:,:,HPP) + Q_BAL_flexible_hourly(:,:,HPP))/Q_max_turb(HPP);
         temp_hydro_exhausted_BAL = k_turb_hourly_BAL(:,:,HPP);
@@ -1994,10 +1988,7 @@ for HPP = 1:HPP_number
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%%%%%%%%%%%------ CHECK NEED TO RESIMULATE -------%%%%%%%%%%%%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % [calculate] hourly hydropower capacity factor for STOR (eq. S42)
-            CF_hydro_STOR_hourly(:,:,HPP) = (P_STOR_hydro_stable_hourly(:,:,HPP) + P_STOR_hydro_flexible_hourly(:,:,HPP))./(P_r_turb(HPP));
-            
+
             % [calculate] turbine exhaustion factor k_turb in STOR (eq. S28)
             k_turb_hourly_STOR(:,:,HPP) = (Q_STOR_stable_hourly(:,:,HPP) + Q_STOR_flexible_hourly(:,:,HPP))/Q_max_turb(HPP);
             temp_hydro_exhausted_STOR = k_turb_hourly_STOR(:,:,HPP);
@@ -2042,6 +2033,16 @@ end
 
 % [loop] across all HPPs
 for HPP = 1:HPP_number
+    
+    % [calculate] yearly hydropower capacity factor for CONV
+    CF_hydro_CONV_yearly(:,HPP) = (E_hydro_CONV_stable_yearly(:,HPP) + E_hydro_CONV_RoR_yearly(:,HPP))./(P_r_turb(HPP).*hrs_byyear');
+    
+    % [calculate] hourly hydropower capacity factor for BAL (eq. S42)
+    CF_hydro_BAL_hourly(:,:,HPP) = (P_BAL_hydro_stable_hourly(:,:,HPP) + P_BAL_hydro_flexible_hourly(:,:,HPP) + P_BAL_hydro_RoR_hourly(:,:,HPP))./(P_r_turb(HPP));
+    
+    % [calculate] hourly hydropower capacity factor for STOR (eq. S42)
+    CF_hydro_STOR_hourly(:,:,HPP) = (P_STOR_hydro_stable_hourly(:,:,HPP) + P_STOR_hydro_flexible_hourly(:,:,HPP))./(P_r_turb(HPP));
+    
     
     % [loop] across all simulation years
     for y = 1:length(simulation_years)
