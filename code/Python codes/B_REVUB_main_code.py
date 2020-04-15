@@ -210,7 +210,7 @@ P_BAL_hydro_RoR_hourly = np.full([int(np.max(positions)), len(simulation_years),
 # [preallocate] Hydropower generation/storage in optional STOR scenario (in MW or MWh/h)
 P_STOR_hydro_stable_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 P_STOR_pump_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-P_STOR_hydro_flexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan);
+P_STOR_hydro_flexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
 # [preallocate] Maximum possible power output after accounting for ramp rate restrictions
 # (in MW or MWh/h, see eq. S16, S37)
@@ -1280,7 +1280,7 @@ for HPP in range(HPP_number):
                                 P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
                                 
                                 # [calculate] ramping constraint for pump (eq. S37)
-                                temp_sgn_pump = 1;
+                                temp_sgn_pump = 1
                                 P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump*mins_hr
                                                             
                             else:
@@ -1586,7 +1586,7 @@ for HPP in range(HPP_number):
                         P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
                         
                         # [calculate] ramping constraint for pump (eq. S37)
-                        temp_sgn_pump = 1;
+                        temp_sgn_pump = 1
                         P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump*mins_hr
                                                     
                     else:
