@@ -11,7 +11,7 @@ Contact author: sebastian.sterl@vub.be
 # 1. Introduction
 ---
 The main objective of REVUB is to model how flexible operation of hydropower plants can help renewable electricity mixes with variable solar and wind power to provide reliable electricity supply and load-following services.
-This model was first introduced in the paper "Smart renewable electricity portfolios in West Africa" (Sterl et al., in preparation); hereafter referred to as "the publication".
+This model was first introduced in the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al. (2020; https://www.nature.com/articles/s41893-020-0539-0); hereafter referred to as "the publication".
 A detailed description of all involved principles and equations can be found in the publication and its SI, as well as in the Manual (https://github.com/VUB-HYDR/REVUB/blob/master/manual/REVUB_manual.pdf).
 
 The REVUB code models reservoir operation and hydro-solar-wind power generation and derives:
