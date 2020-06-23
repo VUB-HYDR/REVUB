@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import numbers as nb
 
-## REVUB.1) Set simulation accuracy
+# %% REVUB.1) Set simulation accuracy
 
 ##### TECHNICAL SIMULATION PARAMETERS #####
 # [set by user] This number defines the amount of discrete steps between 0 and max(E_hydro + E_solar + E_wind)
@@ -57,7 +57,7 @@ X_max_BAL = 3
 X_max_STOR = 3
 
 
-## REVUB.2) Preallocate variables for REVUB simulation
+# %% REVUB.2) Preallocate variables for REVUB simulation
 
 
 ##### RESERVOIR INFLOW PARAMETERS #####
@@ -348,7 +348,7 @@ L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), H
 L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 
 
-## REVUB.3) Classify HPPs
+# %% REVUB.3) Classify HPPs
 
 
 # [loop] to classify all HPPs
@@ -391,7 +391,7 @@ for HPP in range(HPP_number):
     
 
 
-## REVUB.4) Core REVUB simulation
+# %% REVUB.4) Core REVUB simulation
 
 # This section carries out the actual REVUB optimization.
 
@@ -1854,7 +1854,7 @@ for HPP in range(HPP_number):
         
     
 
-## REVUB.5) Post-processing
+# %% REVUB.5) Post-processing
 
 # [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
 for HPP in range(HPP_number):

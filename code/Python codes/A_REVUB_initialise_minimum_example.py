@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import numbers as nb
 
-## pre.1) Time-related parameters
+# %% pre.1) Time-related parameters
 
 # [set by user] number of hydropower plants in this simulation
 HPP_number = 2
@@ -60,7 +60,7 @@ for y in range(len(simulation_years)):
         positions[n+1,y] = hrs_day*days_year[n,y] + positions[n,y]
 
 
-## pre.2) Model parameters
+# %% pre.2) Model parameters
         
 ##### GENERAL HYDROPOWER DATA #####
         
@@ -126,7 +126,7 @@ LOEE_allowed = 0.00
 f_size = 90
 
 
-## pre.3) Static parameters
+# %% pre.3) Static parameters
 
 # [set by user] name of hydropower plant
 HPP_name = ["Bui", "Buyo"]
@@ -159,7 +159,7 @@ Q_max_turb = (P_r_turb) / (eta_turb*rho*g*h_max) * 10**6
 Q_max_pump = (P_r_pump) / (eta_turb**(-1)*rho*g*h_max) * 10**6
 
 
-## pre.4) Time series
+# %% pre.4) Time series
 
 # [preallocate]
 L_norm = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
@@ -192,7 +192,7 @@ CF_wind_hourly[:,:,0] = pd.read_excel (r'minimum_example_CF_wind.xlsx', sheet_na
 CF_wind_hourly[:,:,1] = pd.read_excel (r'minimum_example_CF_wind.xlsx', sheet_name = 'CIV', header = None)
 
 
-## pre.5) Bathymetry
+# %% pre.5) Bathymetry
 
 # [set by user] Calibration curves used during simulations
 temp = pd.read_excel (r'minimum_example_bathymetry.xlsx', sheet_name = 'Bui', header = None)
