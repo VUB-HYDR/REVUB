@@ -57,6 +57,7 @@ for y in range(len(simulation_years)):
             days_bymonth_byyear[d,m,y] = np.str(d+1) + months_names_full[m] + 'Yr' + np.str(y+1)
 
 days_bymonth_byyear_axis = (np.transpose(days_bymonth_byyear[:,:,plot_year])).ravel()
+days_bymonth_byyear_axis = numpy.append(days_bymonth_byyear_axis, 'NextYear')
 days_bymonth_byyear_axis = list(filter(None, days_bymonth_byyear_axis))
 
 # [colours] for plotting
