@@ -53,6 +53,7 @@ To produce the figure outputs, simply run the scripts (.py for Python, .m for MA
 Version 0.1.0 - September 2019 (MATLAB)
 
 Version 0.1.0 - January 2020 (Python)
+
 Version 0.1.1 - July 2023 (Python)
 
 ## License
