@@ -76,14 +76,14 @@ months_byyear = np.empty(shape = (months_yr,len(simulation_years)), dtype = 'obj
 # [arrange] create string for each month-year combination in the time series
 for y in range(len(simulation_years)):
     for m in range(months_yr):
-        months_byyear[m,y] = months_names_full[m] + np.str(simulation_years[y])
+        months_byyear[m,y] = months_names_full[m] + str(simulation_years[y])
 
 # [arrange] create string for each day-month-year combination in the time series
 days_bymonth_byyear = np.empty(shape = (int(np.max(days_year)), months_yr,len(simulation_years)), dtype = 'object')
 for y in range(len(simulation_years)):
     for m in range(months_yr):
         for d in range(int(days_year[m,y])):
-            days_bymonth_byyear[d,m,y] = np.str(d+1) + months_names_full[m] + 'Yr' + np.str(y+1)
+            days_bymonth_byyear[d,m,y] = str(d+1) + months_names_full[m] + 'Yr' + str(y+1)
 
 days_bymonth_byyear_axis = (np.transpose(days_bymonth_byyear[:,:,plot_year_multiple])).ravel()
 days_bymonth_byyear_axis = numpy.append(days_bymonth_byyear_axis, 'NextYear')

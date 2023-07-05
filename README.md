@@ -22,9 +22,8 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 
 # 2. Installation
 ---
-The model exists in two languages: a Python version (written for Python 3.7) and a MATLAB version (written for MATLAB R2017b).
+The model exists in two languages: a Python version (written for Python 3.9) and a MATLAB version (written for MATLAB R2017b). It is recommended to use the Python version, as the MATLAB version is no longer being supported by code updates.
 The files given in this GitHub folder contain code and data needed to run the same minimum working example for both languages. 
-Note that the Python code has not been parallelized as of yet and runs slower than the MATLAB code.
 
 # 3. Tool's structure
 ---
@@ -34,7 +33,7 @@ There are four main scripts: one for initialisation (A), one containing the core
 
 * **A_REVUB_initialise_minimum_example**
 
-This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in CÃ´te d'Ivoire). It reads in several time series from Excel sheets (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located.
+This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in an Excel file with overall modelling parameters, and several Excel files with tabulated time series (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located. The names of the hydropower plants in the parameter sheet must match exactly the names of the worksheets of the spreadsheets containing the corresponding time series tables.
 
 * **B_REVUB_main_code**
 
@@ -54,6 +53,7 @@ To produce the figure outputs, simply run the scripts (.py for Python, .m for MA
 Version 0.1.0 - September 2019 (MATLAB)
 
 Version 0.1.0 - January 2020 (Python)
+Version 0.1.1 - July 2023 (Python)
 
 ## License
 See also the [LICENSE](./LICENSE.md) file.

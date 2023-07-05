@@ -20,10 +20,12 @@ import numbers as nb
 
 # %% REVUB.1) Set simulation accuracy
 
+
 ##### TECHNICAL SIMULATION PARAMETERS #####
+
 # [set by user] This number defines the amount of discrete steps between 0 and max(E_hydro + E_solar + E_wind)
 # reflecting the accuracy of determining the achieved ELCC
-N_ELCC = 10**3
+N_ELCC = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_ELCC', True, False)][0])
 
 # [set by user] These values are used to get a good initial guess for the order of magnitude of the ELCC.
 # This is done by multiplying them with yearly average E_{hydro}.
@@ -31,30 +33,30 @@ N_ELCC = 10**3
 # for each HPP, regardless of differences in volume, head, rated power, &c.
 # The value f_init_BAL_end may have to be increased in scenarios where the ELCC becomes extremely high,
 # e.g. when extremely good balancing sources other than hydro are present.
-# For the scenarios in (Sterl et al.), the below ranges work for all HPPs.
-f_init_BAL_start = 0
-f_init_BAL_step = 0.2
-f_init_BAL_end = 3
+# For the scenarios in (Sterl et al.), the ranges 0-3 work for all HPPs. Usually, smaller ranges can be chosen.
+f_init_BAL_start = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_start', True, False)][0]
+f_init_BAL_step = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_step', True, False)][0]
+f_init_BAL_end = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_end', True, False)][0]
 
 # Idem for the optional STOR scenario
-f_init_STOR_start = 0
-f_init_STOR_step = 0.2
-f_init_STOR_end = 3
+f_init_STOR_start = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_start', True, False)][0]
+f_init_STOR_step = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_step', True, False)][0]
+f_init_STOR_end = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_end', True, False)][0]
 
 # [set by user] Number of refinement loops for equilibrium search for min(Psi) (see eq. S21)
 # Every +1 increases precision by one digit. Typically, 2 or 3 iterations suffice. 
 # For (Sterl et al.), this parameter was set to 3.
-N_refine_BAL = 2
-N_refine_STOR = 2
+N_refine_BAL = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_refine_BAL', True, False)][0])
+N_refine_STOR = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_refine_STOR', True, False)][0])
 
 # [set by user] When min(Psi) (eq. S21) is lower than this threshold, no further refinement loops
 # are performed. This number can be increased to speed up the simulation.
-psi_min_threshold = 0.00
+psi_min_threshold = parameters_simulation_values[np.where(parameters_simulation_list == 'psi_min_threshold', True, False)][0]
 
 # [set by user] Number of loops for iterative estimation of P_stable,BAL/STOR (see eq. S9 & explanation below eq. S19)
 # Typically, 3-6 iterations suffice until convergence is achieved. For (Sterl et al.), this parameter was set to 6.
-X_max_BAL = 3
-X_max_STOR = 3
+X_max_BAL = int(parameters_simulation_values[np.where(parameters_simulation_list == 'X_max_BAL', True, False)][0])
+X_max_STOR = int(parameters_simulation_values[np.where(parameters_simulation_list == 'X_max_STOR', True, False)][0])
 
 
 # %% REVUB.2) Preallocate variables for REVUB simulation
