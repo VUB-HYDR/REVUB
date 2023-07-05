@@ -20,18 +20,37 @@ import numbers as nb
 import matplotlib.pyplot as plt
 import numpy.matlib
 
+
+# import Excel file with user specifications on plotting
+filename_plotting = 'plotting_settings.xlsx'
+
+# [load] plotting parameters
+parameters_plotting_single = pd.read_excel (filename_plotting, sheet_name = 'Plot power output (single HPP)', header = None)
+parameters_plotting_single_list = np.array(parameters_plotting_single[0][0:].tolist())
+parameters_plotting_single_values = np.array(parameters_plotting_single[1][0:].tolist())
+
+parameters_plotting_release = pd.read_excel (filename_plotting, sheet_name = 'Plot release rules (single HPP)', header = None)
+parameters_plotting_release_list = np.array(parameters_plotting_release[0][0:].tolist())
+parameters_plotting_release_values = np.array(parameters_plotting_release)[0:,2:]
+
 # [set by user] select hydropower plant (starting count at zero) and year (starting count at zero) for which to display results
-plot_HPP = 0
-plot_year = 14
+plot_HPP_name = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
+plot_HPP = np.where(np.array(HPP_name) == plot_HPP_name)[0][0]
+plot_year = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1
 
 # [set by user] select month of year (1 = Jan, 2 = Feb, &c.) and day of month, and number of days to display results
-plot_month = 4
-plot_day_month = 2
-plot_num_days = 3
+plot_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_month', True, False)][0])
+plot_day_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
+plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
 
 # [set by user] select months and hours of day (= o'clock) for which to show release rules
-plot_rules_month = [4]
-plot_rules_hr = [8, 20]
+plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
+plot_rules_month = np.array(plot_rules_month, dtype = float)
+plot_rules_month = plot_rules_month[~np.isnan(plot_rules_month)].astype(int)
+
+plot_rules_hr = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_hr', True, False)][0]
+plot_rules_hr = np.array(plot_rules_hr, dtype = float)
+plot_rules_hr = plot_rules_hr[~np.isnan(plot_rules_hr)].astype(int)
 
 # [read] vector with hours in each year
 hrs_year = range(int(hrs_byyear[plot_year]))

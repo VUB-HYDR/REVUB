@@ -23,13 +23,13 @@ import numbers as nb
 
 # filename of Excel sheets with collected data
 filename_parameters = 'parameters_simulation.xlsx'
-filename_bathymetry = 'minimum_example_bathymetry.xlsx'
-filename_CF_solar = 'minimum_example_CF_solar.xlsx'
-filename_CF_wind = 'minimum_example_CF_wind.xlsx'
-filename_evaporation = 'minimum_example_evaporation.xlsx'
-filename_precipitation = 'minimum_example_precipitation.xlsx'
-filename_inflow = 'minimum_example_inflow.xlsx'
-filename_load = 'minimum_example_load.xlsx'
+filename_bathymetry = 'data_bathymetry.xlsx'
+filename_CF_solar = 'data_CF_solar.xlsx'
+filename_CF_wind = 'data_CF_wind.xlsx'
+filename_evaporation = 'data_evaporation.xlsx'
+filename_precipitation = 'data_precipitation.xlsx'
+filename_inflow = 'data_inflow.xlsx'
+filename_load = 'data_load.xlsx'
 
 
 # [load] general simulation parameters

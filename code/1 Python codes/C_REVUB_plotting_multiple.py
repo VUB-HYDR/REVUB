@@ -20,18 +20,38 @@ import numbers as nb
 import matplotlib.pyplot as plt
 import numpy.matlib
 
+
+# import Excel file with user specifications on plotting
+filename_plotting = 'plotting_settings.xlsx'
+
+# [load] plotting parameters
+parameters_plotting_multiple = pd.read_excel (filename_plotting, sheet_name = 'Plot power output (multi HPP)', header = None)
+parameters_plotting_multiple_list = np.array(parameters_plotting_multiple[0][0:].tolist())
+parameters_plotting_multiple_values = np.array(parameters_plotting_multiple)[0:,1:]
+
 # [set by user] select hydropower plant (starting count at zero) and year (starting count at zero) for which to display results
-plot_HPP_multiple = np.array([0, 1])
-plot_year_multiple = 14
+plot_HPP_name_multiple = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'plot_HPP_multiple', True, False)][0]
+plot_HPP_multiple = np.full(len(plot_HPP_name_multiple), np.nan)
+for n in range(len(plot_HPP_name_multiple)):
+    temp = plot_HPP_name_multiple.astype(str)[n]
+    if temp == 'nan':
+        plot_HPP_multiple[n] = -1
+    else:
+        plot_HPP_multiple[n] = np.where(np.array(HPP_name) == temp)[0]
+plot_HPP_multiple = plot_HPP_multiple.astype(int)[plot_HPP_multiple.astype(int) >= 0]
+
+plot_year_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_year_multiple', True, False)][0]) - 1
 
 # [set by user] select month of year (1 = Jan, 2 = Feb, &c.) and day of month, and number of days to display results
-plot_month_multiple = 4
-plot_day_month_multiple = 2
-plot_num_days_multiple = 3
+plot_month_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_month_multiple', True, False)][0])
+plot_day_month_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_day_month_multiple', True, False)][0])
+plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_num_days_multiple', True, False)][0])
 
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
-P_total_av = 400
-P_total_hourly = P_total_av*L_norm[:,:,0]
+P_total_av = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0])
+
+L_norm_HPP = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'chosen_load', True, False)][0]
+P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name) == L_norm_HPP)[0][0]]
 
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
