@@ -41,11 +41,11 @@ This script runs the actual REVUB model simulation and optimisation.
  
 * **C_REVUB_plotting_individual**
 
-This script produces figure outputs for the individually simulated plants, in this case Bui or Buyo, most of which can also be found in the publication or its SI (for the same example).
+This script produces figure outputs for the individually simulated plants, in this case Bui or Buyo, most of which can also be found in the publication or its SI (for the same example). The figures include (i) time series of hydropower lake levels and reservoir outflows without and with complementary hydro-VRE operation, (ii) power generation curves from the selected hydropower plant alongside solar and wind power at hourly, seasonal and multiannual scales, and (iii) hydropower release rule curves for given months and times of the day.
 
 * **C_REVUB_plotting_multiple**
 
-This script produces figure outputs of the overall power mix of a given region/country/grid. For a user-defined ensemble of the simulated plants (in this minimum example, the options for this ensemble are (i) Bui, (ii) Buyo, and (iii) Bui + Buyo together), the script plots overall hydro-solar-wind power generation and compares it to a user-set overall power demand curve (representing overall demand in the country/region/grid). The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
+This script produces figure outputs of the overall power mix of a given region/country/grid. For a user-defined ensemble of the simulated plants (in this minimum example, the options for this ensemble are (i) only Bui, (ii) only Buyo, and (iii) Bui + Buyo together), the script plots overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 
 To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
 
