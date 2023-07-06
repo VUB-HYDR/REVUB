@@ -41,20 +41,18 @@ This script runs the actual REVUB model simulation and optimisation.
  
 * **C_REVUB_plotting_individual**
 
-This script produces figure outputs for the individually simulated plants, in this case Bui (set plot_HPP = 0 in Python or plot_HPP = 1 in MATLAB) or Buyo (set plot_HPP = 1 in Python or plot_HPP = 2 in MATLAB), most of which can also be found in the publication or its SI (for the same example).
+This script produces figure outputs for the individually simulated plants, in this case Bui or Buyo, most of which can also be found in the publication or its SI (for the same example).
 
 * **C_REVUB_plotting_multiple**
 
-This script produces figure outputs for a user-defined ensemble of the simulated plants (e.g. setting plot_HPP_multiple = np.array([0, 1]) in Python or plot_HPP_multiple = [1 2] in MATLAB will provide aggregate results for Bui and Buyo), comparing overall hydro-solar-wind power generation to a user-set overall power demand curve.
+This script produces figure outputs of the overall power mix of a given region/country/grid. For a user-defined ensemble of the simulated plants (in this minimum example, the options for this ensemble are (i) Bui, (ii) Buyo, and (iii) Bui + Buyo together), the script plots overall hydro-solar-wind power generation and compares it to a user-set overall power demand curve (representing overall demand in the country/region/grid). The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 
 To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
 
 ## Versions
-Version 0.1.0 - September 2019 (MATLAB)
+Version 0.1.0 - January 2020
 
-Version 0.1.0 - January 2020 (Python)
-
-Version 0.1.1 - July 2023 (Python)
+Version 0.1.1 - July 2023
 
 ## License
 See also the [LICENSE](./LICENSE.md) file.
