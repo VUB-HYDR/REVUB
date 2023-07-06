@@ -23,7 +23,7 @@ The REVUB code models reservoir operation and hydro-solar-wind power generation 
 # 2. Installation
 ---
 The model exists in two languages: a Python version (written for Python 3.9) and a MATLAB version (written for MATLAB R2017b). It is recommended to use the Python version, as the MATLAB version is no longer being supported by code updates.
-The files given in this GitHub folder contain code and data needed to run the same minimum working example for both languages. 
+The files given in this GitHub folder contain code and data needed to run a minimum working example. 
 
 # 3. Tool's structure
 ---
@@ -47,7 +47,7 @@ This script produces figure outputs for the individually simulated plants, in th
 
 This script produces figure outputs of the overall power mix of a given region/country/grid. For a user-defined ensemble of the simulated plants (in this minimum example, the options for this ensemble are (i) only Bui, (ii) only Buyo, and (iii) Bui + Buyo together), the script plots overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 
-To produce the figure outputs, simply run the scripts (.py for Python, .m for MATLAB) in the order A-B-C.
+To produce the figure outputs, simply run the scripts in the order A-B-C.
 
 ## Versions
 Version 0.1.0 - January 2020
