@@ -33,7 +33,7 @@ parameters_plotting_release = pd.read_excel (filename_plotting, sheet_name = 'Pl
 parameters_plotting_release_list = np.array(parameters_plotting_release[0][0:].tolist())
 parameters_plotting_release_values = np.array(parameters_plotting_release)[0:,2:]
 
-# [set by user] select hydropower plant (starting count at zero) and year (starting count at zero) for which to display results
+# [set by user] select hydropower plant (by name) and year (starting count at one) for which to display results
 plot_HPP_name = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
 plot_HPP = np.where(np.array(HPP_name) == plot_HPP_name)[0][0]
 plot_year = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1

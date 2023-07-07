@@ -29,7 +29,7 @@ parameters_plotting_multiple = pd.read_excel (filename_plotting, sheet_name = 'P
 parameters_plotting_multiple_list = np.array(parameters_plotting_multiple[0][0:].tolist())
 parameters_plotting_multiple_values = np.array(parameters_plotting_multiple)[0:,1:]
 
-# [set by user] select hydropower plant (starting count at zero) and year (starting count at zero) for which to display results
+# [set by user] select hydropower plant (by name) and year (starting count at one) for which to display results
 plot_HPP_name_multiple = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'plot_HPP_multiple', True, False)][0]
 plot_HPP_multiple = np.full(len(plot_HPP_name_multiple), np.nan)
 for n in range(len(plot_HPP_name_multiple)):
