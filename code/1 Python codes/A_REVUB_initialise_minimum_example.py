@@ -105,12 +105,6 @@ g = parameters_general_values[np.where(parameters_general_list == 'g', True, Fal
 
 ##### HYDROPOWER OPERATION PARAMETERS #####
 
-# [set by user] turbine efficiency (introduced in eq. S8)
-eta_turb = parameters_general_values[np.where(parameters_general_list == 'eta_turb', True, False)][0]
-
-# [set by user] pumping efficiency
-eta_pump = parameters_general_values[np.where(parameters_general_list == 'eta_pump', True, False)][0]
-
 # [set by user] minimum required environmental outflow fraction (eq. S4, S5)
 d_min = parameters_general_values[np.where(parameters_general_list == 'd_min', True, False)][0]
 
@@ -129,15 +123,6 @@ f_spill = parameters_general_values[np.where(parameters_general_list == 'f_spill
 # [set by user] mu parameter to control spilling (eq. S7)
 mu = parameters_general_values[np.where(parameters_general_list == 'mu', True, False)][0]
 
-# [set by user] thresholds f_stop and f_restart (see page 4) for stopping and restarting
-# hydropower production to maintain minimum drawdown levels
-f_stop = parameters_general_values[np.where(parameters_general_list == 'f_stop', True, False)][0]
-f_restart = parameters_general_values[np.where(parameters_general_list == 'f_restart', True, False)][0]
-
-# [set by user] ramp rate restrictions (eq. S16, S37): fraction of full capacity per minute
-dP_ramp_turb = parameters_general_values[np.where(parameters_general_list == 'dP_ramp_turb', True, False)][0]
-dP_ramp_pump = parameters_general_values[np.where(parameters_general_list == 'dP_ramp_pump', True, False)][0]
-
 # [set by user] array of C_{OR} values (eq. S14). The first value is the default. If the
 # criterium on k_turb (eq. S28) is not met, the simulation is redone with the second value, &c.
 C_OR_range_BAL = list(np.arange(1 - d_min, 0.05, -0.05))
@@ -152,14 +137,15 @@ T_fill_thres = parameters_general_values[np.where(parameters_general_list == 'T_
 # E.g. LOEE_allowed = 0.01 would mean that criterion (ii) is relaxed to 1% of yearly allowed LOEE instead of 0%.
 LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LOEE_allowed', True, False)][0]
 
-# [set by user] the parameter f_size controls allowed VRE overproduction and is the percentile value described in eq. S11
-f_size = int(parameters_general_values[np.where(parameters_general_list == 'f_size', True, False)][0])
-
 
 # %% pre.3) Static parameters
 
 # [set by user] name of hydropower plant
 HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].tolist()
+HPP_name_timeseries = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_timeseries', True, False)][0].tolist()
+
+# [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
+f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
 
 # [set by user] relative capacity of solar vs. wind to be installed (cf. explanation below eq. S13)
 # e.g. c_solar_relative = 1 means only solar deployment, no wind deployment on the grid of each HPP in question.
@@ -184,9 +170,27 @@ V_lower_max = parameters_hydropower_values[np.where(parameters_hydropower_list =
 # [set by user] if using STOR scenario: pump capacity (MW)
 P_r_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'P_r_pump', True, False)][0]
 
-# [calculate] turbine and pump throughput (m^3/s, see explanation following eq. S8)
+# [set by user] turbine and pump throughput (m^3/s, see explanation following eq. S8)
 Q_max_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'Q_max_turb', True, False)][0]
 Q_max_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'Q_max_pump', True, False)][0]
+
+# [set by user] turbine efficiency (introduced in eq. S8)
+eta_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'eta_turb', True, False)][0]
+
+# [set by user] pumping efficiency
+eta_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'eta_pump', True, False)][0]
+
+# [set by user] ramp rate restrictions (eq. S16, S37): fraction of full capacity per minute
+dP_ramp_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_turb', True, False)][0]
+dP_ramp_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_pump', True, False)][0]
+
+# [set by user] thresholds f_stop and f_restart (see page 4) for stopping and restarting
+# hydropower production to maintain minimum drawdown levels
+f_stop = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_stop', True, False)][0]
+f_restart = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_restart', True, False)][0]
+
+# [set by user] the parameter f_size controls allowed VRE overproduction and is the percentile value described in eq. S11
+f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_size', True, False)][0].astype(int)
 
 
 # %% pre.4) Time series
@@ -203,18 +207,18 @@ CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years)
 for n in range(len(HPP_name)):
     
     # [set by user] Load curves (L_norm; see eq. S10)
-    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name[n], header = None)
+    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_timeseries[n], header = None)
     
     # [set by user] Precipitation and evaporation flux (kg/m^2/s)
-    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name[n], header = None)
-    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name[n], header = None)
+    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_timeseries[n], header = None)
+    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_timeseries[n], header = None)
     
     # [set by user] natural inflow at hourly timescale (m^3/s)
-    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name[n], header = None)
+    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_timeseries[n], header = None)
 
     # [set by user] capacity factors weighted by location (eq. S12)
-    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name[n], header = None)
-    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name[n], header = None)
+    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_timeseries[n], header = None)
+    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_timeseries[n], header = None)
     
 
 
@@ -227,7 +231,7 @@ temp_length_array = np.zeros(HPP_number)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name[n], header = None)
+    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_timeseries[n], header = None)
     temp_length_array[n] = len(temp)
 
 
@@ -240,7 +244,7 @@ calibrate_head = np.full([int(np.max(temp_length_array)), HPP_number], np.nan)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name[n], header = None)
+    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_timeseries[n], header = None)
     
     # [extract] volume (m^3)
     calibrate_volume[0:len(temp.iloc[:,0]),n] = temp.iloc[:,0]

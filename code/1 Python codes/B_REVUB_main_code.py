@@ -83,11 +83,10 @@ HPP_category = ["" for x in range(HPP_number)]
 ##### HPP OPERATIONAL PARAMETERS #####
 
 
-# [preallocate] Parameters tau_fill (eq. S1), phi (eq. S6), kappa (eq. S5) and f_reg (eq. S30) for each HPP
+# [preallocate] Parameters tau_fill (eq. S1), phi (eq. S6) and kappa (eq. S5) for each HPP
 tau_fill = np.full([HPP_number], np.nan)
 phi = np.full([HPP_number], np.nan)
 kappa = np.full([HPP_number], np.nan)
-f_reg = np.full([HPP_number], np.nan)
 
 # [preallocate] Option for STOR scenario
 STOR_break = np.zeros(shape = HPP_number)
@@ -356,11 +355,12 @@ L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), 
 # [loop] to classify all HPPs
 for HPP in range(HPP_number):
     
-    # [calculate] f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
-    f_reg[HPP] = (V_max[HPP]/(min(np.sum(days_year,0))*hrs_day*secs_hr*T_fill_thres))/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+    # [calculate] if needed, default f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
+    if np.isnan(f_reg[HPP]):
+        f_reg[HPP] = (V_max[HPP]/(min(np.sum(days_year,0))*hrs_day*secs_hr*T_fill_thres))/np.nanmean(Q_in_nat_hourly[:,:,HPP])
     
-    # [calculate] Determine dam category based on f_reg (Note 5)
-    # Here "large" HPPs are designated by "A", "small" HPPs by "B".
+    # [calculate] Determine dam category (whether deemed to have more or less than a year of storage) based on f_reg (Note 5)
+    # Here "large" HPPs are designated by "A", "small" HPPs by "B"
     
     if f_reg[HPP] < 1:
         # [define] as small HPP
@@ -373,7 +373,7 @@ for HPP in range(HPP_number):
         # [calculate] all flow can be used flexibly for large HPPs
         Q_in_frac_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP]
         
-    # [calculate] the component Q_RoR for small HPPs (Note 5)
+    # [calculate] the component Q_RoR for HPPs deemed to have less-than-a-year storage (Note 5)
     Q_in_RoR_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP] - Q_in_frac_hourly[:,:,HPP]
     
     ##### SPECIFY OUTFLOW CURVE (CONV) #####
@@ -484,10 +484,10 @@ for HPP in range(HPP_number):
             
             # [calculate] hydropower generation in MW (eq. S8)
             Q_pot_turb_CONV = np.min([Q_CONV_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-            P_CONV_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_CONV*eta_turb*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+            P_CONV_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_CONV*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
             
             # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-            P_CONV_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_CONV_stable_hourly[n,y,HPP]]) ])*eta_turb*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+            P_CONV_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_CONV_stable_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
             
             # [calculate] reservoir volume in m^3 at next time step (eq. S3, S31)
             V_CONV_hourly[n+1,y,HPP] = V_CONV_hourly[n,y,HPP] + (Q_in_frac_hourly[n,y,HPP] - Q_CONV_stable_hourly[n,y,HPP] - Q_CONV_spill_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_CONV_hourly[n,y,HPP]/rho)*secs_hr
@@ -501,7 +501,7 @@ for HPP in range(HPP_number):
             # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
             # (see explanation below eq. S33)
             if HPP_category[HPP] == "B":
-                if V_CONV_hourly[n+1,y,HPP] < f_restart*V_max[HPP]:
+                if V_CONV_hourly[n+1,y,HPP] < f_restart[HPP]*V_max[HPP]:
                     if n < len(hrs_year) - 1:
                         Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
                         Q_in_RoR_hourly[n+1,y,HPP] = 0
@@ -511,7 +511,7 @@ for HPP in range(HPP_number):
                         
             # [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
             # (see Note 3.1)
-            if V_CONV_hourly[n+1,y,HPP] < f_stop*V_max[HPP]:
+            if V_CONV_hourly[n+1,y,HPP] < f_stop[HPP]*V_max[HPP]:
                 if n < len(hrs_year) - 1:
                     hydro_CONV_curtailment_factor_hourly[n+1,y,HPP] = 0
                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -520,13 +520,13 @@ for HPP in range(HPP_number):
             
             # [calculate] restart hydropower generation if reservoir levels have recovered
             # (see Note 3.1)
-            if hydro_CONV_curtailment_factor_hourly[n,y,HPP] == 0 and V_CONV_hourly[n+1,y,HPP] > f_restart*V_max[HPP]:
+            if hydro_CONV_curtailment_factor_hourly[n,y,HPP] == 0 and V_CONV_hourly[n+1,y,HPP] > f_restart[HPP]*V_max[HPP]:
                 if n < len(hrs_year) - 1:
                     hydro_CONV_curtailment_factor_hourly[n+1,y,HPP] = 1
                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                     hydro_CONV_curtailment_factor_hourly[0,y+1,HPP] = 1
             
-            elif hydro_CONV_curtailment_factor_hourly[n,y,HPP] == 0 and V_CONV_hourly[n+1,y,HPP] <= f_restart*V_max[HPP]:
+            elif hydro_CONV_curtailment_factor_hourly[n,y,HPP] == 0 and V_CONV_hourly[n+1,y,HPP] <= f_restart[HPP]*V_max[HPP]:
                 if n < len(hrs_year) - 1:
                     hydro_CONV_curtailment_factor_hourly[n+1,y,HPP] = 0
                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -650,7 +650,7 @@ for HPP in range(HPP_number):
                             P_BAL_inflexible_hourly[hrs_year,y,HPP] = (np.mean(c_multiplier_BAL[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP] + P_BAL_hydro_stable_hourly[hrs_year,y,HPP])
                         
                     # [calculate] P_load according to constraints on overproduction (eq. S11)
-                    P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size)
+                    P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size[HPP])
                     
                     # [loop] across all simulation years to perform optimization
                     for y in range(len(simulation_years)):
@@ -673,7 +673,7 @@ for HPP in range(HPP_number):
                             
                             # [calculate] ramping constraint (eq. S16)
                             temp_sgn_turb = 1
-                            P_BAL_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                            P_BAL_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                                         
                         else:
                             
@@ -700,7 +700,7 @@ for HPP in range(HPP_number):
                                 temp_sgn_turb = 1
                             else:
                                 temp_sgn_turb = -1
-                            P_BAL_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                            P_BAL_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                             if P_BAL_ramp_restr_hourly[0,y,HPP] < 0:
                                 P_BAL_ramp_restr_hourly[0,y,HPP] = 0
                             
@@ -715,10 +715,10 @@ for HPP in range(HPP_number):
                                 Q_BAL_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP]]) * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
                                 # [calculate] if ramping up
                                 if temp_sgn_turb == 1:
-                                    P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                    P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
                                 # [calculate] if ramping down
                                 elif temp_sgn_turb == -1:
-                                    P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                    P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
                                 
                             # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                             if P_BAL_difference_hourly[n,y,HPP] >= 0:
@@ -726,18 +726,18 @@ for HPP in range(HPP_number):
                                 
                             # [calculate] stable hydropower generation in MW (eq. S15)
                             Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                            P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6
+                            P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
                                                             
                             # [calculate] flexible turbined flow in m^3/s (eq. S18)
                             if h_BAL_hourly[n,y,HPP] > 0:
-                                Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb*rho*g*h_BAL_hourly[n,y,HPP])*10**6
+                                Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP])*10**6
                             else:
                                 # [check] cannot be negative
                                 h_BAL_hourly[n,y,HPP] = 0
                                 Q_BAL_flexible_hourly[n,y,HPP] = 0
                             
                             # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
                             
                             # [calculate] spilling component in m^3/s (eq. S19)
                             if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill:
@@ -775,7 +775,7 @@ for HPP in range(HPP_number):
                                     temp_sgn_turb = 1
                                 else:
                                     temp_sgn_turb = -1
-                                P_BAL_ramp_restr_hourly[n+1,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                                P_BAL_ramp_restr_hourly[n+1,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                 if P_BAL_ramp_restr_hourly[n+1,y,HPP] < 0:
                                     P_BAL_ramp_restr_hourly[n+1,y,HPP] = 0
                                 
@@ -783,7 +783,7 @@ for HPP in range(HPP_number):
                             # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
                             # (see explanation below eq. S33)
                             if HPP_category[HPP] == "B":
-                                if V_BAL_hourly[n+1,y,HPP] < f_restart*V_max[HPP]:
+                                if V_BAL_hourly[n+1,y,HPP] < f_restart[HPP]*V_max[HPP]:
                                     if n < len(hrs_year) - 1:
                                         Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
                                         Q_in_RoR_hourly[n+1,y,HPP] = 0
@@ -793,7 +793,7 @@ for HPP in range(HPP_number):
                             
                             # [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
                             # (see Note 3.1)
-                            if V_BAL_hourly[n+1,y,HPP] < f_stop*V_max[HPP]:
+                            if V_BAL_hourly[n+1,y,HPP] < f_stop[HPP]*V_max[HPP]:
                                 if n < len(hrs_year) - 1:
                                     hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 0
                                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -801,12 +801,12 @@ for HPP in range(HPP_number):
                                     
                             # [calculate] restart hydropower generation if reservoir levels have recovered
                             # (see Note 3.1)
-                            if hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] > f_restart*V_max[HPP]:
+                            if hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] > f_restart[HPP]*V_max[HPP]:
                                 if n < len(hrs_year) - 1:
                                     hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 1
                                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                                     hydro_BAL_curtailment_factor_hourly[0,y+1,HPP] = 1
-                            elif hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] <= f_restart*V_max[HPP]:
+                            elif hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] <= f_restart[HPP]*V_max[HPP]:
                                 if n < len(hrs_year) - 1:
                                     hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 0
                                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -827,10 +827,10 @@ for HPP in range(HPP_number):
                 
                 # [check] see explanation below eq. S21: if droughts occur in CONV, BAL should have no MORE days of curtailed flow than CONV ...
                 # and curtailed flow should occur in less than 50% of the years in the simulation, so median yearly statistics represent normal operation
-                if np.nanmin(V_CONV_hourly[:,:,HPP]) < f_stop*V_max[HPP] and (np.nansum(Q_BAL_out_hourly[:,:,HPP] == 0) > np.nansum(Q_CONV_out_hourly[:,:,HPP] == 0) or np.sum(np.sum(Q_BAL_out_hourly[:,:,HPP] - Q_in_RoR_hourly[:,:,HPP] == 0, axis = 0) > 0) > np.floor(len(simulation_years)/2)):
+                if np.nanmin(V_CONV_hourly[:,:,HPP]) < f_stop[HPP]*V_max[HPP] and (np.nansum(Q_BAL_out_hourly[:,:,HPP] == 0) > np.nansum(Q_CONV_out_hourly[:,:,HPP] == 0) or np.sum(np.sum(Q_BAL_out_hourly[:,:,HPP] - Q_in_RoR_hourly[:,:,HPP] == 0, axis = 0) > 0) > np.floor(len(simulation_years)/2)):
                     psi_BAL[f] = np.nan
                     # [check] if droughts do not occur in CONV, then neither should they in BAL
-                elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop*V_max[HPP] and np.nanmin(V_BAL_hourly[:,:,HPP]) < f_stop*V_max[HPP]:
+                elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop[HPP]*V_max[HPP] and np.nanmin(V_BAL_hourly[:,:,HPP]) < f_stop[HPP]*V_max[HPP]:
                     psi_BAL[f] = np.nan
                 
             
@@ -917,7 +917,7 @@ for HPP in range(HPP_number):
                 
             
             # [calculate] P_load according to constraints on overproduction (eq. S11)
-            P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size)
+            P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size[HPP])
 
             # [loop] across all simulation years to perform optimization
             for y in range(len(simulation_years)):
@@ -940,7 +940,7 @@ for HPP in range(HPP_number):
                     
                     # [calculate] ramping constraint (eq. S16)
                     temp_sgn_turb = 1
-                    P_BAL_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                    P_BAL_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                                 
                 else:
                     
@@ -967,7 +967,7 @@ for HPP in range(HPP_number):
                         temp_sgn_turb = 1
                     else:
                         temp_sgn_turb = -1
-                    P_BAL_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                    P_BAL_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                     if P_BAL_ramp_restr_hourly[0,y,HPP] < 0:
                         P_BAL_ramp_restr_hourly[0,y,HPP] = 0
                     
@@ -982,10 +982,10 @@ for HPP in range(HPP_number):
                         Q_BAL_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP]]) * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
                         # [calculate] if ramping up
                         if temp_sgn_turb == 1:
-                            P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                            P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
                         # [calculate] if ramping down
                         elif temp_sgn_turb == -1:
-                            P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                            P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
                         
                     # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                     if P_BAL_difference_hourly[n,y,HPP] >= 0:
@@ -993,18 +993,18 @@ for HPP in range(HPP_number):
                         
                     # [calculate] stable hydropower generation in MW (eq. S15)
                     Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                    P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb*rho*g*h_BAL_hourly[n,y,HPP]/10**6
+                    P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
                     
                     # [calculate] flexible turbined flow in m^3/s (eq. S18)
                     if h_BAL_hourly[n,y,HPP] > 0:
-                        Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb*rho*g*h_BAL_hourly[n,y,HPP])*10**6
+                        Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP])*10**6
                     else:
                         # [check] cannot be negative
                         h_BAL_hourly[n,y,HPP] = 0
                         Q_BAL_flexible_hourly[n,y,HPP] = 0
                     
                     # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
                     
                     # [calculate] spilling component in m^3/s (eq. S19)
                     if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill:
@@ -1042,7 +1042,7 @@ for HPP in range(HPP_number):
                             temp_sgn_turb = 1
                         else:
                             temp_sgn_turb = -1
-                        P_BAL_ramp_restr_hourly[n+1,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                        P_BAL_ramp_restr_hourly[n+1,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                         if P_BAL_ramp_restr_hourly[n+1,y,HPP] < 0:
                             P_BAL_ramp_restr_hourly[n+1,y,HPP] = 0
                         
@@ -1050,7 +1050,7 @@ for HPP in range(HPP_number):
                     # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
                     # (see explanation below eq. S33)
                     if HPP_category[HPP] == "B":
-                        if V_BAL_hourly[n+1,y,HPP] < f_restart*V_max[HPP]:
+                        if V_BAL_hourly[n+1,y,HPP] < f_restart[HPP]*V_max[HPP]:
                             if n < len(hrs_year) - 1:
                                 Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
                                 Q_in_RoR_hourly[n+1,y,HPP] = 0
@@ -1060,7 +1060,7 @@ for HPP in range(HPP_number):
                     
                     # [calculate] for large and small HPPs: curtail hydropower generation in case water levels have dropped below f_stop*V_max
                     # (see Note 3.1)
-                    if V_BAL_hourly[n+1,y,HPP] < f_stop*V_max[HPP]:
+                    if V_BAL_hourly[n+1,y,HPP] < f_stop[HPP]*V_max[HPP]:
                         if n < len(hrs_year) - 1:
                             hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 0
                         elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1068,12 +1068,12 @@ for HPP in range(HPP_number):
                             
                     # [calculate] restart hydropower generation if reservoir levels have recovered
                     # (see Note 3.1)
-                    if hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] > f_restart*V_max[HPP]:
+                    if hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] > f_restart[HPP]*V_max[HPP]:
                         if n < len(hrs_year) - 1:
                             hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 1
                         elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                             hydro_BAL_curtailment_factor_hourly[0,y+1,HPP] = 1
-                    elif hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] <= f_restart*V_max[HPP]:
+                    elif hydro_BAL_curtailment_factor_hourly[n,y,HPP] == 0 and V_BAL_hourly[n+1,y,HPP] <= f_restart[HPP]*V_max[HPP]:
                         if n < len(hrs_year) - 1:
                             hydro_BAL_curtailment_factor_hourly[n+1,y,HPP] = 0
                         elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1254,7 +1254,7 @@ for HPP in range(HPP_number):
                                 P_STOR_inflexible_hourly[hrs_year,y,HPP] = (np.mean(c_multiplier_STOR[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP] + P_STOR_hydro_stable_hourly[hrs_year,y,HPP])
                             
                         # [calculate] P_load according to constraints on overproduction (eq. S11)
-                        P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size)
+                        P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size[HPP])
                         
                         
                         # [loop] across all simulation years to perform optimization
@@ -1279,11 +1279,11 @@ for HPP in range(HPP_number):
                                 
                                 # [calculate] ramping constraint (eq. S16)
                                 temp_sgn_turb = 1
-                                P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                                P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                 
                                 # [calculate] ramping constraint for pump (eq. S37)
                                 temp_sgn_pump = 1
-                                P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                                P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                                                             
                             else:
                                 
@@ -1314,7 +1314,7 @@ for HPP in range(HPP_number):
                                     temp_sgn_turb = 1
                                 else:
                                     temp_sgn_turb = -1
-                                P_STOR_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                                P_STOR_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                 if P_STOR_ramp_restr_hourly[0,y,HPP] < 0:
                                     P_STOR_ramp_restr_hourly[0,y,HPP] = 0
                                     
@@ -1327,7 +1327,7 @@ for HPP in range(HPP_number):
                                     temp_sgn_pump = -1
                                 else:
                                     temp_sgn_pump = 1
-                                P_STOR_ramp_restr_pump_hourly[0,y,HPP] = temp[-1] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                                P_STOR_ramp_restr_pump_hourly[0,y,HPP] = temp[-1] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                                 if P_STOR_ramp_restr_pump_hourly[0,y,HPP] < 0:
                                     P_STOR_ramp_restr_pump_hourly[0,y,HPP] = 0
                                 
@@ -1342,10 +1342,10 @@ for HPP in range(HPP_number):
                                     Q_STOR_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_STOR_stable_hourly[n,y,HPP]]) * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                                     # [calculate] if ramping up
                                     if temp_sgn_turb == 1:
-                                        P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                        P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
                                     # [calculate] if ramping down
                                     elif temp_sgn_turb == -1:
-                                        P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                        P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
                                     # [calculate] if P_d < 0 pumping is not performed (eq. S37)
                                     P_STOR_pump_hourly[n,y,HPP] = 0
                                 
@@ -1355,10 +1355,10 @@ for HPP in range(HPP_number):
                                         Q_STOR_pot_pump_hourly[n,y,HPP] = np.min([V_STOR_hourly_lower[n,y,HPP]/secs_hr, Q_max_pump[HPP]])
                                         # [calculate] if ramping up
                                         if temp_sgn_pump == 1:
-                                            P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
+                                            P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
                                         # [calculate] if ramping down
                                         elif temp_sgn_pump == -1:
-                                            P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
+                                            P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
                                     else:
                                         P_STOR_pump_hourly[n,y,HPP] = 0
                                     # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
@@ -1366,12 +1366,12 @@ for HPP in range(HPP_number):
                                     
                                 # [calculate] stable hydropower generation in MW (eq. S15)
                                 Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                                P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6
+                                P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
     
                                 # [calculate] flexible turbined flow (eq. S18) and pumped flow (eq. 39) in m^3/s
                                 if h_STOR_hourly[n,y,HPP] > 0:
-                                    Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb*rho*g*h_STOR_hourly[n,y,HPP])*10**6
-                                    Q_STOR_pump_hourly[n,y,HPP] = P_STOR_pump_hourly[n,y,HPP]/(eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP])*10**6
+                                    Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP])*10**6
+                                    Q_STOR_pump_hourly[n,y,HPP] = P_STOR_pump_hourly[n,y,HPP]/(eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP])*10**6
                                 else:
                                     # [check] cannot be negative
                                     h_STOR_hourly[n,y,HPP] = 0
@@ -1421,7 +1421,7 @@ for HPP in range(HPP_number):
                                         temp_sgn_turb = 1
                                     else:
                                         temp_sgn_turb = -1
-                                    P_STOR_ramp_restr_hourly[n+1,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                                    P_STOR_ramp_restr_hourly[n+1,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                                     if P_STOR_ramp_restr_hourly[n+1,y,HPP] < 0:
                                         P_STOR_ramp_restr_hourly[n+1,y,HPP] = 0
                                 
@@ -1431,7 +1431,7 @@ for HPP in range(HPP_number):
                                         temp_sgn_pump = -1
                                     else:
                                         temp_sgn_pump = 1
-                                    P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = P_STOR_pump_hourly[n,y,HPP] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                                    P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = P_STOR_pump_hourly[n,y,HPP] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                                     if P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] < 0:
                                         P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = 0
                                 
@@ -1439,7 +1439,7 @@ for HPP in range(HPP_number):
                                 # [calculate] whether lake levels have dropped so low as to require hydropower curtailment
                                 # curtail hydropower generation in case water levels have dropped below f_stop*V_max
                                 # (see Note 3.1)
-                                if V_STOR_hourly_upper[n+1,y,HPP] < f_stop*V_max[HPP]:
+                                if V_STOR_hourly_upper[n+1,y,HPP] < f_stop[HPP]*V_max[HPP]:
                                     if n < len(hrs_year) - 1:
                                         hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 0
                                     elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1447,12 +1447,12 @@ for HPP in range(HPP_number):
                                         
                                 # [calculate] restart hydropower generation if reservoir levels have recovered
                                 # (see Note 3.1)
-                                if hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] > f_restart*V_max[HPP]:
+                                if hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] > f_restart[HPP]*V_max[HPP]:
                                     if n < len(hrs_year) - 1:
                                         hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 1
                                     elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                                         hydro_STOR_curtailment_factor_hourly[0,y+1,HPP] = 1
-                                elif hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] <= f_restart*V_max[HPP]:
+                                elif hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] <= f_restart[HPP]*V_max[HPP]:
                                     if n < len(hrs_year) - 1:
                                         hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 0
                                     elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1473,10 +1473,10 @@ for HPP in range(HPP_number):
                     
                     # [check] see explanation below eq. S21: if droughts occur in CONV, STOR should have no MORE days of curtailed flow than CONV ...
                     # and curtailed flow should occur in less than 50% of the years in the simulation, so median yearly statistics represent normal operation
-                    if np.nanmin(V_CONV_hourly[:,:,HPP]) < f_stop*V_max[HPP] and (np.nansum(Q_STOR_out_hourly[:,:,HPP] == 0) > np.nansum(Q_CONV_out_hourly[:,:,HPP] == 0) or np.sum(np.sum(Q_STOR_out_hourly[:,:,HPP] - Q_in_RoR_hourly[:,:,HPP] == 0, axis = 0) > 0) > np.floor(len(simulation_years)/2)):
+                    if np.nanmin(V_CONV_hourly[:,:,HPP]) < f_stop[HPP]*V_max[HPP] and (np.nansum(Q_STOR_out_hourly[:,:,HPP] == 0) > np.nansum(Q_CONV_out_hourly[:,:,HPP] == 0) or np.sum(np.sum(Q_STOR_out_hourly[:,:,HPP] - Q_in_RoR_hourly[:,:,HPP] == 0, axis = 0) > 0) > np.floor(len(simulation_years)/2)):
                         psi_STOR[f] = np.nan
                         # [check] if droughts do not occur in CONV, then neither should they in STOR
-                    elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop*V_max[HPP] and np.nanmin(V_STOR_hourly_upper[:,:,HPP]) < f_stop*V_max[HPP]:
+                    elif np.nanmin(V_CONV_hourly[:,:,HPP]) >= f_stop[HPP]*V_max[HPP] and np.nanmin(V_STOR_hourly_upper[:,:,HPP]) < f_stop[HPP]*V_max[HPP]:
                         psi_STOR[f] = np.nan
                     
                 
@@ -1560,7 +1560,7 @@ for HPP in range(HPP_number):
                 
                 
                 # [calculate] P_load according to constraints on overproduction (eq. S11)
-                P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size)
+                P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size[HPP])
                 
                 
                 # [loop] across all simulation years to perform optimization
@@ -1585,11 +1585,11 @@ for HPP in range(HPP_number):
                         
                         # [calculate] ramping constraint (eq. S16)
                         temp_sgn_turb = 1
-                        P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                        P_STOR_ramp_restr_hourly[0,y,HPP] = P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                         
                         # [calculate] ramping constraint for pump (eq. S37)
                         temp_sgn_pump = 1
-                        P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                        P_STOR_ramp_restr_pump_hourly[0,y,HPP] = P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                                                     
                     else:
                         
@@ -1620,7 +1620,7 @@ for HPP in range(HPP_number):
                             temp_sgn_turb = 1
                         else:
                             temp_sgn_turb = -1
-                        P_STOR_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                        P_STOR_ramp_restr_hourly[0,y,HPP] = temp[-1] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                         if P_STOR_ramp_restr_hourly[0,y,HPP] < 0:
                             P_STOR_ramp_restr_hourly[0,y,HPP] = 0
                             
@@ -1633,7 +1633,7 @@ for HPP in range(HPP_number):
                             temp_sgn_pump = -1
                         else:
                             temp_sgn_pump = 1
-                        P_STOR_ramp_restr_pump_hourly[0,y,HPP] = temp[-1] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                        P_STOR_ramp_restr_pump_hourly[0,y,HPP] = temp[-1] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                         if P_STOR_ramp_restr_pump_hourly[0,y,HPP] < 0:
                             P_STOR_ramp_restr_pump_hourly[0,y,HPP] = 0
                         
@@ -1648,10 +1648,10 @@ for HPP in range(HPP_number):
                             Q_STOR_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_STOR_stable_hourly[n,y,HPP]]) * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                             # [calculate] if ramping up
                             if temp_sgn_turb == 1:
-                                P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
                             # [calculate] if ramping down
                             elif temp_sgn_turb == -1:
-                                P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
                             # [calculate] if P_d < 0 pumping is not performed (eq. S37)
                             P_STOR_pump_hourly[n,y,HPP] = 0
                         
@@ -1661,10 +1661,10 @@ for HPP in range(HPP_number):
                                 Q_STOR_pot_pump_hourly[n,y,HPP] = np.min([V_STOR_hourly_lower[n,y,HPP]/secs_hr, Q_max_pump[HPP]])
                                 # [calculate] if ramping up
                                 if temp_sgn_pump == 1:
-                                    P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
+                                    P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
                                 # [calculate] if ramping down
                                 elif temp_sgn_pump == -1:
-                                    P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
+                                    P_STOR_pump_hourly[n,y,HPP] = np.min([Q_STOR_pot_pump_hourly[n,y,HPP]*eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_pump_hourly[n,y,HPP]]) ])
                             else:
                                 P_STOR_pump_hourly[n,y,HPP] = 0
                             # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
@@ -1672,12 +1672,12 @@ for HPP in range(HPP_number):
                             
                         # [calculate] stable hydropower generation in MW (eq. S15)
                         Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                        P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb*rho*g*h_STOR_hourly[n,y,HPP]/10**6
+                        P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
 
                         # [calculate] flexible turbined flow (eq. S18) and pumped flow (eq. 39) in m^3/s
                         if h_STOR_hourly[n,y,HPP] > 0:
-                            Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb*rho*g*h_STOR_hourly[n,y,HPP])*10**6
-                            Q_STOR_pump_hourly[n,y,HPP] = P_STOR_pump_hourly[n,y,HPP]/(eta_pump**(-1)*rho*g*h_STOR_hourly[n,y,HPP])*10**6
+                            Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP])*10**6
+                            Q_STOR_pump_hourly[n,y,HPP] = P_STOR_pump_hourly[n,y,HPP]/(eta_pump[HPP]**(-1)*rho*g*h_STOR_hourly[n,y,HPP])*10**6
                         else:
                             # [check] cannot be negative
                             h_STOR_hourly[n,y,HPP] = 0
@@ -1727,7 +1727,7 @@ for HPP in range(HPP_number):
                                 temp_sgn_turb = 1
                             else:
                                 temp_sgn_turb = -1
-                            P_STOR_ramp_restr_hourly[n+1,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb*mins_hr
+                            P_STOR_ramp_restr_hourly[n+1,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP] + temp_sgn_turb*P_r_turb[HPP]*dP_ramp_turb[HPP]*mins_hr
                             if P_STOR_ramp_restr_hourly[n+1,y,HPP] < 0:
                                 P_STOR_ramp_restr_hourly[n+1,y,HPP] = 0
                         
@@ -1737,7 +1737,7 @@ for HPP in range(HPP_number):
                                 temp_sgn_pump = -1
                             else:
                                 temp_sgn_pump = 1
-                            P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = P_STOR_pump_hourly[n,y,HPP] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump*mins_hr
+                            P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = P_STOR_pump_hourly[n,y,HPP] + temp_sgn_pump*P_r_pump[HPP]*dP_ramp_pump[HPP]*mins_hr
                             if P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] < 0:
                                 P_STOR_ramp_restr_pump_hourly[n+1,y,HPP] = 0
                         
@@ -1745,7 +1745,7 @@ for HPP in range(HPP_number):
                         # [calculate] whether lake levels have dropped so low as to require hydropower curtailment
                         # curtail hydropower generation in case water levels have dropped below f_stop*V_max
                         # (see Note 3.1)
-                        if V_STOR_hourly_upper[n+1,y,HPP] < f_stop*V_max[HPP]:
+                        if V_STOR_hourly_upper[n+1,y,HPP] < f_stop[HPP]*V_max[HPP]:
                             if n < len(hrs_year) - 1:
                                 hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 0
                             elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1753,12 +1753,12 @@ for HPP in range(HPP_number):
                                 
                         # [calculate] restart hydropower generation if reservoir levels have recovered
                         # (see Note 3.1)
-                        if hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] > f_restart*V_max[HPP]:
+                        if hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] > f_restart[HPP]*V_max[HPP]:
                             if n < len(hrs_year) - 1:
                                 hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 1
                             elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                                 hydro_STOR_curtailment_factor_hourly[0,y+1,HPP] = 1
-                        elif hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] <= f_restart*V_max[HPP]:
+                        elif hydro_STOR_curtailment_factor_hourly[n,y,HPP] == 0 and V_STOR_hourly_upper[n+1,y,HPP] <= f_restart[HPP]*V_max[HPP]:
                             if n < len(hrs_year) - 1:
                                 hydro_STOR_curtailment_factor_hourly[n+1,y,HPP] = 0
                             elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
@@ -1965,7 +1965,7 @@ for HPP in range(HPP_number):
         E_hydro_STOR_yearly[y,HPP] = E_hydro_STOR_flexible_yearly[y,HPP] + E_hydro_STOR_stable_yearly[y,HPP]
         
         # [calculate] total energy pumped up into reservoir in MWh/year
-        E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump
+        E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump[HPP]
         
         # [calculate] ELCC by year in MWh/year (eq. S23)
         ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
