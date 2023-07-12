@@ -33,7 +33,7 @@ There are four main scripts: one for initialisation (A), one containing the core
 
 * **A_REVUB_initialise_minimum_example**
 
-This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in an Excel file with overall modelling parameters, and several Excel files with tabulated time series (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data" (extract the archive "data.rar"). The extracted data files should be in the same folder in which this script is located. The names of the hydropower plants in the parameter sheet must match exactly the names of the worksheets of the spreadsheets containing the corresponding time series tables.
+This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). It reads in an Excel file with overall modelling parameters, and several Excel files with tabulated time series (these time series are themselves the results of external computations, described in the publication). These datasets are given in the folder "data". These data files should be downloaded and placed in the same folder in which this script is located. The names of the worksheets of the spreadsheets ("data_xxx.xlsx") containing the time series tables must be linked to the corresponding hydropower plant with the parameter "HPP_name_timeseries" in the file "parameters_simulation.xlsx".
 
 * **B_REVUB_main_code**
 
