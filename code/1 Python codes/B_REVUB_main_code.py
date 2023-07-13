@@ -381,10 +381,10 @@ for HPP in range(HPP_number):
     tau_fill[HPP] = (np.nanmean(Q_in_frac_hourly[:,:,HPP] * (min(np.sum(days_year,0))*hrs_day*secs_hr)/V_max[HPP]))**(-1)
     
     # [calculate] phi (eq. S6) for each HPP
-    phi[HPP] = alpha*np.sqrt(tau_fill[HPP])
+    phi[HPP] = alpha[HPP]*np.sqrt(tau_fill[HPP])
     
     # [calculate] kappa (eq. S5) for each HPP
-    kappa[HPP] = 1/(f_opt**phi[HPP])*((np.exp(1))**(1 - d_min) - 1)
+    kappa[HPP] = 1/(f_opt[HPP]**phi[HPP])*((np.exp(1))**(1 - d_min[HPP]) - 1)
     
     # [initialize] store Q_in_frac_hourly and Q_in_RoR_hourly; these may change during the simulations
     # but need to be reinitialized for every iteration step (e.g. every new c_solar, c_wind in eq. S9)
@@ -402,7 +402,7 @@ for HPP in range(HPP_number):
     
     # [display] HPP for which simulation is being performed
     print("HPP", HPP + 1, "/", HPP_number, ":", HPP_name[HPP])
-    
+        
     
     ###############################################################
     ############----------- CONV simulation -----------############
@@ -431,7 +431,7 @@ for HPP in range(HPP_number):
         # [initialize] initial values of volume (m^3), area (m^2) and hydraulic head (m) for each simulation year
         if y == 0:
             
-            V_CONV_hourly[0,y,HPP] = V_max[HPP]*f_opt
+            V_CONV_hourly[0,y,HPP] = V_max[HPP]*V_initial_frac[HPP]
             h_temp = np.where(abs(calibrate_volume[:,HPP] - V_CONV_hourly[0,y,HPP]) == min(abs(calibrate_volume[:,HPP] - V_CONV_hourly[0,y,HPP])))[0][0]
             A_CONV_hourly[0,y,HPP] = calibrate_area[h_temp,HPP]
             h_CONV_hourly[0,y,HPP] = calibrate_head[h_temp,HPP]
@@ -455,21 +455,21 @@ for HPP in range(HPP_number):
         for n in hrs_year:
             
             # [calculate] stable outflow Q_stable in m^3/s according to conventional management (eq. S4)
-            if V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_opt:
+            if V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_opt[HPP]:
                 
-                Q_CONV_stable_hourly[n,y,HPP] = (d_min + np.log(kappa[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP])**phi[HPP] + 1))*Q_in_nat_av
+                Q_CONV_stable_hourly[n,y,HPP] = (d_min[HPP] + np.log(kappa[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP])**phi[HPP] + 1))*Q_in_nat_av
                 Q_CONV_spill_hourly[n,y,HPP] = 0
                 
-            elif V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_spill:
+            elif V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                 
-                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt)**2))*Q_in_nat_av
+                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av
                 Q_CONV_spill_hourly[n,y,HPP] = 0
                 
             else:
                 
                 # [calculate] spilling component (eq. S7)
-                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt)**2))*Q_in_nat_av
-                Q_CONV_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_CONV_hourly[n,y,HPP]/rho)*(1 + mu) - Q_CONV_stable_hourly[n,y,HPP]
+                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av
+                Q_CONV_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_CONV_hourly[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_CONV_stable_hourly[n,y,HPP]
 
                 # [check] spilling component cannot be negative (eq. S7)
                 if Q_CONV_spill_hourly[n,y,HPP] < 0:
@@ -569,6 +569,11 @@ for HPP in range(HPP_number):
     
     # [display] start of iterations to find optimal solution for BAL operation
     print("(ii) finding optimal BAL solution")
+          
+    # [set by user] array of C_{OR} values (eq. S14). The first value is the default. If the
+    # criterium on k_turb (eq. S28) is not met, the simulation is redone with the second value, &c.
+    C_OR_range_BAL = list(np.arange(1 - d_min[HPP], 0.05, -0.05))
+    C_OR_range_STOR = list(np.arange(1 - d_min[HPP], 0.05, -0.05))
     
     # [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 4)
     for q in range(len(C_OR_range_BAL)):
@@ -740,10 +745,10 @@ for HPP in range(HPP_number):
                             P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
                             
                             # [calculate] spilling component in m^3/s (eq. S19)
-                            if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill:
+                            if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                                 Q_BAL_spill_hourly[n,y,HPP] = 0
                             else:
-                                Q_BAL_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_BAL_hourly[n,y,HPP]/rho)*(1 + mu) - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]
+                                Q_BAL_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_BAL_hourly[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]
                             # [check] spilling component cannot be negative (eq. S7)
                             if Q_BAL_spill_hourly[n,y,HPP] < 0:
                                 Q_BAL_spill_hourly[n,y,HPP] = 0
@@ -1007,10 +1012,10 @@ for HPP in range(HPP_number):
                     P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
                     
                     # [calculate] spilling component in m^3/s (eq. S19)
-                    if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill:
+                    if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                         Q_BAL_spill_hourly[n,y,HPP] = 0
                     else:
-                        Q_BAL_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_BAL_hourly[n,y,HPP]/rho)*(1 + mu) - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]
+                        Q_BAL_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_BAL_hourly[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]
                     # [check] spilling component cannot be negative (eq. S7)
                     if Q_BAL_spill_hourly[n,y,HPP] < 0:
                         Q_BAL_spill_hourly[n,y,HPP] = 0
@@ -1273,7 +1278,7 @@ for HPP in range(HPP_number):
                             if y == 0:
                                 
                                 V_STOR_hourly_upper[0,y,HPP] = V_CONV_hourly[0,y,HPP]
-                                V_STOR_hourly_lower[0,y,HPP] = V_lower_max[HPP]*f_opt
+                                V_STOR_hourly_lower[0,y,HPP] = V_lower_max[HPP]*V_lower_initial_frac[HPP]
                                 A_STOR_hourly_upper[0,y,HPP] = A_CONV_hourly[0,y,HPP]
                                 h_STOR_hourly[0,y,HPP] = h_CONV_hourly[0,y,HPP]
                                 
@@ -1351,7 +1356,7 @@ for HPP in range(HPP_number):
                                 
                                 # [calculate] pumping power in cases of surpluses (eq. S37, S38)
                                 if P_STOR_difference_hourly[n,y,HPP] >= 0:
-                                    if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill:
+                                    if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                                         Q_STOR_pot_pump_hourly[n,y,HPP] = np.min([V_STOR_hourly_lower[n,y,HPP]/secs_hr, Q_max_pump[HPP]])
                                         # [calculate] if ramping up
                                         if temp_sgn_pump == 1:
@@ -1379,10 +1384,10 @@ for HPP in range(HPP_number):
                                     Q_STOR_pump_hourly[n,y,HPP] = 0
                                 
                                 # [calculate] spilling component of upper reservoir in m^3/s (eq. S19)
-                                if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill:
+                                if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                                     Q_STOR_spill_hourly_upper[n,y,HPP] = 0
                                 else:
-                                    Q_STOR_spill_hourly_upper[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*(1 + mu) - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP]
+                                    Q_STOR_spill_hourly_upper[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP]
                                     # [check] spilling component cannot be negative (eq. S7)
                                     if Q_STOR_spill_hourly_upper[n,y,HPP] < 0:
                                         Q_STOR_spill_hourly_upper[n,y,HPP] = 0
@@ -1579,7 +1584,7 @@ for HPP in range(HPP_number):
                     if y == 0:
                         
                         V_STOR_hourly_upper[0,y,HPP] = V_CONV_hourly[0,y,HPP]
-                        V_STOR_hourly_lower[0,y,HPP] = V_lower_max[HPP]*f_opt
+                        V_STOR_hourly_lower[0,y,HPP] = V_lower_max[HPP]*V_lower_initial_frac[HPP]
                         A_STOR_hourly_upper[0,y,HPP] = A_CONV_hourly[0,y,HPP]
                         h_STOR_hourly[0,y,HPP] = h_CONV_hourly[0,y,HPP]
                         
@@ -1657,7 +1662,7 @@ for HPP in range(HPP_number):
                         
                         # [calculate] pumping power in cases of surpluses (eq. S37, S38)
                         if P_STOR_difference_hourly[n,y,HPP] >= 0:
-                            if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill:
+                            if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                                 Q_STOR_pot_pump_hourly[n,y,HPP] = np.min([V_STOR_hourly_lower[n,y,HPP]/secs_hr, Q_max_pump[HPP]])
                                 # [calculate] if ramping up
                                 if temp_sgn_pump == 1:
@@ -1685,10 +1690,10 @@ for HPP in range(HPP_number):
                             Q_STOR_pump_hourly[n,y,HPP] = 0
                         
                         # [calculate] spilling component of upper reservoir in m^3/s (eq. S19)
-                        if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill:
+                        if V_STOR_hourly_upper[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                             Q_STOR_spill_hourly_upper[n,y,HPP] = 0
                         else:
-                            Q_STOR_spill_hourly_upper[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*(1 + mu) - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP]
+                            Q_STOR_spill_hourly_upper[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP]
                             # [check] spilling component cannot be negative (eq. S7)
                             if Q_STOR_spill_hourly_upper[n,y,HPP] < 0:
                                 Q_STOR_spill_hourly_upper[n,y,HPP] = 0

@@ -105,29 +105,6 @@ g = parameters_general_values[np.where(parameters_general_list == 'g', True, Fal
 
 ##### HYDROPOWER OPERATION PARAMETERS #####
 
-# [set by user] minimum required environmental outflow fraction (eq. S4, S5)
-d_min = parameters_general_values[np.where(parameters_general_list == 'd_min', True, False)][0]
-
-# [set by user] alpha (eq. S6) for conventional HPP operation rule curve (eq. S4)
-alpha = parameters_general_values[np.where(parameters_general_list == 'alpha', True, False)][0]
-
-# [set by user] gamma (eq. S4) for conventional HPP operation rule curve (eq. S4)
-gamma_hydro = parameters_general_values[np.where(parameters_general_list == 'gamma_hydro', True, False)][0]
-
-# [set by user] optimal filling fraction f_opt (eq. S4, S5)
-f_opt = parameters_general_values[np.where(parameters_general_list == 'f_opt', True, False)][0]
-
-# [set by user] fraction f_spill beyond which spilling starts (eq. S7)
-f_spill = parameters_general_values[np.where(parameters_general_list == 'f_spill', True, False)][0]
-
-# [set by user] mu parameter to control spilling (eq. S7)
-mu = parameters_general_values[np.where(parameters_general_list == 'mu', True, False)][0]
-
-# [set by user] array of C_{OR} values (eq. S14). The first value is the default. If the
-# criterium on k_turb (eq. S28) is not met, the simulation is redone with the second value, &c.
-C_OR_range_BAL = list(np.arange(1 - d_min, 0.05, -0.05))
-C_OR_range_STOR = list(np.arange(1 - d_min, 0.05, -0.05))
-
 # [set by user] threshold for determining whether HPP is "large" or "small" - if
 # t_fill (eq. S1) is larger than threshold, classify as "large"
 T_fill_thres = parameters_general_values[np.where(parameters_general_list == 'T_fill_thres', True, False)][0]
@@ -158,14 +135,16 @@ h_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'h_m
 # [set by user] maximum lake area (m^2)
 A_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'A_max', True, False)][0]
 
-# [set by user] maximum storage volume (m^3)
+# [set by user] maximum storage volume (m^3) and initial filling fraction
 V_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_max', True, False)][0]
+V_initial_frac = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_initial_frac', True, False)][0]
 
 # [set by user] turbine capacity (MW)
 P_r_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'P_r_turb', True, False)][0]
 
-# [set by user] if using STOR scenario: lower reservoir capacity (MW)
+# [set by user] if using STOR scenario: lower reservoir volume (m^3) and initial filling fraction
 V_lower_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_lower_max', True, False)][0]
+V_lower_initial_frac = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_lower_initial_frac', True, False)][0]
 
 # [set by user] if using STOR scenario: pump capacity (MW)
 P_r_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'P_r_pump', True, False)][0]
@@ -183,6 +162,24 @@ eta_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == '
 # [set by user] ramp rate restrictions (eq. S16, S37): fraction of full capacity per minute
 dP_ramp_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_turb', True, False)][0]
 dP_ramp_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_pump', True, False)][0]
+
+# [set by user] minimum required environmental outflow fraction (eq. S4, S5)
+d_min = parameters_hydropower_values[np.where(parameters_hydropower_list == 'd_min', True, False)][0]
+
+# [set by user] alpha (eq. S6) for conventional HPP operation rule curve (eq. S4)
+alpha = parameters_hydropower_values[np.where(parameters_hydropower_list == 'alpha', True, False)][0]
+
+# [set by user] gamma (eq. S4) for conventional HPP operation rule curve (eq. S4)
+gamma_hydro = parameters_hydropower_values[np.where(parameters_hydropower_list == 'gamma_hydro', True, False)][0]
+
+# [set by user] optimal filling fraction f_opt (eq. S4, S5)
+f_opt = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_opt', True, False)][0]
+
+# [set by user] fraction f_spill beyond which spilling starts (eq. S7)
+f_spill = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_spill', True, False)][0]
+
+# [set by user] mu parameter to control spilling (eq. S7)
+mu = parameters_hydropower_values[np.where(parameters_hydropower_list == 'mu', True, False)][0]
 
 # [set by user] thresholds f_stop and f_restart (see page 4) for stopping and restarting
 # hydropower production to maintain minimum drawdown levels
