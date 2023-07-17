@@ -58,6 +58,9 @@ year_start = int(parameters_general_values[np.where(parameters_general_list == '
 year_end = int(parameters_general_values[np.where(parameters_general_list == 'year_end', True, False)][0])
 simulation_years = list(range(year_start, year_end + 1))
 
+column_start = int(parameters_general_values[np.where(parameters_general_list == 'column_start', True, False)][0])
+column_end = column_start + len(simulation_years) - 1
+
 # [constant] number of hours in a day
 hrs_day = 24
 
@@ -204,18 +207,18 @@ CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years)
 for n in range(len(HPP_name)):
     
     # [set by user] Load curves (L_norm; see eq. S10)
-    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_timeseries[n], header = None)
+    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
     # [set by user] Precipitation and evaporation flux (kg/m^2/s)
-    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_timeseries[n], header = None)
-    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_timeseries[n], header = None)
+    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
     # [set by user] natural inflow at hourly timescale (m^3/s)
-    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_timeseries[n], header = None)
+    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
 
     # [set by user] capacity factors weighted by location (eq. S12)
-    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_timeseries[n], header = None)
-    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_timeseries[n], header = None)
+    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
 
 
