@@ -122,7 +122,13 @@ LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LO
 
 # [set by user] name of hydropower plant
 HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].tolist()
-HPP_name_timeseries = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_timeseries', True, False)][0].tolist()
+HPP_name_data_inflow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_inflow', True, False)][0].tolist()
+HPP_name_data_CF_solar = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_CF_solar', True, False)][0].tolist()
+HPP_name_data_CF_wind = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_CF_wind', True, False)][0].tolist()
+HPP_name_data_evaporation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_evaporation', True, False)][0].tolist()
+HPP_name_data_precipitation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_precipitation', True, False)][0].tolist()
+HPP_name_data_load = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_load', True, False)][0].tolist()
+HPP_name_data_bathymetry = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_bathymetry', True, False)][0].tolist()
 
 # [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
 f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
@@ -207,18 +213,18 @@ CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years)
 for n in range(len(HPP_name)):
     
     # [set by user] Load curves (L_norm; see eq. S10)
-    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_data_load[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
     # [set by user] Precipitation and evaporation flux (kg/m^2/s)
-    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_data_evaporation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_data_precipitation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
     # [set by user] natural inflow at hourly timescale (m^3/s)
-    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
 
     # [set by user] capacity factors weighted by location (eq. S12)
-    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_timeseries[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_data_CF_solar[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_data_CF_wind[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
 
 
@@ -231,7 +237,7 @@ temp_length_array = np.zeros(HPP_number)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_timeseries[n], header = None)
+    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
     temp_length_array[n] = len(temp)
 
 
@@ -244,7 +250,7 @@ calibrate_head = np.full([int(np.max(temp_length_array)), HPP_number], np.nan)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_timeseries[n], header = None)
+    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
     
     # [extract] volume (m^3)
     calibrate_volume[0:len(temp.iloc[:,0]),n] = temp.iloc[:,0]
