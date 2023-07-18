@@ -42,6 +42,10 @@ parameters_hydropower = pd.read_excel (filename_parameters, sheet_name = 'Hydrop
 parameters_hydropower_list = np.array(parameters_hydropower[0][0:].tolist())
 parameters_hydropower_values = np.array(parameters_hydropower)[0:,2:]
 
+# [remove] deactivated hydropower plants
+HPP_active = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
+parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(HPP_active == 0)[0],1)
+
 # [load] simulation accuracy parameters (used in script B)
 parameters_simulation = pd.read_excel (filename_parameters, sheet_name = 'Simulation accuracy', header = None)
 parameters_simulation_list = np.array(parameters_simulation[0][0:].tolist())
