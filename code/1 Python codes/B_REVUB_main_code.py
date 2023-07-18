@@ -1103,9 +1103,9 @@ for HPP in range(HPP_number):
                         power_unmet_BAL[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
                 
                 # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.Inf] > LOEE_allowed)[0][0] - 1
+                N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.Inf] > LOEE_allowed)[0][0]
                 if N_demand_covered_BAL_temp.size == 0 or N_demand_covered_BAL_temp == 0:
-                    P_followed_BAL_index[y,HPP] = 1
+                    P_followed_BAL_index[y,HPP] = 0
                 else:
                     P_followed_BAL_index[y,HPP] = N_demand_covered_BAL_temp
                 
@@ -1786,9 +1786,9 @@ for HPP in range(HPP_number):
                             power_unmet_STOR[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
                     
                     # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                    N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.Inf] > LOEE_allowed)[0][0] - 1
+                    N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.Inf] > LOEE_allowed)[0][0]
                     if N_demand_covered_STOR_temp.size == 0 or N_demand_covered_STOR_temp == 0:
-                        P_followed_STOR_index[y,HPP] = 1
+                        P_followed_STOR_index[y,HPP] = 0
                     else:
                         P_followed_STOR_index[y,HPP] = N_demand_covered_STOR_temp
                     
