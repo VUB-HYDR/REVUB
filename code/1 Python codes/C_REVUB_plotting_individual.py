@@ -172,7 +172,7 @@ ax3 = plt.subplot(122)
 # [plot] hydraulic head time series (Fig. S6a)
 ax1.plot(h_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
 ax1.plot(h_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     ax1.plot(h_STOR_series_hourly[:,plot_HPP], color = colour_STOR, linestyle = '--')
     ax1.legend(['CONV', 'BAL', 'STOR'])
 else:
@@ -188,7 +188,7 @@ plt.setp(ax1.get_xticklabels(), rotation = 90, horizontalalignment = 'right', fo
 # [plot] hydraulic head frequency response (Fig. S6b)
 ax2.loglog(fft_CONV_freq, fft_CONV_amp, color = colour_CONV)
 ax2.loglog(fft_BAL_freq, fft_BAL_amp, color = colour_BAL)
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     ax2.loglog(fft_STOR_freq, fft_STOR_amp, color = colour_STOR, linestyle = '--')
     ax2.legend(['CONV', 'BAL', 'STOR'])
 else:
@@ -203,12 +203,12 @@ ax2.set_title('frequency spectrum of hydraulic head')
 ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_nat)
 ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP],25, axis = 1), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP],75, axis = 1), facecolor = colour_CONV)
 ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_BAL)
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     ax3.fill_between(np.array(range(months_yr)), np.nanpercentile(Q_STOR_out_monthly[:,:,plot_HPP], 25, axis = 1), np.nanpercentile(Q_STOR_out_monthly[:,:,plot_HPP], 75, axis = 1), facecolor = colour_STOR)
 ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_in_nat_monthly[:,:,plot_HPP], 50, axis = 1), color = 'green')
 ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_CONV_out_monthly[:,:,plot_HPP], 50, axis = 1), color = 'blue')
 ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_BAL_out_monthly[:,:,plot_HPP], 50, axis = 1), color = 'red')
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     ax3.plot(np.array(range(months_yr)), np.nanpercentile(Q_STOR_out_monthly[:,:,plot_HPP], 50, axis = 1), color = 'orange')
     ax3.legend(['$Q_{in,nat}$', '$Q_{out,CONV}$', '$Q_{out,BAL}$', '$Q_{out,STOR}$'])
 else:
@@ -228,7 +228,7 @@ plt.show
 fig, (ax1, ax2) = plt.subplots(2,1)
 ax1.plot(V_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
 ax1.plot(V_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     ax1.plot(V_STOR_series_hourly_upper[:,plot_HPP], color = colour_STOR)
     ax1.legend(['CONV', 'BAL', 'STOR'])
 else:
@@ -246,7 +246,7 @@ temp = Q_CONV_out_monthly[:,:,plot_HPP]
 ax2.plot((np.transpose(temp)).ravel(), color = colour_CONV)
 temp = Q_BAL_out_monthly[:,:,plot_HPP]
 ax2.plot((np.transpose(temp)).ravel(), color = colour_BAL)
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     temp = Q_STOR_out_monthly[:,:,plot_HPP]
     ax2.plot((np.transpose(temp)).ravel(), color = colour_STOR)
     ax2.legend(['$Q_{in}$', '$Q_{out,CONV}$', '$Q_{out,BAL}$', '$Q_{out,STOR}$'])
@@ -314,7 +314,7 @@ plt.savefig(HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
 
 
 # [check] if STOR scenario available
-if STOR_break[plot_HPP] == 0:
+if STOR_break[plot_HPP] == 0 and option_storage == 1:
     
     # [figure] (cf. Fig. S4a, S9a)
     # [plot] average monthly power mix in user-selected year
