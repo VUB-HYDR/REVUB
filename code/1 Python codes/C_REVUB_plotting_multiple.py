@@ -51,7 +51,7 @@ plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(p
 P_total_av = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0])
 
 L_norm_HPP = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'chosen_load', True, False)][0]
-P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name) == L_norm_HPP)[0][0]]
+P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
 
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
