@@ -88,7 +88,7 @@ colour_hydro_stable = np.array([55, 126, 184]) / 255
 colour_hydro_flexible = np.array([106, 226, 207]) / 255
 colour_solar = np.array([255, 255, 51]) / 255
 colour_wind = np.array([77, 175, 74]) / 255
-colour_hydro_RoR = np.array([100, 100, 100]) / 255
+colour_hydro_RoR = np.array([158, 202, 225]) / 255
 colour_hydro_pumped = np.array([77, 191, 237]) / 255
 
 
