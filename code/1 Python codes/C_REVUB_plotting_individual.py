@@ -451,15 +451,64 @@ for hr in plot_rules_hr:
         # specify errorbar values
         yerr = [temp_Q - temp_Q_025, temp_Q_075 - temp_Q]
         
-        plt.errorbar(temp_h, temp_Q, yerr = yerr, fmt='^', label = ('total outflow ' + str(hr) + 'h ' + str(months_names_full[m])) )
+        plt.errorbar(temp_h, temp_Q, yerr = yerr, fmt='^', label = ('regulated outflow ' + str(hr) + 'h ' + str(months_names_full[m])) )
         temp_fit = np.polyfit(temp_h, temp_Q, 1)
-        plt.plot(temp_h, temp_fit[1] + temp_fit[0]*temp_h, color = 'black', linestyle = '--', label = ('total outflow ' + str(hr) + 'h ' + str(months_names_full[m]) + ' fit') )
+        plt.plot(temp_h, temp_fit[1] + temp_fit[0]*temp_h, color = 'black', linestyle = '--', label = ('regulated outflow ' + str(hr) + 'h ' + str(months_names_full[m]) + ' fit') )
     
 
-plt.plot([np.nanmin(h_BAL_hourly[:,:,plot_HPP]), np.nanmax(h_BAL_hourly[:,:,plot_HPP])], [np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP]), np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP])], color = 'black', label = 'stable outflow')
+plt.plot([np.nanmin(h_BAL_hourly[:,:,plot_HPP]), np.nanmax(h_BAL_hourly[:,:,plot_HPP])], [np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP]), np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP])], color = 'black', label = 'fixed outflow')
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xlabel('Hydraulic head (m)')
 plt.ylabel('$Q_{out}$ (m$^3$/s)')
 plt.title('release rules (BAL)')
 plt.savefig(HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
 
+
+# [figure] plot statistics on number of turbines in use
+# [calculate] capacity of each turbine (MW)
+P_unit = P_r_turb/no_turbines
+
+# [calculate] total hydropower generation (MW) per HPP
+P_CONV_hydro_total = P_CONV_hydro_stable_hourly + P_CONV_hydro_RoR_hourly
+P_BAL_hydro_total = P_BAL_hydro_stable_hourly + P_BAL_hydro_flexible_hourly + P_BAL_hydro_RoR_hourly
+P_STOR_hydro_total = P_STOR_hydro_stable_hourly + P_STOR_hydro_flexible_hourly
+
+# [preallocate] number of turbines in use
+no_turbines_used_CONV = np.full([int(np.max(sum(days_year)))*hrs_day*len(simulation_years)], np.nan)
+no_turbines_used_BAL = np.full([int(np.max(sum(days_year)))*hrs_day*len(simulation_years)], np.nan)
+no_turbines_used_STOR = np.full([int(np.max(sum(days_year)))*hrs_day*len(simulation_years)], np.nan)
+
+# [calculate] number of turbines in use for each time step by HPP
+# [loop] across the number of turbines
+for n in range(no_turbines[plot_HPP]):
+    
+    # [calculate] index counting backwards from all, all-but-one, all-but two turbines, &c.
+    m = no_turbines[plot_HPP] - n
+    
+    # [calculate] instances with all, all-but-one, all-but-two turbines active, &c.
+    no_turbines_used_CONV[P_CONV_hydro_total[:,:,plot_HPP].ravel() <= m*P_unit[plot_HPP]] = m
+    no_turbines_used_BAL[P_BAL_hydro_total[:,:,plot_HPP].ravel() <= m*P_unit[plot_HPP]] = m
+    if STOR_break[plot_HPP] == 0:
+        no_turbines_used_STOR[P_STOR_hydro_total[:,:,plot_HPP].ravel() <= m*P_unit[plot_HPP]] = m
+
+# [create] histogram of turbine use for selected HPP
+no_turbines_used_pdf_CONV = np.histogram(no_turbines_used_CONV, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+no_turbines_used_pdf_CONV = (no_turbines_used_pdf_CONV[0])/np.sum(no_turbines_used_pdf_CONV[0])
+no_turbines_used_pdf_BAL = np.histogram(no_turbines_used_BAL, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+no_turbines_used_pdf_BAL = (no_turbines_used_pdf_BAL[0])/np.sum(no_turbines_used_pdf_BAL[0])
+if STOR_break[plot_HPP] == 0:
+    no_turbines_used_pdf_STOR = np.histogram(no_turbines_used_STOR, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+    no_turbines_used_pdf_STOR = (no_turbines_used_pdf_STOR[0])/np.sum(no_turbines_used_pdf_STOR[0])
+
+# [plot] histogram of turbine use for selected HPP
+fig = plt.figure()
+plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_CONV, label = 'CONV', width = 0.8, color = colour_CONV)
+plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_BAL, label = 'BAL', width = 0.6, color = colour_BAL)
+if STOR_break[plot_HPP] == 0:
+    plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_STOR, label = 'STOR', width = 0.4, color = colour_STOR)
+plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+plt.xticks(np.array(range(no_turbines[plot_HPP])), np.array(range(no_turbines[plot_HPP])) + 1)
+plt.xlabel('Number of active turbines')
+plt.ylabel('Fraction of time')
+plt.title('Hydroturbine activity')
+plt.savefig(HPP_name[plot_HPP] + '_Fig8.png', dpi = 300, bbox_inches = 'tight')

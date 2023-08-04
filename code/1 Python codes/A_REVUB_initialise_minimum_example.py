@@ -202,6 +202,9 @@ f_restart = parameters_hydropower_values[np.where(parameters_hydropower_list == 
 # [set by user] the parameter f_size controls allowed VRE overproduction and is the percentile value described in eq. S11
 f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_size', True, False)][0].astype(int)
 
+# [set by user] number of turbines per hydropower plant (used for turbine use statistics in script C)
+no_turbines = parameters_hydropower_values[np.where(parameters_hydropower_list == 'no_turbines', True, False)][0].astype(int)
+
 
 # %% pre.4) Time series
 
