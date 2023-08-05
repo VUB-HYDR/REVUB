@@ -65,7 +65,7 @@ To produce the figure outputs, simply run the scripts in the order A-B-C.
 ## Versions
 Version 0.1.0 - January 2020
 
-Version 0.1.1 - July 2023
+Version 1.0.0 - August 2023
 
 ## License
 See also the [LICENSE](./LICENSE.md) file.
