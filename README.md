@@ -42,6 +42,8 @@ It reads in an Excel file with overall modelling parameters ("parameters_simulat
 
 These datasets are given in the folder "data". These data files should be downloaded and placed in the same folder in which this script is located. The names of the worksheets of all files named "data_xxx.xlsx" must be linked to the corresponding hydropower plant with the parameters "HPP_name_data_xxx" in the file "parameters_simulation.xlsx".
 
+The folder "data" contains a sub-folder with an auxiliary script to parse monthly-scale time series to hourly-scale, the latter being the needed timescale for REVUB simulations. This is relevant for quantities such as inflow, evaporation flux and precipitation flux which may often not be available at hourly timescale and for which the hourly detail is of limited importance for reservoir operation.
+
 * **B_REVUB_main_code**
 
 This script runs the actual REVUB model simulation and optimisation.
