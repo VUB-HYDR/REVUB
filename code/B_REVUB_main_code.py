@@ -359,6 +359,14 @@ for HPP in range(HPP_number):
     if np.isnan(f_reg[HPP]):
         f_reg[HPP] = (V_max[HPP]/(min(np.sum(days_year,0))*hrs_day*secs_hr*T_fill_thres))/np.nanmean(Q_in_nat_hourly[:,:,HPP])
     
+    # [calculate] if needed, default d_min based on user-provided minimum turbine loading
+    if np.isnan(d_min[HPP]):
+        d_min[HPP] = np.max([0,np.min([1,(min_load_turbine[HPP]*Q_max_turb[HPP]/no_turbines[HPP] - (1 - f_reg[HPP])*np.nanmin(Q_in_nat_hourly[:,:,HPP]))/(np.nanmean(Q_in_nat_hourly[:,:,HPP])*f_reg[HPP])])])
+    
+    # [warning] if d_min is larger than unity, the plant is not suitable to provide flexibility services
+    if d_min[HPP] == 1:
+        print("Warning: minimum required load for", HPP_name[HPP], "leaves no room for flexibility")  
+    
     # [calculate] Determine dam category (whether deemed to have more or less than a year of storage) based on f_reg (Note 5)
     # Here "large" HPPs are designated by "A", "small" HPPs by "B"
     
@@ -402,7 +410,7 @@ for HPP in range(HPP_number):
     
     # [display] HPP for which simulation is being performed
     print("HPP", HPP + 1, "/", HPP_number, ":", HPP_name[HPP])
-        
+    
     
     ###############################################################
     ############----------- CONV simulation -----------############
@@ -1150,6 +1158,10 @@ for HPP in range(HPP_number):
         # [display] once BAL simulation is complete
         print("done")
         
+        # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
+        if np.nanmin(hydro_BAL_curtailment_factor_hourly[:,:,HPP]) < 1:
+            print("Warning: scenario not robust to extremely dry years. Try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+            
         
         ###############################################################
         ############------ CHECK NEED TO RESIMULATE -------############
@@ -1838,6 +1850,10 @@ for HPP in range(HPP_number):
             
             # [display] once STOR simulation is complete
             print("done")
+            
+            # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
+            if np.nanmin(hydro_STOR_curtailment_factor_hourly[:,:,HPP]) < 1:
+                print("Warning: scenario not robust to extremely dry years. Try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
             
             
             ###############################################################

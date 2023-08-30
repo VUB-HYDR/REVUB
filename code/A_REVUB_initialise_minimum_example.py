@@ -176,6 +176,9 @@ eta_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == '
 dP_ramp_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_turb', True, False)][0]
 dP_ramp_pump = parameters_hydropower_values[np.where(parameters_hydropower_list == 'dP_ramp_pump', True, False)][0]
 
+# [set by user] minimum load of individual hydropower turbines (lower bound of operating range)
+min_load_turbine = parameters_hydropower_values[np.where(parameters_hydropower_list == 'min_load_turbine', True, False)][0]
+
 # [set by user] minimum required environmental outflow fraction (eq. S4, S5)
 d_min = parameters_hydropower_values[np.where(parameters_hydropower_list == 'd_min', True, False)][0]
 
