@@ -69,6 +69,8 @@ Version 0.1.0 - January 2020
 
 Version 1.0.0 - August 2023
 
+Version 1.0.1 - September 2023
+
 ## License
 See also the [LICENSE](./LICENSE.md) file.
 
