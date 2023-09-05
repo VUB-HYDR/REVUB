@@ -195,6 +195,10 @@ c_multiplier_STOR = np.zeros(shape = (len(simulation_years), HPP_number))
 E_SW_loop_BAL_opt = np.zeros(shape = HPP_number)
 E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
 
+# [precallocate] Failure rate (fraction of time) of operation in case of prolonged dry periods
+fraction_outage_BAL = np.zeros(shape = HPP_number)
+fraction_outage_STOR = np.zeros(shape = HPP_number)
+
 
 ##### POWER GENERATION PARAMETERS: HYDRO #####
 
@@ -1158,9 +1162,13 @@ for HPP in range(HPP_number):
         # [display] once BAL simulation is complete
         print("done")
         
+        # [calculate] percentage of time in which this operation fails
+        number_zeros = np.size(hydro_BAL_curtailment_factor_hourly[:,:,HPP]) - np.count_nonzero(hydro_BAL_curtailment_factor_hourly[:,:,HPP])
+        fraction_outage_BAL[HPP] = number_zeros/np.sum(~np.isnan(Q_CONV_out_hourly[:,:,HPP]))
+        
         # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
-        if np.nanmin(hydro_BAL_curtailment_factor_hourly[:,:,HPP]) < 1:
-            print("Warning: scenario not robust to extremely dry years. Try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+        if fraction_outage_BAL[HPP] > 0:
+            print("Warning: operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_BAL[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
             
         
         ###############################################################
@@ -1851,10 +1859,14 @@ for HPP in range(HPP_number):
             # [display] once STOR simulation is complete
             print("done")
             
-            # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
-            if np.nanmin(hydro_STOR_curtailment_factor_hourly[:,:,HPP]) < 1:
-                print("Warning: scenario not robust to extremely dry years. Try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+            # [calculate] percentage of time in which this operation fails
+            number_zeros = np.size(hydro_STOR_curtailment_factor_hourly[:,:,HPP]) - np.count_nonzero(hydro_STOR_curtailment_factor_hourly[:,:,HPP])
+            fraction_outage_STOR[HPP] = number_zeros/np.sum(~np.isnan(Q_CONV_out_hourly[:,:,HPP]))
             
+            # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
+            if fraction_outage_STOR[HPP] > 0:
+                print("Warning: operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_STOR[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+                
             
             ###############################################################
             ############------ CHECK NEED TO RESIMULATE -------############
