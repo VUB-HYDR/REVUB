@@ -195,10 +195,6 @@ c_multiplier_STOR = np.zeros(shape = (len(simulation_years), HPP_number))
 E_SW_loop_BAL_opt = np.zeros(shape = HPP_number)
 E_SW_loop_STOR_opt = np.zeros(shape = HPP_number)
 
-# [precallocate] Failure rate (fraction of time) of operation in case of prolonged dry periods
-fraction_outage_BAL = np.zeros(shape = HPP_number)
-fraction_outage_STOR = np.zeros(shape = HPP_number)
-
 
 ##### POWER GENERATION PARAMETERS: HYDRO #####
 
@@ -351,6 +347,16 @@ ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 # is distributed over different months.
 L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
+
+# [precallocate] Failure rate (fraction of time) of operation in case of prolonged dry periods
+fraction_outage_CONV = np.zeros(shape = HPP_number)
+fraction_outage_BAL = np.zeros(shape = HPP_number)
+fraction_outage_STOR = np.zeros(shape = HPP_number)
+
+# [precallocate] Overflow rate (fraction of flow) of operation in case of prolonged dry periods
+fraction_overflow_CONV = np.zeros(shape = HPP_number)
+fraction_overflow_BAL = np.zeros(shape = HPP_number)
+fraction_overflow_STOR = np.zeros(shape = HPP_number)
 
 
 # %% REVUB.3) Classify HPPs
@@ -569,7 +575,22 @@ for HPP in range(HPP_number):
     temp_head_CONV_series = (np.transpose(temp_head_CONV_series)).ravel()
     temp_head_CONV_series = temp_head_CONV_series[np.isfinite(temp_head_CONV_series)]
     h_CONV_series_hourly[:,HPP] = temp_head_CONV_series
+    
+    
+    # [calculate] percentage of time in which this operation fails
+    number_zeros = np.size(hydro_CONV_curtailment_factor_hourly[:,:,HPP]) - np.count_nonzero(hydro_CONV_curtailment_factor_hourly[:,:,HPP])
+    fraction_outage_CONV[HPP] = number_zeros/np.sum(~np.isnan(Q_CONV_out_hourly[:,:,HPP]))
 
+    # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
+    if fraction_outage_CONV[HPP] > 0:
+        print("Warning: CONV operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_CONV[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+      
+    # [calculate] percentage of flow in which this operation leads to spilling
+    fraction_overflow_CONV[HPP] = np.nanmean(Q_CONV_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+        
+    if fraction_overflow_CONV[HPP] > 0:
+        print("Note: Average spilling in CONV equal to", np.around(100*fraction_overflow_CONV[HPP],2), "% of average inflow.")
+        
     
     # [display] once CONV simulation is complete
     print("done")
@@ -1162,13 +1183,20 @@ for HPP in range(HPP_number):
         # [display] once BAL simulation is complete
         print("done")
         
+        
         # [calculate] percentage of time in which this operation fails
         number_zeros = np.size(hydro_BAL_curtailment_factor_hourly[:,:,HPP]) - np.count_nonzero(hydro_BAL_curtailment_factor_hourly[:,:,HPP])
         fraction_outage_BAL[HPP] = number_zeros/np.sum(~np.isnan(Q_CONV_out_hourly[:,:,HPP]))
         
         # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
         if fraction_outage_BAL[HPP] > 0:
-            print("Warning: operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_BAL[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+            print("Warning: BAL operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_BAL[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+            
+        # [calculate] percentage of flow in which this operation leads to spilling
+        fraction_overflow_BAL[HPP] = np.nanmean(Q_BAL_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+            
+        if fraction_overflow_BAL[HPP] > 0:
+            print("Note: Average spilling in BAL equal to", np.around(100*fraction_overflow_BAL[HPP],2), "% of average inflow.")
             
         
         ###############################################################
@@ -1859,13 +1887,20 @@ for HPP in range(HPP_number):
             # [display] once STOR simulation is complete
             print("done")
             
+            
             # [calculate] percentage of time in which this operation fails
             number_zeros = np.size(hydro_STOR_curtailment_factor_hourly[:,:,HPP]) - np.count_nonzero(hydro_STOR_curtailment_factor_hourly[:,:,HPP])
             fraction_outage_STOR[HPP] = number_zeros/np.sum(~np.isnan(Q_CONV_out_hourly[:,:,HPP]))
             
             # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
             if fraction_outage_STOR[HPP] > 0:
-                print("Warning: operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_STOR[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+                print("Warning: STOR operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_STOR[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+                
+            # [calculate] percentage of flow in which this operation leads to spilling
+            fraction_overflow_STOR[HPP] = np.nanmean(Q_STOR_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+                
+            if fraction_overflow_STOR[HPP] > 0:
+                print("Note: Average spilling in STOR equal to", np.around(100*fraction_overflow_STOR[HPP],2), "% of average inflow.")
                 
             
             ###############################################################
