@@ -223,6 +223,10 @@ P_STOR_ramp_restr_pump_hourly = np.full([int(np.max(positions)), len(simulation_
 k_turb_hourly_BAL = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 k_turb_hourly_STOR = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
+# [preallocate] Monthly average of output energy variables for CONV (GWh/month)
+E_hydro_CONV_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_CONV_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 # [preallocate] Monthly average of output energy variables for BAL (GWh/month)
 E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
@@ -505,7 +509,7 @@ for HPP in range(HPP_number):
             P_CONV_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_CONV*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
             
             # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-            P_CONV_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_CONV_stable_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+            P_CONV_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_CONV_stable_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_CONV_hydro_stable_hourly[n,y,HPP]])
             
             # [calculate] reservoir volume in m^3 at next time step (eq. S3, S31)
             V_CONV_hourly[n+1,y,HPP] = V_CONV_hourly[n,y,HPP] + (Q_in_frac_hourly[n,y,HPP] - Q_CONV_stable_hourly[n,y,HPP] - Q_CONV_spill_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_CONV_hourly[n,y,HPP]/rho)*secs_hr
@@ -775,7 +779,7 @@ for HPP in range(HPP_number):
                                 Q_BAL_flexible_hourly[n,y,HPP] = 0
                             
                             # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
                             
                             # [calculate] spilling component in m^3/s (eq. S19)
                             if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
@@ -1042,7 +1046,7 @@ for HPP in range(HPP_number):
                         Q_BAL_flexible_hourly[n,y,HPP] = 0
                     
                     # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6
+                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
                     
                     # [calculate] spilling component in m^3/s (eq. S19)
                     if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
@@ -1969,6 +1973,9 @@ for HPP in range(HPP_number):
             L_norm_bymonth[m,y,HPP] = np.mean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
             
             # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
+            E_hydro_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_CONV_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            
             E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
