@@ -10,7 +10,7 @@ Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
 ---
-The main objective of REVUB is to model how flexible operation of hydropower plants can help renewable electricity mixes with variable solar and wind power (VRE) to provide reliable electricity supply and load-following services.
+The main objective of REVUB is to model how the operation of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services. The model can be used, for instance, in due diligence processes for power plant financing.
 
 This model was first introduced in the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al. (2020; https://www.nature.com/articles/s41893-020-0539-0); hereafter referred to as "the publication". It has since been used for several more peer-reviewed publications.
 
@@ -36,7 +36,7 @@ The code is divided into four scripts: one for initialisation (A), one containin
 
 * **A_REVUB_initialise_minimum_example**
 
-This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire). 
+This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in CÃ´te d'Ivoire). 
 
 It reads in an Excel file with overall modelling parameters ("parameters_simulation.xlsx"), and several Excel files with tabulated time series and other data ("data_xxx.xlsx"; in this case, these datasets are themselves the results of external computations, described in the publication). 
 
