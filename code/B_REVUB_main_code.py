@@ -352,6 +352,10 @@ ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 L_unmet_STOR_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
 
+
+##### MISCELLANEOUS PARAMETERS #####
+
+
 # [precallocate] Failure rate (fraction of time) of operation in case of prolonged dry periods
 fraction_outage_CONV = np.zeros(shape = HPP_number)
 fraction_outage_BAL = np.zeros(shape = HPP_number)
@@ -361,6 +365,11 @@ fraction_outage_STOR = np.zeros(shape = HPP_number)
 fraction_overflow_CONV = np.zeros(shape = HPP_number)
 fraction_overflow_BAL = np.zeros(shape = HPP_number)
 fraction_overflow_STOR = np.zeros(shape = HPP_number)
+
+# [preallocate] Guaranteed power (MW) per hydropower plant
+P_CONV_total_guaranteed = np.full(HPP_number,np.nan)
+P_BAL_total_guaranteed = np.full(HPP_number,np.nan)
+P_STOR_total_guaranteed = np.full(HPP_number,np.nan)
 
 
 # %% REVUB.3) Classify HPPs
@@ -1930,7 +1939,8 @@ for HPP in range(HPP_number):
 
 # %% REVUB.5) Post-processing
 
-# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled
+# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled (except RoR component). 
+# This step has no physical meaning and is purely meant to avoid plotting errors in script C_multiple if users want to plot scenarios where certain dams have STOR scenarios and others only BAL.
 for HPP in range(HPP_number):
     if STOR_break[HPP] == 1:
         P_STOR_hydro_stable_hourly[:,:,HPP] = P_BAL_hydro_stable_hourly[:,:,HPP]
@@ -2044,7 +2054,14 @@ for HPP in range(HPP_number):
         
         # [calculate] ELCC by year in MWh/year (eq. S23)
         ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
-        
+    
+    
+    # [calculate] statistics of power generation under user-defined p_exceedance criterion
+    P_CONV_total_guaranteed[HPP] = np.nanpercentile(P_CONV_hydro_stable_hourly[:,:,HPP] + P_CONV_hydro_RoR_hourly[:,:,HPP], 100 - p_exceedance[HPP])
+    P_BAL_total_guaranteed[HPP] = np.nanpercentile(P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP] + P_BAL_solar_hourly[:,:,HPP] + P_BAL_wind_hourly[:,:,HPP], 100 - p_exceedance[HPP])
+    
+    if STOR_break[HPP] == 0 and option_storage == 1:
+        P_STOR_total_guaranteed[HPP] = np.nanpercentile(P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP] + P_STOR_solar_hourly[:,:,HPP] + P_STOR_wind_hourly[:,:,HPP], 100 - p_exceedance[HPP])
     
 
 # [display] signal simulation end
