@@ -443,7 +443,7 @@ for HPP in range(HPP_number):
     Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
     Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
     
-    # [initialize] Calculate multiannual average flow for conventional operating rules (eq. S4)
+    # [initialize] average inflow (eq. S4)
     Q_in_nat_av = np.nanmean(Q_in_frac_hourly[:,:,HPP])
     
     # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
@@ -488,18 +488,18 @@ for HPP in range(HPP_number):
             # [calculate] stable outflow Q_stable in m^3/s according to conventional management (eq. S4)
             if V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_opt[HPP]:
                 
-                Q_CONV_stable_hourly[n,y,HPP] = (d_min[HPP] + np.log(kappa[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP])**phi[HPP] + 1))*Q_in_nat_av
+                Q_CONV_stable_hourly[n,y,HPP] = np.max([(d_min[HPP] + np.log(kappa[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP])**phi[HPP] + 1))*Q_in_nat_av, Q_out_stable_env_irr_hourly[n,y,HPP]])
                 Q_CONV_spill_hourly[n,y,HPP] = 0
                 
             elif V_CONV_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
                 
-                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av
+                Q_CONV_stable_hourly[n,y,HPP] = np.max([(np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av, Q_out_stable_env_irr_hourly[n,y,HPP]])
                 Q_CONV_spill_hourly[n,y,HPP] = 0
                 
             else:
                 
                 # [calculate] spilling component (eq. S7)
-                Q_CONV_stable_hourly[n,y,HPP] = (np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av
+                Q_CONV_stable_hourly[n,y,HPP] = np.max([(np.exp(gamma_hydro[HPP]*(V_CONV_hourly[n,y,HPP]/V_max[HPP] - f_opt[HPP])**2))*Q_in_nat_av, Q_out_stable_env_irr_hourly[n,y,HPP]])
                 Q_CONV_spill_hourly[n,y,HPP] = (Q_in_frac_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_CONV_hourly[n,y,HPP]/rho)*(1 + mu[HPP]) - Q_CONV_stable_hourly[n,y,HPP]
 
                 # [check] spilling component cannot be negative (eq. S7)
@@ -624,7 +624,7 @@ for HPP in range(HPP_number):
     # [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 4)
     for q in range(len(C_OR_range_BAL)):
         
-        # [calculate] ratio of stable (environmental) to average total outflow (see eq. S14)
+        # [calculate] ratio of stable to average total outflow (see eq. S14)
         Q_stable_ratio = 1 - C_OR_range_BAL[q]
 
         # [display] refinement step in BAL simulation
@@ -673,10 +673,10 @@ for HPP in range(HPP_number):
                 # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
                 for x in range(X_max_BAL):
                                     
-                    # [calculate] environmentally required outflow (eq. S14)
+                    # [calculate] required stable outflow (eq. S14)
                     temp_Q_out_BAL = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
                     temp_Q_out_BAL[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
-                    Q_BAL_stable_hourly[:,:,HPP] = Q_stable_ratio*temp_Q_out_BAL
+                    Q_BAL_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_BAL, Q_out_stable_env_irr_hourly[:,:,HPP])
                     
                     # [initialize] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
                     Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
@@ -935,11 +935,11 @@ for HPP in range(HPP_number):
         # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
         for x in range(X_max_BAL):
                                     
-            # [calculate] environmentally required outflow (eq. S14)
+            # [calculate] required stable outflow (eq. S14)
             temp_Q_out_BAL = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
             temp_Q_out_BAL[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
-            Q_BAL_stable_hourly[:,:,HPP] = Q_stable_ratio*temp_Q_out_BAL
-                    
+            Q_BAL_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_BAL, Q_out_stable_env_irr_hourly[:,:,HPP])
+            
             # [initialize] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
             Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
             Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
@@ -1246,7 +1246,7 @@ for HPP in range(HPP_number):
         
         for q in range(len(C_OR_range_STOR)):
         
-            # [calculate] ratio of stable (environmental) to average total outflow (see eq. S14)
+            # [calculate] ratio of stable to average total outflow (see eq. S14)
             Q_stable_ratio = 1 - C_OR_range_STOR[q]
     
             # [display] refinement step in STOR simulation
@@ -1296,10 +1296,10 @@ for HPP in range(HPP_number):
                     # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
                     for x in range(X_max_STOR):
                                         
-                        # [calculate] environmentally required outflow (eq. S14)
+                        # [calculate] required stable outflow (eq. S14)
                         temp_Q_out_STOR = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
                         temp_Q_out_STOR[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
-                        Q_STOR_stable_hourly[:,:,HPP] = Q_stable_ratio*temp_Q_out_STOR
+                        Q_STOR_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_STOR, Q_out_stable_env_irr_hourly[:,:,HPP])
                         
                         # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                         # temporary curtailment on hydropower generation (Note 3.1)
@@ -1597,10 +1597,10 @@ for HPP in range(HPP_number):
             # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
             for x in range(X_max_STOR):
                                 
-                # [calculate] environmentally required outflow (eq. S14)
+                # [calculate] required stable outflow (eq. S14)
                 temp_Q_out_STOR = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
                 temp_Q_out_STOR[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
-                Q_STOR_stable_hourly[:,:,HPP] = Q_stable_ratio*temp_Q_out_STOR
+                Q_STOR_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_STOR, Q_out_stable_env_irr_hourly[:,:,HPP])
                 
                 # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                 # temporary curtailment on hydropower generation (Note 3.1)

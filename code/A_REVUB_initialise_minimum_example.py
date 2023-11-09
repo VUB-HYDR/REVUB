@@ -29,6 +29,7 @@ filename_CF_wind = 'data_CF_wind.xlsx'
 filename_evaporation = 'data_evaporation.xlsx'
 filename_precipitation = 'data_precipitation.xlsx'
 filename_inflow = 'data_inflow.xlsx'
+filename_outflow_prescribed = 'data_outflow_prescribed.xlsx'
 filename_load = 'data_load.xlsx'
 
 
@@ -127,6 +128,7 @@ LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LO
 # [set by user] name of hydropower plant
 HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].tolist()
 HPP_name_data_inflow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_inflow', True, False)][0].tolist()
+HPP_name_data_outflow_prescribed = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_outflow_prescribed', True, False)][0].tolist()
 HPP_name_data_CF_solar = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_CF_solar', True, False)][0].tolist()
 HPP_name_data_CF_wind = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_CF_wind', True, False)][0].tolist()
 HPP_name_data_evaporation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_evaporation', True, False)][0].tolist()
@@ -219,6 +221,7 @@ L_norm = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_nu
 evaporation_flux_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 precipitation_flux_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 Q_in_nat_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
+Q_out_stable_env_irr_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 CF_solar_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 
@@ -232,8 +235,9 @@ for n in range(len(HPP_name)):
     evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_data_evaporation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_data_precipitation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
-    # [set by user] natural inflow at hourly timescale (m^3/s)
+    # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
     Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    Q_out_stable_env_irr_hourly[:,:,n] = pd.read_excel (filename_outflow_prescribed, sheet_name = HPP_name_data_outflow_prescribed[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
 
     # [set by user] capacity factors weighted by location (eq. S12)
     CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_data_CF_solar[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
