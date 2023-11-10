@@ -1454,17 +1454,17 @@ for HPP in range(HPP_number):
                                         Q_STOR_spill_hourly_upper[n,y,HPP] = 0
                                 
                                 # [calculate] spilling component of lower reservoir in m^3/s (eq. S40)
-                                if (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr < Q_STOR_flexible_hourly[n,y,HPP]:
-                                    Q_STOR_spill_hourly_lower[n,y,HPP] = Q_STOR_flexible_hourly[n,y,HPP] - (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr
-                                elif (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr >= Q_STOR_flexible_hourly[n,y,HPP]:
+                                if (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr < Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP]:
+                                    Q_STOR_spill_hourly_lower[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP] - (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr
+                                elif (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr >= Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP]:
                                     Q_STOR_spill_hourly_lower[n,y,HPP] = 0
                                 
                                 # [calculate] total net outflow in m^3/s (eq. S36)
-                                Q_STOR_out_hourly[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] + Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_spill_hourly_lower[n,y,HPP]
+                                Q_STOR_out_hourly[n,y,HPP] = Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_spill_hourly_lower[n,y,HPP]
                                                             
                                 # [calculate] reservoir volume in m^3 at next time step (eq. S34, S35)
                                 V_STOR_hourly_upper[n+1,y,HPP] = V_STOR_hourly_upper[n,y,HPP] + (Q_in_frac_hourly[n,y,HPP] - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_pump_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*secs_hr
-                                V_STOR_hourly_lower[n+1,y,HPP] = V_STOR_hourly_lower[n,y,HPP] + (Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_pump_hourly[n,y,HPP] - Q_STOR_spill_hourly_lower[n,y,HPP])*secs_hr
+                                V_STOR_hourly_lower[n+1,y,HPP] = V_STOR_hourly_lower[n,y,HPP] + (Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_pump_hourly[n,y,HPP] - Q_STOR_spill_hourly_lower[n,y,HPP])*secs_hr
                                 
                                 # [check] prevent unreal values when lake levels drop low
                                 if V_STOR_hourly_upper[n+1,y,HPP] < 0:
@@ -1759,18 +1759,18 @@ for HPP in range(HPP_number):
                             if Q_STOR_spill_hourly_upper[n,y,HPP] < 0:
                                 Q_STOR_spill_hourly_upper[n,y,HPP] = 0
                         
-                        # [calculate] spilling component of lower reservoir in m^3/s (eq. S40)
-                        if (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr < Q_STOR_flexible_hourly[n,y,HPP]:
-                            Q_STOR_spill_hourly_lower[n,y,HPP] = Q_STOR_flexible_hourly[n,y,HPP] - (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr
-                        elif (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr >= Q_STOR_flexible_hourly[n,y,HPP]:
-                            Q_STOR_spill_hourly_lower[n,y,HPP] = 0
+                         # [calculate] spilling component of lower reservoir in m^3/s (eq. S40)
+                         if (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr < Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP]:
+                             Q_STOR_spill_hourly_lower[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP] - (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr
+                         elif (V_lower_max[HPP] - V_STOR_hourly_lower[n,y,HPP])/secs_hr >= Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP]:
+                             Q_STOR_spill_hourly_lower[n,y,HPP] = 0
                         
                         # [calculate] total net outflow in m^3/s (eq. S36)
-                        Q_STOR_out_hourly[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] + Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_spill_hourly_lower[n,y,HPP]
+                        Q_STOR_out_hourly[n,y,HPP] = Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_spill_hourly_lower[n,y,HPP]
                                                     
                         # [calculate] reservoir volume in m^3 at next time step (eq. S34, S35)
                         V_STOR_hourly_upper[n+1,y,HPP] = V_STOR_hourly_upper[n,y,HPP] + (Q_in_frac_hourly[n,y,HPP] - Q_STOR_stable_hourly[n,y,HPP] - Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_spill_hourly_upper[n,y,HPP] + Q_STOR_pump_hourly[n,y,HPP] + (precipitation_flux_hourly[n,y,HPP] - evaporation_flux_hourly[n,y,HPP])*A_STOR_hourly_upper[n,y,HPP]/rho)*secs_hr
-                        V_STOR_hourly_lower[n+1,y,HPP] = V_STOR_hourly_lower[n,y,HPP] + (Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_pump_hourly[n,y,HPP] - Q_STOR_spill_hourly_lower[n,y,HPP])*secs_hr
+                        V_STOR_hourly_lower[n+1,y,HPP] = V_STOR_hourly_lower[n,y,HPP] + (Q_STOR_stable_hourly[n,y,HPP] - Q_out_stable_env_irr_hourly[n,y,HPP] + Q_STOR_flexible_hourly[n,y,HPP] - Q_STOR_pump_hourly[n,y,HPP] - Q_STOR_spill_hourly_lower[n,y,HPP])*secs_hr
                         
                         # [check] prevent unreal values when lake levels drop low
                         if V_STOR_hourly_upper[n+1,y,HPP] < 0:

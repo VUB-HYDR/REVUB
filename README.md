@@ -73,6 +73,8 @@ Version 1.0.1 - September 2023
 
 Version 1.0.2 - October 2023
 
+Version 1.0.3 - November 2023
+
 ## License
 See also the [LICENSE](./LICENSE.md) file.
 
