@@ -10,7 +10,7 @@ import pandas as pd
 import numbers as nb
 
 # import data from Excel
-filename_data = 'raw data_template.xlsx'
+filename_data = 'rearrange_data_template.xlsx'
 data = pd.read_excel (filename_data, sheet_name = 'daily_bymonth_series', header = None)
 data_list = np.array(data[0][0:].tolist())
 data_values = np.array(data)[0:,1:]
