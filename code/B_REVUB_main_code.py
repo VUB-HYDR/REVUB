@@ -788,7 +788,7 @@ for HPP in range(HPP_number):
                                 Q_BAL_flexible_hourly[n,y,HPP] = 0
                             
                             # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
+                            P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
                             
                             # [calculate] spilling component in m^3/s (eq. S19)
                             if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
@@ -1055,7 +1055,7 @@ for HPP in range(HPP_number):
                         Q_BAL_flexible_hourly[n,y,HPP] = 0
                     
                     # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_CONV_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
+                    P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
                     
                     # [calculate] spilling component in m^3/s (eq. S19)
                     if V_BAL_hourly[n,y,HPP]/V_max[HPP] < f_spill[HPP]:
