@@ -28,6 +28,8 @@ The most recent version of the REVUB model was written for Python 3.9. The files
 
 In the past, a MATLAB version (written for MATLAB R2017b) of the REVUB model existed, which can be obtained upon request but is no longer being supported by code updates.
 
+No specific packages are needed except for the regular numpy, pandas, and matplotlib.
+
 # 3. Tool's structure
 ---
 

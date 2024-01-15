@@ -515,3 +515,15 @@ if d_min[plot_HPP] != 1:
     plt.ylabel('Fraction of time')
     plt.title('Hydroturbine activity')
     plt.savefig(HPP_name[plot_HPP] + '_Fig8.png', dpi = 300, bbox_inches = 'tight')
+    
+    
+    # [plot] histogram of flexibility regime by month in BAL regime
+    hist_maxed_out_monthly = [np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == -1)]
+    hist_maxed_out_monthly = hist_maxed_out_monthly/np.sum(hist_maxed_out_monthly)
+    fig = plt.figure()
+    plt.bar(np.array(range(len(hist_maxed_out_monthly))), hist_maxed_out_monthly, width = 0.8)
+    labels_maxed_out = ['Flexibility', 'Baseload', 'Mixed', 'Curtailed']
+    plt.xticks(np.array(range(len(hist_maxed_out_monthly))), labels_maxed_out)
+    plt.ylabel('Fraction of time')
+    plt.title('Operational regime (BAL)')
+    plt.savefig(HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
