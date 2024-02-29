@@ -36,11 +36,11 @@ No specific packages are needed except for the regular numpy, pandas, and matplo
 ### Scripts
 The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file, the user is referred to the Manual.
 
-* **A_REVUB_initialise_minimum_example**
+* **A_REVUB_initialise**
 
-This script initialises the data needed for the minimum working example to run (which covers Bui hydropower plant in Ghana, and Buyo hydropower plant in CÃ´te d'Ivoire). 
+This script initialises the data needed for a simulation to run. The minimum working example given here covers Bui hydropower plant in Ghana, and Buyo hydropower plant in Côte d'Ivoire. 
 
-It reads in an Excel file with overall modelling parameters ("parameters_simulation.xlsx"), and several Excel files with tabulated time series and other data ("data_xxx.xlsx"; in this case, these datasets are themselves the results of external computations, described in the publication). 
+The script reads in an Excel file with overall modelling parameters ("parameters_simulation.xlsx"), and several Excel files with tabulated time series and other data ("data_xxx.xlsx"; in this case, these datasets are themselves the results of external computations, described in the publication). 
 
 These datasets are given in the folder "data". These data files should be downloaded and placed in the same folder in which this script is located. The names of the worksheets of all files named "data_xxx.xlsx" must be linked to the corresponding hydropower plant with the parameters "HPP_name_data_xxx" in the file "parameters_simulation.xlsx".
 
