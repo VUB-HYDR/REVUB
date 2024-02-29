@@ -246,6 +246,7 @@ E_hydro_BAL_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number)
 E_hydro_BAL_flexible_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_BAL_nonRoR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_BAL_RoR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
+E_hydro_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Hydropower generation in STOR (MWh/year) (eq. S24, S33)
 E_hydro_STOR_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
@@ -2041,6 +2042,9 @@ for HPP in range(HPP_number):
         # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
         E_hydro_BAL_RoR_yearly[y,HPP] = np.sum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
         
+        # [calculate] total hydropower generation under optimal BAL solution in MWh/year (eq. S33)
+        E_hydro_BAL_yearly[y,HPP] = E_hydro_BAL_nonRoR_yearly[y,HPP] + E_hydro_BAL_RoR_yearly[y,HPP]
+        
         # [calculate] ELCC by year in MWh/year (eq. S23)
         ELCC_BAL_yearly[y,HPP] = np.sum(L_followed_BAL_hourly[hrs_year,y,HPP])
         
@@ -2068,7 +2072,7 @@ for HPP in range(HPP_number):
         ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
     
     
-    # [calculate] statistics of power generation under user-defined p_exceedance criterion
+    # [calculate] statistics of power generation under user-defined p_exceedance criterion (MW)
     P_CONV_total_guaranteed[HPP] = np.nanpercentile(P_CONV_hydro_stable_hourly[:,:,HPP] + P_CONV_hydro_RoR_hourly[:,:,HPP], 100 - p_exceedance[HPP])
     P_BAL_total_guaranteed[HPP] = np.nanpercentile(P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP] + P_BAL_solar_hourly[:,:,HPP] + P_BAL_wind_hourly[:,:,HPP], 100 - p_exceedance[HPP])
     

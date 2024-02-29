@@ -16,7 +16,7 @@ data_list = np.array(data[0][0:].tolist())
 data_values = np.array(data)[0:,1:]
 
 # [remove] deactivated data series
-columns_active = data_values[np.where(data_list == 'activate for conversion', True, False)][0]
+columns_active = data_values[np.where(data_list == 'activate for conversion (1 = yes, 0 = no)', True, False)][0]
 data_values = np.delete(data_values, np.where(columns_active == 0)[0],1)
 series_number = len(data_values[0,:])
 
@@ -71,3 +71,4 @@ for q in range(series_number):
             for m in range(months_yr):
                 output_hourly_byyear[int(positions_month[m]) : int(positions_month[m+1]), y, q] = data_for_conversion[y*months_yr + m, q]
     
+print('open array "output_hourly_byyear" from workspace to access parsed data')
