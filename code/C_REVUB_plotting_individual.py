@@ -432,8 +432,8 @@ if d_min[plot_HPP] != 1:
                 
                 temp_Q[y] = np.nanmedian(temp)
                 temp_Q_std[y] = np.nanstd(temp)
-                temp_Q_025[y] = np.percentile(temp,25)
-                temp_Q_075[y] = np.percentile(temp,75)
+                temp_Q_025[y] = np.nanpercentile(temp,25)
+                temp_Q_075[y] = np.nanpercentile(temp,75)
                 
                 # [check] mark drought incidences
                 if hydro_BAL_curtailment_factor_monthly[m,y,plot_HPP] == 0:
