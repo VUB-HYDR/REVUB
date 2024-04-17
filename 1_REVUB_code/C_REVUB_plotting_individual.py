@@ -459,7 +459,7 @@ if d_min[plot_HPP] != 1:
             plt.plot(temp_h, temp_fit[1] + temp_fit[0]*temp_h, color = 'black', linestyle = '--', label = ('regulated outflow ' + str(hr) + 'h ' + str(months_names_full[m]) + ' fit') )
         
     
-    plt.plot([np.nanmin(h_BAL_hourly[:,:,plot_HPP]), np.nanmax(h_BAL_hourly[:,:,plot_HPP])], [np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP]), np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP])], color = 'black', label = 'fixed outflow')
+    plt.plot([np.nanmin(h_BAL_hourly[:,:,plot_HPP]), np.nanmax(h_BAL_hourly[:,:,plot_HPP])], [np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP]), np.nanmean(Q_BAL_stable_hourly[:,:,plot_HPP])], color = 'black', label = 'average fixed outflow')
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xlabel('Hydraulic head (m)')
     plt.ylabel('$Q_{out}$ (m$^3$/s)')
