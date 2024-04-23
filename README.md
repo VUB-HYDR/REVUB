@@ -24,17 +24,17 @@ The REVUB code simulates dedicated hydropower plant operation to provide an effe
 
 # 2. Installation
 ---
-The most recent version of the REVUB model was written for Python 3.9. The files given in this GitHub folder contain code and data needed to run a minimum working example. 
+The most recent version of the REVUB model was written for Python 3.9.
 
 No specific packages are needed except for the regular numpy, pandas, and matplotlib.
+
+A training dataset, allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in the folder https://github.com/VUB-HYDR/REVUB/tree/master/5_Training_dataset.
 
 # 3. Tool's structure
 ---
 
 ### Scripts
-The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file, the user is referred to the Manual in the folder https://github.com/VUB-HYDR/REVUB/tree/master/4_Manual. The files are always run in sequence A-B-C.
-
-A training dataset, allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in the folder https://github.com/VUB-HYDR/REVUB/tree/master/5_Training_dataset.
+The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual in the folder https://github.com/VUB-HYDR/REVUB/tree/master/4_Manual. The files are always run in sequence A-B-C.
 
 * **A_REVUB_initialise**
 
@@ -54,7 +54,7 @@ In the training dataset, the user learns how to run this code after having succe
 
 This script produces figure outputs for the individually simulated plants, chosen by the user from an Excel file named "plotting_settings.xlsx".
 
-The figures include (i) time series of hydropower lake levels and reservoir outflows without and with complementary hydro-VRE operation, (ii) power generation curves from the selected hydropower plant alongside solar and wind power at hourly, seasonal and multiannual scales, and (iii) hydropower release rule curves for given months and times of the day.
+The figures include various time series and statistical charts on - among other things - reservoir dynamics (drawdown and refilling) without and with hydro-VRE hybridisation, electricity generation of the hydro-VRE complex from hourly to seasonal and multianual scales, and the corresponding hydropower plant operation (rule curves, turbine activity, mode of operation).
 
 In the training dataset, the user learns how to produce meaningful figures using this script after having successfully run a simulation.
 
