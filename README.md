@@ -83,3 +83,8 @@ Version 1.0.4 - April 2024
 ## License
 See also the [LICENSE](./LICENSE.md) file.
 
+## Acknowledgements
+The following funding sources are gratefully acknowledged:
+* 2023-24: The World Bank (WB), Infrastructure Energy & Extractives Global Knowledge Unit (IEEGK), PO Number 8831242.
+* 2022: International Rivers, consulting contract "Alternatives to new hydropower to meet energy needs in the Republic of Guinea".
+* 2018-21: Project CIREG, part of ERA4CS, an ERA-NET Co-fund action initiated by JPI Climate, funded by BMBF (DE), FORMAS (SE), BELSPO (BE) and IFD (DK) with co-funding from the EU's Horizon2020 Framework Program, Grant 690462.
