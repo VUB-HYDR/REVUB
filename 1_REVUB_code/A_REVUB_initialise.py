@@ -83,7 +83,7 @@ hrs_byyear = np.zeros(shape = len(simulation_years))
 # [calculate] for each year in the simulation: determine if leap year or not;
 # write corresponding amount of hours into hrs_byyear
 for y in range(len(simulation_years)):
-    if np.ceil(simulation_years[y]/4) == simulation_years[y]/4 and np.ceil(simulation_years[y]/100) != simulation_years[y]/4:
+    if np.ceil(simulation_years[y]/4) == simulation_years[y]/4 and np.ceil(simulation_years[y]/100) != simulation_years[y]/100:
         days_year[:,y] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     else:
         days_year[:,y] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
