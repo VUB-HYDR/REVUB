@@ -101,7 +101,10 @@ for y in range(len(simulation_years)):
 # %% pre.2) Model parameters
         
 ##### GENERAL HYDROPOWER DATA #####
-        
+
+# [set by user] wish to run in calibration mode only (i.e. CONV scenario only)? (0 = no, 1 = yes)
+calibration_only = int(parameters_general_values[np.where(parameters_general_list == 'calibration_only', True, False)][0])
+
 # [set by user] wish to model pumped storage (Note 7) or not? (0 = no, 1 = yes)
 option_storage = int(parameters_general_values[np.where(parameters_general_list == 'option_storage', True, False)][0])
 
