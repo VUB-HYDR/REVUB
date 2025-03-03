@@ -226,16 +226,19 @@ k_turb_hourly_STOR = np.full([int(np.max(positions)), len(simulation_years), HPP
 # [preallocate] Monthly average of output energy variables for CONV (GWh/month)
 E_hydro_CONV_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_CONV_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_CONV_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Monthly average of output energy variables for BAL (GWh/month)
 E_hydro_BAL_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_BAL_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_BAL_RoR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_BAL_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Monthly average of output energy variables for STOR (GWh/month)
 E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_STOR_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Hydropower generation in CONV (MWh/year)
 E_hydro_CONV_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
@@ -253,6 +256,11 @@ E_hydro_STOR_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number
 E_hydro_STOR_flexible_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_STOR_pump_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
+
+# [preallocate] Monthly average hydraulic head as proxy for water level (m)
+h_CONV_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+h_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+h_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
 # or shut off in case of extreme drought (0) (see Note 3.1 and 8)
@@ -2004,21 +2012,33 @@ for HPP in range(HPP_number):
             # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
             E_hydro_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             E_hydro_CONV_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+            E_hydro_CONV_total_bymonth[m,y,HPP] = E_hydro_CONV_stable_bymonth[m,y,HPP] + E_hydro_CONV_RoR_bymonth[m,y,HPP]
+            
+            # [calculate] average monthly hydraulic head as proxy for water level (m)
+            h_CONV_bymonth[m,y,HPP] = np.mean(h_CONV_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
             
             # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
             if calibration_only == 0:
+                
+                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
                 E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                E_hydro_BAL_total_bymonth[m,y,HPP] = E_hydro_BAL_stable_bymonth[m,y,HPP] + E_hydro_BAL_flexible_bymonth[m,y,HPP] + E_hydro_BAL_RoR_bymonth[m,y,HPP]
                 
                 E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                 E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                E_hydro_STOR_total_bymonth[m,y,HPP] = E_hydro_STOR_stable_bymonth[m,y,HPP] + E_hydro_STOR_flexible_bymonth[m,y,HPP] 
                 
+                # [calculate] average monthly hydraulic head as proxy for water level (m)
+                h_BAL_bymonth[m,y,HPP] = np.mean(h_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                h_STOR_bymonth[m,y,HPP] = np.mean(h_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                                
                 # [calculate] binary variable indicating hydropower curtailment in given month
                 hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                 hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
