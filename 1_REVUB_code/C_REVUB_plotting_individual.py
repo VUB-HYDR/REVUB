@@ -43,6 +43,9 @@ plot_month = int(parameters_plotting_single_values[np.where(parameters_plotting_
 plot_day_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
 plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
 
+# [set by user] select whether or not to plot RoR-component of power generation (0 = no, 1 = yes)
+plot_RoR_part = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
+
 # [set by user] select months and hours of day (= o'clock) for which to show release rules
 plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
 plot_rules_month = np.array(plot_rules_month, dtype = float)
@@ -284,7 +287,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     # [figure] (cf. Fig. S4a, S9a)
     # [plot] average monthly power mix in user-selected year
     fig = plt.figure()
-    area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
+    area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], plot_RoR_part*E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
     labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
     labels_load = 'ELCC'
     plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
@@ -299,7 +302,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     # [figure] (cf. Fig. S4b, S9b)
     # [plot] power mix by year
     fig = plt.figure()
-    E_generated_BAL_bymonth_sum = [np.sum(E_hydro_BAL_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_BAL_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_BAL_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_BAL_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP], axis = 0)]
+    E_generated_BAL_bymonth_sum = [np.sum(E_hydro_BAL_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_BAL_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_BAL_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_BAL_bymonth[:,:,plot_HPP], axis = 0), plot_RoR_part*np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP], axis = 0)]
     plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[0], bottom = np.sum(E_generated_BAL_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
     plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[1], bottom = np.sum(E_generated_BAL_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
     plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[2], bottom = np.sum(E_generated_BAL_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
@@ -318,7 +321,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
     # [plot] power mix for selected days of selected month
     fig = plt.figure()
-    area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
+    area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], plot_RoR_part*P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
     plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
     plt.plot(np.array(hrs_year), L_followed_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
