@@ -216,6 +216,12 @@ no_turbines = parameters_hydropower_values[np.where(parameters_hydropower_list =
 # [set by user] percentile value used to calculate exceedance probability of delivered power
 p_exceedance = parameters_hydropower_values[np.where(parameters_hydropower_list == 'p_exceedance', True, False)][0].astype(int)
 
+# [set by user] percentile value used to calculate exceedance probability of delivered power
+year_calibration_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_calibration_start', True, False)][0]
+
+# [set by user] percentile value used to calculate exceedance probability of delivered power
+year_calibration_end = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_calibration_end', True, False)][0]
+
 
 # %% pre.4) Time series
 

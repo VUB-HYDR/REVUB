@@ -390,13 +390,28 @@ P_STOR_total_guaranteed = np.full(HPP_number,np.nan)
 # [loop] to classify all HPPs
 for HPP in range(HPP_number):
     
+    # [verify] that calibration year period makes sense
+    if np.isnan(year_calibration_start[HPP]):
+        year_calibration_start[HPP] = year_start
+    if np.isnan(year_calibration_end[HPP]):
+        year_calibration_end[HPP] = year_end
+    if year_calibration_start[HPP] < year_start:
+        print('error: year_calibration_start cannot be lower than year_start')
+        break
+    if year_calibration_end[HPP] > year_end:
+        print('error: year_calibration_end cannot be higher than year_end')
+        break
+    if year_calibration_end[HPP] < year_calibration_start[HPP]:
+        print('error: year_calibration_end must be a later year than year_calibration_start')
+        break
+    
     # [calculate] if needed, default f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
     if np.isnan(f_reg[HPP]):
-        f_reg[HPP] = (V_max[HPP]/(min(np.sum(days_year,0))*hrs_day*secs_hr*T_fill_thres))/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+        f_reg[HPP] = (V_max[HPP]/(min(np.sum(days_year,0))*hrs_day*secs_hr*T_fill_thres))/np.nanmean(Q_in_nat_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])
     
     # [calculate] if needed, default d_min based on user-provided minimum turbine loading
     if np.isnan(d_min[HPP]):
-        d_min[HPP] = np.max([0,np.min([1,(min_load_turbine[HPP]*Q_max_turb[HPP]/no_turbines[HPP] - (1 - f_reg[HPP])*np.nanmin(Q_in_nat_hourly[:,:,HPP]))/(np.nanmean(Q_in_nat_hourly[:,:,HPP])*f_reg[HPP])])])
+        d_min[HPP] = np.max([0,np.min([1,(min_load_turbine[HPP]*Q_max_turb[HPP]/no_turbines[HPP] - (1 - f_reg[HPP])*np.nanmin(Q_in_nat_hourly[:,:,HPP]))/(np.nanmean(Q_in_nat_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])*f_reg[HPP])])])
     
     # [warning] if d_min is larger than unity, the plant is not suitable to provide flexibility services
     if d_min[HPP] == 1:
@@ -421,7 +436,7 @@ for HPP in range(HPP_number):
     
     ##### SPECIFY OUTFLOW CURVE (CONV) #####
     # [calculate] tau_fill (eq. S1) for each HPP
-    tau_fill[HPP] = (np.nanmean(Q_in_frac_hourly[:,:,HPP] * (min(np.sum(days_year,0))*hrs_day*secs_hr)/V_max[HPP]))**(-1)
+    tau_fill[HPP] = (np.nanmean(Q_in_frac_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] * (min(np.sum(days_year,0))*hrs_day*secs_hr)/V_max[HPP]))**(-1)
     
     # [calculate] phi (eq. S6) for each HPP
     phi[HPP] = alpha[HPP]*np.sqrt(tau_fill[HPP])
@@ -438,7 +453,7 @@ for HPP in range(HPP_number):
 
 # %% REVUB.4) Core REVUB simulation
 
-# This section carries out the actual REVUB optimization.
+# This section carries out the actual REVUB optimisation.
 
 # [loop] carry out CONV, BAL and (optionally) STOR simulation for every HPP
 for HPP in range(HPP_number):
@@ -456,7 +471,7 @@ for HPP in range(HPP_number):
     Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
     
     # [initialize] average inflow (eq. S4)
-    Q_in_nat_av = np.nanmean(Q_in_frac_hourly[:,:,HPP])
+    Q_in_nat_av = np.nanmean(Q_in_frac_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])
     
     # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
     # temporary curtailment on hydropower generation (Note 3.1)
