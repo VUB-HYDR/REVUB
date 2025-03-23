@@ -43,9 +43,26 @@ parameters_hydropower = pd.read_excel (filename_parameters, sheet_name = 'Hydrop
 parameters_hydropower_list = np.array(parameters_hydropower[0][0:].tolist())
 parameters_hydropower_values = np.array(parameters_hydropower)[0:,2:]
 
-# [remove] deactivated hydropower plants
+
+# [read] parameters on plant name, activation, and cascade situation
+HPP_name_temp = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
 HPP_active = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
+HPP_cascade = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade', True, False)][0].astype(str)
+
+# [ensure] upstream cascade plants do not get activated if the HPPs they feed downstream are deactivated
+HPP_cascade[np.where(HPP_active == 0)] = 'nan'
+HPP_cascade = np.delete(HPP_cascade, np.where(HPP_cascade == 'nan')[0])
+
+# [provide] specific identifier to plants in a cascade, if the HPPs they feed downstream are activated
+for n in range(len(HPP_cascade)): HPP_active[np.where(HPP_name_temp == HPP_cascade[n])[0]] = -1
+
+# [delete] deactivated plants without cascade function
 parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(HPP_active == 0)[0],1)
+HPP_active = np.delete(HPP_active, np.where(HPP_active == 0)[0])
+
+# [swap] positions so the plants with upstream cascade function come last in the simulation
+parameters_hydropower_values = np.concatenate((np.delete(parameters_hydropower_values, np.where(HPP_active == -1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active == 1)[0],1)), axis = 1)
+HPP_active = np.concatenate((np.delete(HPP_active, np.where(HPP_active == -1)[0],0), np.delete(HPP_active, np.where(HPP_active == 1)[0],0)), axis = 0)
 
 # [load] simulation accuracy parameters (used in script B)
 parameters_simulation = pd.read_excel (filename_parameters, sheet_name = 'Simulation accuracy', header = None)
@@ -125,11 +142,14 @@ T_fill_thres = parameters_general_values[np.where(parameters_general_list == 'T_
 # E.g. LOEE_allowed = 0.01 would mean that criterion (ii) is relaxed to 1% of yearly allowed LOEE instead of 0%.
 LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LOEE_allowed', True, False)][0]
 
+# [set by user] prevent hydropower blackouts to be potentially worse under BAL/STOR than under CONV if turned on
+prevent_droughts_increase = parameters_general_values[np.where(parameters_general_list == 'prevent_droughts_increase', True, False)][0]
 
 # %% pre.3) Static parameters
 
 # [set by user] name of hydropower plant
-HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].tolist()
+HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
+HPP_cascade = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade', True, False)][0].astype(str)
 HPP_name_data_inflow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_inflow', True, False)][0].tolist()
 HPP_name_data_outflow_prescribed = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_outflow_prescribed', True, False)][0].tolist()
 HPP_name_data_CF_solar = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_CF_solar', True, False)][0].tolist()
@@ -139,22 +159,24 @@ HPP_name_data_precipitation = parameters_hydropower_values[np.where(parameters_h
 HPP_name_data_load = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_load', True, False)][0].tolist()
 HPP_name_data_bathymetry = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_bathymetry', True, False)][0].tolist()
 
-# [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
-f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
-
 # [set by user] relative capacity of solar vs. wind to be installed (cf. explanation below eq. S13)
 # e.g. c_solar_relative = 1 means only solar deployment, no wind deployment on the grid of each HPP in question.
 c_solar_relative = parameters_hydropower_values[np.where(parameters_hydropower_list == 'c_solar_relative', True, False)][0]
 c_wind_relative = 1 - c_solar_relative
+
+# [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
+f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
 
 # [set by user] maximum head (m)
 h_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'h_max', True, False)][0]
 
 # [set by user] maximum lake area (m^2)
 A_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'A_max', True, False)][0]
+A_max_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'A_max', True, False)][0]
 
 # [set by user] maximum storage volume (m^3) and initial filling fraction
 V_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_max', True, False)][0]
+V_max_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_max', True, False)][0]
 V_initial_frac = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_initial_frac', True, False)][0]
 
 # [set by user] turbine capacity (MW)
@@ -205,7 +227,9 @@ mu = parameters_hydropower_values[np.where(parameters_hydropower_list == 'mu', T
 # [set by user] thresholds f_stop and f_restart (see page 4) for stopping and restarting
 # hydropower production to maintain minimum drawdown levels
 f_stop = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_stop', True, False)][0]
+f_stop_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_stop', True, False)][0]
 f_restart = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_restart', True, False)][0]
+f_restart_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_restart', True, False)][0]
 
 # [set by user] the parameter f_size controls allowed VRE overproduction and is the percentile value described in eq. S11
 f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_size', True, False)][0].astype(int)
@@ -234,6 +258,9 @@ Q_out_stable_env_irr_hourly = np.zeros(shape = (int(np.max(positions)), len(simu
 CF_solar_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 CF_wind_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 
+# [preallocate] corrector in case no-VRE scenario
+c_VRE_corrector = np.full([HPP_number], np.nan)
+
 # [loop] over all HPP names to extract relevant time series from user-prepared Excel tables
 for n in range(len(HPP_name)):
     
@@ -247,11 +274,45 @@ for n in range(len(HPP_name)):
     # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
     Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     Q_out_stable_env_irr_hourly[:,:,n] = pd.read_excel (filename_outflow_prescribed, sheet_name = HPP_name_data_outflow_prescribed[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-
-    # [set by user] capacity factors weighted by location (eq. S12)
-    CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_data_CF_solar[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-    CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_data_CF_wind[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
+    # [set by user] capacity factors for solar and wind power (eq. S12)
+    if str(HPP_name_data_CF_solar[n]) != 'nan' and str(HPP_name_data_CF_wind[n]) != 'nan':
+        
+        CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_data_CF_solar[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+        CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_data_CF_wind[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+        c_VRE_corrector[n] = 1
+        
+    # [set by user] in case solar field left empty, simulate only with wind
+    elif str(HPP_name_data_CF_solar[n]) == 'nan' and str(HPP_name_data_CF_wind[n]) != 'nan':  
+        
+        CF_solar_hourly[:,:,n] = np.ones(shape = (int(np.max(positions)), len(simulation_years)))
+        CF_wind_hourly[:,:,n] = pd.read_excel (filename_CF_wind, sheet_name = HPP_name_data_CF_wind[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+        c_VRE_corrector[n] = 1
+        
+        c_solar_relative[n] = 0
+        c_wind_relative[n] = 1 - c_solar_relative[n]
+    
+    # [set by user] in case wind field left empty, simulate only with solar
+    elif str(HPP_name_data_CF_solar[n]) != 'nan' and str(HPP_name_data_CF_wind[n]) == 'nan':  
+        
+        CF_solar_hourly[:,:,n] = pd.read_excel (filename_CF_solar, sheet_name = HPP_name_data_CF_solar[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+        CF_wind_hourly[:,:,n] = np.ones(shape = (int(np.max(positions)), len(simulation_years)))
+        c_VRE_corrector[n] = 1
+        
+        c_solar_relative[n] = 1
+        c_wind_relative[n] = 1 - c_solar_relative[n]
+    
+    # [allow] simulating hydro-only flexibility scenarios without solar and wind by setting dummy constant time series for VRE
+    elif str(HPP_name_data_CF_solar[n]) == 'nan' and str(HPP_name_data_CF_wind[n]) == 'nan':
+        
+        # [set] dummy values for VRE
+        CF_solar_hourly[:,:,n] = np.ones(shape = (int(np.max(positions)), len(simulation_years)))
+        CF_wind_hourly[:,:,n] = np.ones(shape = (int(np.max(positions)), len(simulation_years)))
+        c_VRE_corrector[n] = 0
+        
+        # [set] dummy c_solar and c_wind
+        c_solar_relative[n] = 0
+        c_wind_relative[n] = 0
 
 
 # %% pre.5) Bathymetry
@@ -265,7 +326,6 @@ for n in range(len(HPP_name)):
     # [set by user] head-area-volume curves used during simulations
     temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
     temp_length_array[n] = len(temp)
-
 
 # [preallocate]
 calibrate_volume = np.full([int(np.max(temp_length_array)), HPP_number], np.nan)

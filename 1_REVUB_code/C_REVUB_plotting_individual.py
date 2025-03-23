@@ -238,9 +238,9 @@ plt.show
 # [figure]
 # [plot] lake volume time series, monthly inflow vs. outflow
 fig, (ax1, ax2) = plt.subplots(2,1)
-ax1.plot(V_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
+ax1.plot(f_cascade_downstream[plot_HPP]*V_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
 if calibration_only == 0:
-    ax1.plot(V_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
+    ax1.plot(f_cascade_downstream[plot_HPP]*V_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
     if STOR_break[plot_HPP] == 0 and option_storage == 1:
         ax1.plot(V_STOR_series_hourly_upper[:,plot_HPP], color = colour_STOR)
         ax1.legend(['CONV', 'BAL', 'STOR'])
