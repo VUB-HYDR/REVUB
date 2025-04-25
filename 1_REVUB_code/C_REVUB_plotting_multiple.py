@@ -47,9 +47,11 @@ plot_month_multiple = int(parameters_plotting_multiple_values[:,0][np.where(para
 plot_day_month_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_day_month_multiple', True, False)][0])
 plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_num_days_multiple', True, False)][0])
 
+# [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
+plot_ELCC_line_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ELCC_line_multiple', True, False)][0])
+
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0])
-
 L_norm_HPP = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'chosen_load', True, False)][0]
 P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
 
@@ -127,7 +129,7 @@ area_mix_BAL_bymonth = [np.nansum(E_hydro_BAL_stable_bymonth[:,plot_year_multipl
 labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal', 'Curtailed VRE']
 plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
 plt.plot(np.array(range(months_yr)), E_total_bymonth[:,plot_year_multiple]/days_year[:,plot_year_multiple]*10**3/hrs_day, label = 'Total load', color = 'black', linewidth = 3)
-plt.plot(np.array(range(months_yr)), np.nansum(ELCC_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(months_yr)), np.nansum(ELCC_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(months_yr)), months_names_full, rotation = 'vertical')
 plt.ylabel('Power generation (MWh/h)')
@@ -147,7 +149,7 @@ plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[4], 
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[5], bottom = np.sum(E_generated_BAL_bymonth_sum[0:5], axis = 0), label = 'Thermal', color = colour_thermal)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[6], bottom = np.sum(E_generated_BAL_bymonth_sum[0:6], axis = 0), label = 'Curtailed VRE', color = colour_curtailed)
 plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
-plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_BAL_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_BAL_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
 plt.xlabel('year')
@@ -163,7 +165,7 @@ fig = plt.figure()
 area_mix_full = [np.nansum(P_BAL_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_BAL_thermal_hourly[hrs_year,plot_year_multiple], -1*P_BAL_curtailed_hourly[hrs_year,plot_year_multiple]]
 plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
 plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
-plt.plot(np.array(hrs_year), np.nansum(L_followed_BAL_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+if plot_ELCC_line_multiple == 1: plt.plot(np.array(hrs_year), np.nansum(L_followed_BAL_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
 plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days_multiple)])

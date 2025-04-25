@@ -47,27 +47,36 @@ parameters_hydropower_values = np.array(parameters_hydropower)[0:,2:]
 # [read] parameters on plant name, activation, and cascade situation
 HPP_name_temp = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
 HPP_active = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
-HPP_cascade = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade', True, False)][0].astype(str)
+HPP_active_save = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
+HPP_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_upstream', True, False)][0].astype(str)
+HPP_cascade_downstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_downstream', True, False)][0].astype(str)
 
 # [ensure] upstream cascade plants do not get activated if the HPPs they feed downstream are deactivated
-HPP_cascade[np.where(HPP_active == 0)] = 'nan'
-HPP_cascade = np.delete(HPP_cascade, np.where(HPP_cascade == 'nan')[0])
+HPP_cascade_upstream[np.where(HPP_active == 0)] = 'nan'
+HPP_cascade_upstream = np.delete(HPP_cascade_upstream, np.where(HPP_cascade_upstream == 'nan')[0])
+
+# [ensure] downstream cascade plants do not get activated if the HPPs they are fed from upstream are deactivated
+HPP_cascade_downstream[np.where(HPP_active == 0)] = 'nan'
+HPP_cascade_downstream = np.delete(HPP_cascade_downstream, np.where(HPP_cascade_downstream == 'nan')[0])
 
 # [provide] specific identifier to plants in a cascade, if the HPPs they feed downstream are activated
-for n in range(len(HPP_cascade)): HPP_active[np.where(HPP_name_temp == HPP_cascade[n])[0]] = -1
+for n in range(len(HPP_cascade_upstream)): HPP_active[np.where(HPP_name_temp == HPP_cascade_upstream[n])[0]] = -1
+for m in range(len(HPP_cascade_downstream)): HPP_active[np.where(HPP_name_temp == HPP_cascade_downstream[m])[0]] = -2
 
-# [delete] deactivated plants without cascade function
+# [delete] deactivated deselected plants
 parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(HPP_active == 0)[0],1)
+HPP_active_save = np.delete(HPP_active_save, np.where(HPP_active == 0)[0])
 HPP_active = np.delete(HPP_active, np.where(HPP_active == 0)[0])
 
-# [swap] positions so the plants with upstream cascade function come last in the simulation
-parameters_hydropower_values = np.concatenate((np.delete(parameters_hydropower_values, np.where(HPP_active == -1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active == 1)[0],1)), axis = 1)
-HPP_active = np.concatenate((np.delete(HPP_active, np.where(HPP_active == -1)[0],0), np.delete(HPP_active, np.where(HPP_active == 1)[0],0)), axis = 0)
+# [delete] deactivated downstream plants
+parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(HPP_active_save == 0)[0],1)
+HPP_active = np.delete(HPP_active, np.where(HPP_active_save == 0)[0])
+HPP_active_save = np.delete(HPP_active_save, np.where(HPP_active_save == 0)[0])
 
-# [load] simulation accuracy parameters (used in script B)
-parameters_simulation = pd.read_excel (filename_parameters, sheet_name = 'Simulation accuracy', header = None)
-parameters_simulation_list = np.array(parameters_simulation[0][0:].tolist())
-parameters_simulation_values = np.array(parameters_simulation[1][0:].tolist())
+# [swap] positions so the plants with upstream cascade function come last in the simulation
+parameters_hydropower_values = np.concatenate((np.delete(parameters_hydropower_values, np.where(HPP_active != 1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active != -1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active != -2)[0],1)), axis = 1)
+HPP_active_save = np.concatenate((np.delete(HPP_active_save, np.where(HPP_active != 1)[0],0), np.delete(HPP_active_save, np.where(HPP_active != -1)[0],0), np.delete(HPP_active_save, np.where(HPP_active != -2)[0],0)), axis = 0)
+HPP_active = np.concatenate((np.delete(HPP_active, np.where(HPP_active != 1)[0],0), np.delete(HPP_active, np.where(HPP_active != -1)[0],0), np.delete(HPP_active, np.where(HPP_active != -2)[0],0)), axis = 0)
 
 
 # %% pre.1) Time-related parameters
@@ -131,6 +140,9 @@ rho = parameters_general_values[np.where(parameters_general_list == 'rho', True,
 # [constant] gravitational acceleration (m/s^2) (introduced in eq. S8)
 g = parameters_general_values[np.where(parameters_general_list == 'g', True, False)][0]
 
+# [set by user] percentile value used to calculate exceedance probability of delivered power
+p_exceedance = parameters_general_values[np.where(parameters_general_list == 'p_exceedance', True, False)][0]
+
 ##### HYDROPOWER OPERATION PARAMETERS #####
 
 # [set by user] threshold for determining whether HPP is "large" or "small" - if
@@ -145,11 +157,27 @@ LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LO
 # [set by user] prevent hydropower blackouts to be potentially worse under BAL/STOR than under CONV if turned on
 prevent_droughts_increase = parameters_general_values[np.where(parameters_general_list == 'prevent_droughts_increase', True, False)][0]
 
+##### SIMULATION ACCURACY PARAMETERS #####
+
+# [set by user] This number defines the amount of discrete steps between 0 and max(E_hydro + E_solar + E_wind)
+# reflecting the accuracy of determining the achieved ELCC
+N_ELCC = int(parameters_general_values[np.where(parameters_general_list == 'N_ELCC', True, False)][0])
+
+# [set by user] Number of loops for iterative estimation of P_stable,BAL/STOR (see eq. S9 & explanation below eq. S19)
+# Typically, 2-3 iterations suffice until convergence is achieved.
+X_max = int(parameters_general_values[np.where(parameters_general_list == 'X_max', True, False)][0])
+
+# [set by user] When min(Psi) (eq. S21) is lower than this threshold, no further refinement loops
+# are performed. This number can be increased to speed up the simulation.
+psi_min_threshold = parameters_general_values[np.where(parameters_general_list == 'psi_min_threshold', True, False)][0]
+
+
 # %% pre.3) Static parameters
 
 # [set by user] name of hydropower plant
 HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
-HPP_cascade = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade', True, False)][0].astype(str)
+HPP_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_upstream', True, False)][0].astype(str)
+HPP_cascade_downstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_downstream', True, False)][0].astype(str)
 HPP_name_data_inflow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_inflow', True, False)][0].tolist()
 HPP_name_data_precipitation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_precipitation', True, False)][0].tolist()
 HPP_name_data_evaporation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_evaporation', True, False)][0].tolist()
@@ -232,13 +260,10 @@ f_restart = parameters_hydropower_values[np.where(parameters_hydropower_list == 
 f_restart_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_restart', True, False)][0]
 
 # [set by user] the parameter f_size controls allowed VRE overproduction and is the percentile value described in eq. S11
-f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_size', True, False)][0].astype(int)
+f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_size', True, False)][0]
 
 # [set by user] number of turbines per hydropower plant (used for turbine use statistics in script C)
-no_turbines = parameters_hydropower_values[np.where(parameters_hydropower_list == 'no_turbines', True, False)][0].astype(int)
-
-# [set by user] percentile value used to calculate exceedance probability of delivered power
-p_exceedance = parameters_hydropower_values[np.where(parameters_hydropower_list == 'p_exceedance', True, False)][0].astype(int)
+no_turbines = parameters_hydropower_values[np.where(parameters_hydropower_list == 'no_turbines', True, False)][0]
 
 # [set by user] percentile value used to calculate exceedance probability of delivered power
 year_calibration_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_calibration_start', True, False)][0]
@@ -265,7 +290,8 @@ c_VRE_corrector = np.full([HPP_number], np.nan)
 for n in range(len(HPP_name)):
     
     # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
-    Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    if str(HPP_name_data_inflow[n]) != 'nan':
+        Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
     # [set by user] Precipitation flux (kg/m^2/s)
     if str(HPP_name_data_precipitation[n]) != 'nan':
@@ -318,10 +344,35 @@ for n in range(len(HPP_name)):
         c_wind_relative[n] = 0
     
     # [set by user] Load curves (L_norm; see eq. S10)
-    L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_data_load[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    if str(HPP_name_data_load[n]) != 'nan':
+        L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_data_load[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
 
 
-# %% pre.5) Bathymetry
+# %% pre.5) Simulation accuracy
+
+# [set by user] These values are used to get a good initial guess for the order of magnitude of the ELCC.
+# This is done by multiplying them with yearly average E_{hydro}.
+# A suitable range within which to identify the optimal solution (eq. S21) is thus obtained automatically
+# for each HPP, regardless of differences in volume, head, rated power, &c.
+# The value f_init_BAL_end may have to be increased in scenarios where the ELCC becomes extremely high,
+# e.g. when extremely good balancing sources other than hydro are present.
+# For the scenarios in (Sterl et al.), the ranges 0-3 work for all HPPs. Usually, smaller ranges can be chosen.
+f_init_BAL_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_BAL_start', True, False)][0]
+f_init_BAL_step = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_BAL_step', True, False)][0]
+f_init_BAL_end = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_BAL_end', True, False)][0]
+
+# Idem for the optional STOR scenario
+f_init_STOR_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_STOR_start', True, False)][0]
+f_init_STOR_step = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_STOR_step', True, False)][0]
+f_init_STOR_end = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_STOR_end', True, False)][0]
+
+# [set by user] Number of refinement loops for equilibrium search for min(Psi) (see eq. S21)
+# Every +1 increases precision by one digit. Typically, 2 or 3 iterations suffice. 
+N_refine_BAL = parameters_hydropower_values[np.where(parameters_hydropower_list == 'N_refine_BAL', True, False)][0]
+N_refine_STOR = parameters_hydropower_values[np.where(parameters_hydropower_list == 'N_refine_STOR', True, False)][0]
+
+
+# %% pre.6) Bathymetry
 
 # [preallocate]
 temp_length_array = np.zeros(HPP_number)
@@ -330,8 +381,13 @@ temp_length_array = np.zeros(HPP_number)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
-    temp_length_array[n] = len(temp)
+    if str(HPP_name_data_load[n]) != 'nan':
+        temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
+        temp_length_array[n] = len(temp)
+    else:
+        # [set] exception in case of RoR plant without reservoir
+        temp_length_array[n] = 1
+    
 
 # [preallocate]
 calibrate_volume = np.full([int(np.max(temp_length_array)), HPP_number], np.nan)
@@ -342,14 +398,29 @@ calibrate_head = np.full([int(np.max(temp_length_array)), HPP_number], np.nan)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
     
-    # [extract] volume (m^3)
-    calibrate_volume[0:len(temp.iloc[:,0]),n] = temp.iloc[:,0]
+    if str(HPP_name_data_load[n]) != 'nan':
+        temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
+        
+        # [extract] volume (m^3)
+        calibrate_volume[0:len(temp.iloc[:,0]),n] = temp.iloc[:,0]
+        if np.nanmax(calibrate_volume[:,n]) != V_max[n]:
+            print('> Warning: V_max inconsistent with maximum value in bathymetry for', HPP_name[n])
+        
+        # [extract] area (m^2)
+        calibrate_area[0:len(temp.iloc[:,1]),n] = temp.iloc[:,1]
+        if np.nanmax(calibrate_area[:,n]) != A_max[n]:
+            print('> Warning: A_max inconsistent with maximum value in bathymetry for', HPP_name[n])
+        
+        # [extract] head (m)
+        calibrate_head[0:len(temp.iloc[:,2]),n] = temp.iloc[:,2]
+        if np.nanmax(calibrate_head[:,n]) != h_max[n]:
+            print('> Warning: h_max inconsistent with maximum value in bathymetry for', HPP_name[n])
     
-    # [extract] area (m^2)
-    calibrate_area[0:len(temp.iloc[:,1]),n] = temp.iloc[:,1]
-    
-    # [extract] head (m)
-    calibrate_head[0:len(temp.iloc[:,2]),n] = temp.iloc[:,2]
+    else:
+        
+        # [set] exception in case of RoR plant without reservoir
+        calibrate_volume[0,n] = V_max[n]
+        calibrate_area[0,n] = A_max[n]
+        calibrate_head[0,n] = h_max[n]
 

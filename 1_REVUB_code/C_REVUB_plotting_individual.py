@@ -46,6 +46,9 @@ plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotti
 # [set by user] select whether or not to plot RoR-component of power generation (0 = no, 1 = yes)
 plot_RoR_part = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
 
+# [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
+plot_ELCC_line = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_ELCC_line', True, False)][0])
+
 # [set by user] select which figures to produce (0 = no, 1 = yes)
 Figure1_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure1_on', True, False)][0])
 Figure2_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure2_on', True, False)][0])
@@ -56,6 +59,16 @@ Figure6_on = int(parameters_plotting_single_values[np.where(parameters_plotting_
 Figure7_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure7_on', True, False)][0])
 Figure8_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure8_on', True, False)][0])
 Figure9_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure9_on', True, False)][0])
+
+# [turn off] figures only useful for reservoir plants in case of run-of-river
+if HPP_category[plot_HPP] == 'RoR':
+    plot_RoR_part = 1
+    plot_ELCC_line = 0
+    Figure1_on = 0
+    Figure2_on = 0
+    Figure3_on = 0
+    Figure7_on = 0
+    Figure9_on = 0
 
 # [set by user] select months and hours of day (= o'clock) for which to show release rules
 plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
@@ -257,7 +270,11 @@ if Figure3_on == 1:
     ax1.plot(f_cascade_downstream[plot_HPP]*V_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
     if calibration_only == 0:
         ax1.plot(f_cascade_downstream[plot_HPP]*V_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
-        if STOR_break[plot_HPP] == 0 and option_storage == 1:
+        if force_cascade_outflow[plot_HPP] == 1:
+            HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[plot_HPP])[0])
+            ax1.plot(f_cascade_upstream[HPP_downstream]*V_BAL_series_hourly[:,HPP_downstream], color = colour_hydro_flexible, linestyle = 'dashed')
+            ax1.legend(['CONV', 'BAL', 'BAL calib.'])
+        elif STOR_break[plot_HPP] == 0 and option_storage == 1:
             ax1.plot(V_STOR_series_hourly_upper[:,plot_HPP], color = colour_STOR)
             ax1.legend(['CONV', 'BAL', 'STOR'])
         else:
@@ -308,7 +325,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
         labels_load = 'ELCC'
         plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-        plt.plot(np.array(range(months_yr)), ELCC_BAL_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
+        if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_BAL_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
         plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
         plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
         plt.ylabel('Power generation (MWh/h)')
@@ -326,7 +343,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[2], bottom = np.sum(E_generated_BAL_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
         plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[3], bottom = np.sum(E_generated_BAL_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
         plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[4], bottom = np.sum(E_generated_BAL_bymonth_sum[0:4], axis = 0), label = 'Hydropower (RoR)', color = colour_hydro_RoR)
-        plt.plot(np.array(range(len(simulation_years))), ELCC_BAL_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
+        if plot_ELCC_line == 1: plt.plot(np.array(range(len(simulation_years))), ELCC_BAL_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
         plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
         plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
         plt.xlabel('year')
@@ -342,11 +359,11 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         fig = plt.figure()
         area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], plot_RoR_part*P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
         plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-        plt.plot(np.array(hrs_year), L_followed_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
+        if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
         plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
         plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
         plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
-        plt.ylim([0, np.max(np.sum(area_mix_full, axis = 0)*1.1)])
+        plt.ylim([0, np.max(np.nansum(area_mix_full, axis = 0)*1.1)])
         plt.xlabel('Day of the year')
         plt.ylabel('Power generation (MWh/h)')
         plt.title('Daily generation & load profiles (BAL)')
@@ -364,7 +381,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored VRE']
             labels_load = 'ELCC'
             plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-            plt.plot(np.array(range(months_yr)), ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
+            if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
             plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
             plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
             plt.ylabel('Power generation (MWh/h)')
@@ -382,7 +399,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
-            plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
+            if plot_ELCC_line == 1: plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
             plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
             plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
             plt.xlabel('year')
@@ -398,7 +415,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             fig = plt.figure()
             area_mix_full = [P_STOR_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_STOR_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_STOR_wind_hourly[hrs_year,plot_year,plot_HPP], P_STOR_solar_hourly[hrs_year,plot_year,plot_HPP], -1*P_STOR_pump_hourly[hrs_year,plot_year,plot_HPP]]
             plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-            plt.plot(np.array(hrs_year), L_followed_STOR_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
+            if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_STOR_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
             plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
             plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
             plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
@@ -523,10 +540,10 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     
     # [calculate] number of turbines in use for each time step by HPP
     # [loop] across the number of turbines
-    for n in range(no_turbines[plot_HPP]):
+    for n in range(int(no_turbines[plot_HPP])):
         
         # [calculate] index counting backwards from all, all-but-one, all-but two turbines, &c.
-        m = no_turbines[plot_HPP] - n
+        m = int(no_turbines[plot_HPP]) - n
         
         # [calculate] instances with all, all-but-one, all-but-two turbines active, &c.
         no_turbines_used_CONV[P_CONV_hydro_total[:,:,plot_HPP].ravel() <= m*P_unit[plot_HPP]] = m
@@ -535,23 +552,27 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             no_turbines_used_STOR[P_STOR_hydro_total[:,:,plot_HPP].ravel() <= m*P_unit[plot_HPP]] = m
     
     # [create] histogram of turbine use for selected HPP
-    no_turbines_used_pdf_CONV = np.histogram(no_turbines_used_CONV, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+    no_turbines_used_pdf_CONV = np.histogram(no_turbines_used_CONV, bins = np.array(range(1,int(no_turbines[plot_HPP]) + 2)))
     no_turbines_used_pdf_CONV = (no_turbines_used_pdf_CONV[0])/np.sum(no_turbines_used_pdf_CONV[0])
-    no_turbines_used_pdf_BAL = np.histogram(no_turbines_used_BAL, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+    no_turbines_used_pdf_BAL = np.histogram(no_turbines_used_BAL, bins = np.array(range(1,int(no_turbines[plot_HPP]) + 2)))
     no_turbines_used_pdf_BAL = (no_turbines_used_pdf_BAL[0])/np.sum(no_turbines_used_pdf_BAL[0])
     if STOR_break[plot_HPP] == 0:
-        no_turbines_used_pdf_STOR = np.histogram(no_turbines_used_STOR, bins = np.array(range(1,no_turbines[plot_HPP] + 2)))
+        no_turbines_used_pdf_STOR = np.histogram(no_turbines_used_STOR, bins = np.array(range(1,int(no_turbines[plot_HPP]) + 2)))
         no_turbines_used_pdf_STOR = (no_turbines_used_pdf_STOR[0])/np.sum(no_turbines_used_pdf_STOR[0])
     
     # [figure] histogram of turbine use for selected HPP
     if Figure8_on == 1:
         fig = plt.figure()
-        plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_CONV, label = 'CONV', width = 0.8, color = colour_CONV)
-        plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_BAL, label = 'BAL', width = 0.6, color = colour_BAL)
+        if HPP_category[plot_HPP] != 'RoR':
+            plt.bar(np.array(range(int(no_turbines[plot_HPP]))),no_turbines_used_pdf_CONV, label = 'CONV', width = 0.8, color = colour_CONV)
+            plt.bar(np.array(range(int(no_turbines[plot_HPP]))),no_turbines_used_pdf_BAL, label = 'BAL', width = 0.6, color = colour_BAL)
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+        if HPP_category[plot_HPP] == 'RoR':
+            plt.bar(np.array(range(int(no_turbines[plot_HPP]))),no_turbines_used_pdf_BAL, width = 0.6, color = colour_CONV)
         if STOR_break[plot_HPP] == 0:
-            plt.bar(np.array(range(no_turbines[plot_HPP])),no_turbines_used_pdf_STOR, label = 'STOR', width = 0.4, color = colour_STOR)
-        plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-        plt.xticks(np.array(range(no_turbines[plot_HPP])), np.array(range(no_turbines[plot_HPP])) + 1)
+            plt.bar(np.array(range(int(no_turbines[plot_HPP]))),no_turbines_used_pdf_STOR, label = 'STOR', width = 0.4, color = colour_STOR)
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+        plt.xticks(np.array(range(int(no_turbines[plot_HPP]))), np.array(range(int(no_turbines[plot_HPP]))) + 1)
         plt.xlabel('Number of active turbines')
         plt.ylabel('Fraction of time')
         plt.title('Hydroturbine activity')

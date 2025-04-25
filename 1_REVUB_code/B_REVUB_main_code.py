@@ -11,55 +11,16 @@ Created on Thu Jan 16 12:12:57 2020
 
 # © 2019 CIREG project
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
+# This code accompanies the paper 'Smart renewable electricity portfolios in West Africa' by Sterl et al.
 # All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
 
 import numpy as np
 import pandas as pd
 import numbers as nb
-
-# %% REVUB.1) Set simulation accuracy
-
-
-##### TECHNICAL SIMULATION PARAMETERS #####
-
-# [set by user] This number defines the amount of discrete steps between 0 and max(E_hydro + E_solar + E_wind)
-# reflecting the accuracy of determining the achieved ELCC
-N_ELCC = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_ELCC', True, False)][0])
-
-# [set by user] These values are used to get a good initial guess for the order of magnitude of the ELCC.
-# This is done by multiplying them with yearly average E_{hydro}.
-# A suitable range within which to identify the optimal solution (eq. S21) is thus obtained automatically
-# for each HPP, regardless of differences in volume, head, rated power, &c.
-# The value f_init_BAL_end may have to be increased in scenarios where the ELCC becomes extremely high,
-# e.g. when extremely good balancing sources other than hydro are present.
-# For the scenarios in (Sterl et al.), the ranges 0-3 work for all HPPs. Usually, smaller ranges can be chosen.
-f_init_BAL_start = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_start', True, False)][0]
-f_init_BAL_step = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_step', True, False)][0]
-f_init_BAL_end = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_BAL_end', True, False)][0]
-
-# Idem for the optional STOR scenario
-f_init_STOR_start = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_start', True, False)][0]
-f_init_STOR_step = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_step', True, False)][0]
-f_init_STOR_end = parameters_simulation_values[np.where(parameters_simulation_list == 'f_init_STOR_end', True, False)][0]
-
-# [set by user] Number of refinement loops for equilibrium search for min(Psi) (see eq. S21)
-# Every +1 increases precision by one digit. Typically, 2 or 3 iterations suffice. 
-# For (Sterl et al.), this parameter was set to 3.
-N_refine_BAL = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_refine_BAL', True, False)][0])
-N_refine_STOR = int(parameters_simulation_values[np.where(parameters_simulation_list == 'N_refine_STOR', True, False)][0])
-
-# [set by user] When min(Psi) (eq. S21) is lower than this threshold, no further refinement loops
-# are performed. This number can be increased to speed up the simulation.
-psi_min_threshold = parameters_simulation_values[np.where(parameters_simulation_list == 'psi_min_threshold', True, False)][0]
-
-# [set by user] Number of loops for iterative estimation of P_stable,BAL/STOR (see eq. S9 & explanation below eq. S19)
-# Typically, 3-6 iterations suffice until convergence is achieved. For (Sterl et al.), this parameter was set to 6.
-X_max_BAL = int(parameters_simulation_values[np.where(parameters_simulation_list == 'X_max_BAL', True, False)][0])
-X_max_STOR = int(parameters_simulation_values[np.where(parameters_simulation_list == 'X_max_STOR', True, False)][0])
+import warnings
 
 
-# %% REVUB.2) Preallocate variables for REVUB simulation
+# %% REVUB.1) Preallocate variables for REVUB simulation
 
 
 ##### RESERVOIR INFLOW PARAMETERS #####
@@ -77,7 +38,7 @@ Q_in_RoR_store = np.full([int(np.max(positions)), len(simulation_years), HPP_num
 Q_in_nat_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] HPP category
-HPP_category = ["" for x in range(HPP_number)]
+HPP_category = ['' for x in range(HPP_number)]
 
 
 ##### HPP OPERATIONAL PARAMETERS #####
@@ -87,6 +48,8 @@ HPP_index_cascade = np.full([HPP_number], np.nan)
 cascade_bool = np.full([HPP_number], 0)
 f_cascade_downstream = np.ones(shape = HPP_number)
 f_cascade_upstream = np.ones(shape = HPP_number)
+force_cascade_inflow = np.zeros(shape = HPP_number)
+force_cascade_outflow = np.zeros(shape = HPP_number)
 
 # [preallocate] Parameters tau_fill (eq. S1), phi (eq. S6) and kappa (eq. S5) for each HPP
 tau_fill = np.full([HPP_number], np.nan)
@@ -248,6 +211,7 @@ E_hydro_STOR_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),H
 # [preallocate] Hydropower generation in CONV (MWh/year)
 E_hydro_CONV_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 E_hydro_CONV_RoR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
+E_hydro_CONV_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Hydropower generation in BAL (MWh/year) (eq. S24, S33)
 E_hydro_BAL_stable_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
@@ -267,6 +231,10 @@ h_CONV_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 h_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 h_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
+# [preallocate] Monthly average volume (m^3)
+V_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+V_STOR_bymonth_upper = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+
 # [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
 # or shut off in case of extreme drought (0) (see Note 3.1 and 8)
 hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -279,6 +247,8 @@ hydro_STOR_curtailment_factor_monthly = np.zeros(shape = (months_yr,len(simulati
 
 # [preallocate] Yearly average capacity factor of HPP turbines (%)
 CF_hydro_CONV_yearly = np.full([len(simulation_years), HPP_number], np.nan)
+CF_hydro_BAL_yearly = np.full([len(simulation_years), HPP_number], np.nan)
+CF_hydro_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)
 
 # [preallocate] Hourly capacity factor for BAL and STOR scenario (%)
 CF_hydro_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -363,7 +333,7 @@ ELCC_BAL_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 ELCC_STOR_yearly = np.zeros(shape = (len(simulation_years), HPP_number))
 
 # [preallocate] Fraction of ELCC unmet by HSW operation. note: as long as the parameter
-# "LOEE_allowed" is set to zero, these arrays will be zero.
+# 'LOEE_allowed' is set to zero, these arrays will be zero.
 # If LOEE_allowed > 0, these arrays will indicate how the allowed unmet fraction of the ELCC
 # is distributed over different months.
 L_unmet_BAL_frac_bymonth = np.zeros(shape = (months_yr, len(simulation_years), HPP_number))
@@ -389,25 +359,33 @@ P_BAL_total_guaranteed = np.full(HPP_number,np.nan)
 P_STOR_total_guaranteed = np.full(HPP_number,np.nan)
 
 
-# %% REVUB.3) Classify HPPs
+# %% REVUB.2) Classify HPPs
 
 
 # [loop] to classify all HPPs
 for HPP in range(HPP_number):
     
-    # [check] if cascade calculation needed
-    if HPP_cascade[HPP] != 'nan':
+    # [check] if cascade calculation including upstream reservoir needed
+    if HPP_cascade_upstream[HPP] != 'nan':
         
-        # [define] clean boolean for cascade calculation
+        # [define] clean boolean for cascade calculation with upstream reservoir
         cascade_bool[HPP] = 1
         
+        # [warn] in case upstream plant in cascade not activated
+        if np.size(np.where(HPP_name == HPP_cascade_upstream[HPP])[0]) == 0:
+            print('> Error: upstream plant in cascade not activated')
+        
         # [find] index of HPP upstream in cascade
-        HPP_index_cascade[HPP] = int(np.where(HPP_name == HPP_cascade[HPP])[0][0])
+        HPP_index_cascade[HPP] = int(np.where(HPP_name == HPP_cascade_upstream[HPP])[0][0])
         HPP_upstream = int(HPP_index_cascade[HPP])
         
         # [calculate] fractions representing downstream and upstream storage volume in cascade
         f_cascade_downstream[HPP] = V_max[HPP]/(V_max[HPP] + V_max[HPP_upstream])
         f_cascade_upstream[HPP] = V_max[HPP_upstream]/(V_max[HPP] + V_max[HPP_upstream])
+        
+        if year_calibration_start[HPP_upstream] != year_calibration_start[HPP] or year_calibration_end[HPP_upstream] != year_calibration_end[HPP]:
+            print('> Error: calibration period between reservoirs in same cascade should match')
+            break
         
         # [calculate] effective total volume and surface area of cascade reservoirs
         V_max_cumul[HPP] = V_max[HPP] + V_max[HPP_upstream]
@@ -415,19 +393,34 @@ for HPP in range(HPP_number):
         f_stop_cumul[HPP] = np.max([f_stop[HPP], f_stop[HPP_upstream]])
         f_restart_cumul[HPP] = np.max([f_restart[HPP], f_restart[HPP_upstream]])
     
+    # [check] if cascade calculation using results from earlier downstream reservoir operation needed
+    if HPP_active[HPP] == -1 and HPP_active_save[HPP] == 1:
+        if np.size(np.where(HPP_cascade_upstream == HPP_name[HPP])) > 1:
+            print('> Unclear instructions: which plant is downstream of ', HPP_name[HPP], '?')
+        force_cascade_outflow[HPP] = 1
+        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
+        # [adapt] f_reg parameter to cascade case ()
+        f_reg[HPP] = f_cascade_upstream[HPP_downstream]*f_reg[HPP_downstream]
+    
+    # [check] if cascade calculation using results from upstream reservoir outflow needed
+    if HPP_active[HPP] == -2 and HPP_active_save[HPP] == 1:
+        if np.size(np.where(HPP_cascade_downstream == HPP_name[HPP])) > 1:
+            print('> Unclear instructions: which plant is upstream of ', HPP_name[HPP], '?')
+        force_cascade_inflow[HPP] = 1
+    
     # [verify] that calibration year period makes sense
     if np.isnan(year_calibration_start[HPP]):
         year_calibration_start[HPP] = year_start
     if np.isnan(year_calibration_end[HPP]):
         year_calibration_end[HPP] = year_end
     if year_calibration_start[HPP] < year_start:
-        print('error: year_calibration_start cannot be lower than year_start')
+        print('> Error: year_calibration_start cannot be lower than year_start')
         break
     if year_calibration_end[HPP] > year_end:
-        print('error: year_calibration_end cannot be higher than year_end')
+        print('> Error: year_calibration_end cannot be higher than year_end')
         break
     if year_calibration_end[HPP] < year_calibration_start[HPP]:
-        print('error: year_calibration_end must be a later year than year_calibration_start')
+        print('> Error: year_calibration_end must be a later year than year_calibration_start')
         break
     
     # [calculate] if needed, default f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
@@ -436,38 +429,51 @@ for HPP in range(HPP_number):
     
     # [calculate] if needed, default d_min based on user-provided minimum turbine loading
     if np.isnan(d_min[HPP]):
-        d_min[HPP] = np.max([0,np.min([1,(min_load_turbine[HPP]*Q_max_turb[HPP]/no_turbines[HPP] - (1 - f_reg[HPP])*np.nanmin(Q_in_nat_hourly[:,:,HPP]))/(np.nanmean(Q_in_nat_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])*f_reg[HPP])])])
-    
+        if f_reg[HPP] > 0:
+            d_min[HPP] = np.max([0,np.min([1,(min_load_turbine[HPP]*Q_max_turb[HPP]/int(no_turbines[HPP]) - (1 - f_reg[HPP])*np.nanmin(Q_in_nat_hourly[:,:,HPP]))/(np.nanmean(Q_in_nat_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])*f_reg[HPP])])])
+        else:
+            d_min[HPP] = 0
+            
     # [warning] if d_min is larger than unity, the plant is not suitable to provide flexibility services
     if d_min[HPP] == 1:
-        print("Warning: minimum required load for", HPP_name[HPP], "leaves no room for flexibility")  
+        print('> Warning: minimum required load for', HPP_name[HPP], 'leaves no room for flexibility')
     
     # [calculate] Determine dam category (whether deemed to have more or less than a year of storage) based on f_reg (Note 5)
-    # Here "large" HPPs are designated by "A", "small" HPPs by "B"
+    # Here 'large' HPPs are designated by 'A', 'small' HPPs by 'B'
     
-    if f_reg[HPP] < 1:
+    if f_reg[HPP] < 1 and f_reg[HPP] > 0:
         # [define] as small HPP
-        HPP_category[HPP] = "B"
+        HPP_category[HPP] = 'B'
         # [calculate] flexibly usable inflow for small HPPs (eq. S30)
         Q_in_frac_hourly[:,:,HPP] = f_reg[HPP]*Q_in_nat_hourly[:,:,HPP]
-    else:
+    elif f_reg[HPP] > 0:
         # [define] as large HPP
-        HPP_category[HPP] = "A"
+        HPP_category[HPP] = 'A'
         # [calculate] all flow can be used flexibly for large HPPs
         Q_in_frac_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP]
+    elif f_reg[HPP] == 0 or (force_cascade_inflow[HPP] == 1 and np.isnan(f_reg[HPP])):
+        HPP_category[HPP] = 'RoR'
+        # [calculate] all flow is RoR for run-of-river plants
+        Q_in_frac_hourly[:,:,HPP] = 0*Q_in_nat_hourly[:,:,HPP]
+    elif np.isnan(f_reg[HPP]):
+        print('> Error: no inflow time series defined')
+        break
         
     # [calculate] the component Q_RoR for HPPs deemed to have less-than-a-year storage (Note 5)
     Q_in_RoR_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP] - Q_in_frac_hourly[:,:,HPP]
     
     ##### SPECIFY OUTFLOW CURVE (CONV) #####
-    # [calculate] tau_fill (eq. S1) for each HPP
-    tau_fill[HPP] = (np.nanmean(Q_in_frac_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] * (min(np.sum(days_year,0))*hrs_day*secs_hr)/V_max_cumul[HPP]))**(-1)
     
-    # [calculate] phi (eq. S6) for each HPP
-    phi[HPP] = alpha[HPP]*np.sqrt(tau_fill[HPP])
-    
-    # [calculate] kappa (eq. S5) for each HPP
-    kappa[HPP] = 1/(f_opt[HPP]**phi[HPP])*((np.exp(1))**(1 - d_min[HPP]) - 1)
+    if HPP_category[HPP] != 'RoR':
+        
+        # [calculate] tau_fill (eq. S1) for each HPP
+        tau_fill[HPP] = (np.nanmean(Q_in_frac_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] * (min(np.sum(days_year,0))*hrs_day*secs_hr)/V_max_cumul[HPP]))**(-1)
+        
+        # [calculate] phi (eq. S6) for each HPP
+        phi[HPP] = alpha[HPP]*np.sqrt(tau_fill[HPP])
+        
+        # [calculate] kappa (eq. S5) for each HPP
+        kappa[HPP] = 1/(f_opt[HPP]**phi[HPP])*((np.exp(1))**(1 - d_min[HPP]) - 1)
     
     # [initialize] store Q_in_frac_hourly and Q_in_RoR_hourly; these may change during the simulations
     # but need to be reinitialized for every iteration step (e.g. every new c_solar, c_wind in eq. S9)
@@ -476,7 +482,7 @@ for HPP in range(HPP_number):
     
 
 
-# %% REVUB.4) Core REVUB simulation
+# %% REVUB.3) Core REVUB simulation
 
 # This section carries out the actual REVUB optimisation.
 
@@ -484,13 +490,42 @@ for HPP in range(HPP_number):
 for HPP in range(HPP_number):
     
     # [display] HPP for which simulation is being performed
-    print("HPP", HPP + 1, "/", HPP_number, ":", HPP_name[HPP])
+    print('HPP', HPP + 1, '/', HPP_number, ':', HPP_name[HPP])
     
     # [break] in case of an upstream cascade plant deactivated in input sheet but with activated downstream plants
-    if HPP_active[HPP] == -1:
-        print('Not simulating ', HPP_name[HPP], ': check settings for cascade plants')
+    if (HPP_active[HPP] == -1 or HPP_active[HPP] == -2) and HPP_active_save[HPP] == 0:
+        print('> Not simulating ', HPP_name[HPP], ': check settings for cascade plants')
         break
     
+    # [adapt] parameters for upstream cascade reservoir serving downstream plant
+    if force_cascade_outflow[HPP] == 1:
+        print('> Simulating', HPP_name[HPP], 'as upstream cascade plant')
+        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
+        # [force] upstream plant to provide necessary outflow for operation of downstream plant
+        print('> Using reservoir curve of', HPP_name[HPP_downstream], 'for calibration of', HPP_name[HPP])
+        print('> Changed f_reg to', np.min([np.around(f_reg[HPP], 2), 1]))
+        
+    # [adapt] parameters for downstream cascade plant receiving upstream outflow
+    if force_cascade_inflow[HPP] == 1:
+        print('> Simulating', HPP_name[HPP], 'as downstream cascade plant')
+        HPP_upstream = int(np.where(HPP_cascade_downstream == HPP_name[HPP])[0])
+        # [force] downstream plant to turbine outflow from upstream plant
+        print('> Using outflow of', HPP_name[HPP_upstream], 'as inflow of', HPP_name[HPP])
+        Q_in_nat_hourly[:,:,HPP] = Q_CONV_out_hourly[:,:,HPP_upstream]
+    
+    # [run] simplified solution for run-of-river plants
+    if HPP_category[HPP] == 'RoR':
+        print('> Simulating', HPP_name[HPP], 'as run-of-river plant')
+        Q_CONV_out_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP]
+        P_CONV_hydro_RoR_hourly[:,:,HPP] = np.fmin(np.fmin(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
+        P_BAL_hydro_RoR_hourly[:,:,HPP] = np.fmin(np.fmin(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
+        P_CONV_hydro_stable_hourly[:,:,HPP] = 0
+        P_BAL_hydro_stable_hourly[:,:,HPP] = 0
+        P_BAL_hydro_flexible_hourly[:,:,HPP] = 0
+        P_BAL_wind_hourly[:,:,HPP] = 0
+        P_BAL_solar_hourly[:,:,HPP] = 0
+        STOR_break[HPP] = 1
+        continue
     
     ###############################################################
     ############----------- CONV simulation -----------############
@@ -508,14 +543,14 @@ for HPP in range(HPP_number):
     hydro_CONV_curtailment_factor_hourly[:,:,HPP] = 1
     
     # [display] CONV simulation underway
-    print("(i) simulating CONV")
+    print('(i) simulating CONV')
     
     # [loop] across all simulation years
     for y in range(len(simulation_years)):
         
         # [print] progress in CONV simulation
-        print("Progress: ", y + 1, "/", len(simulation_years), " simulation years")
-    
+        print('Progress: ', y + 1, '/', len(simulation_years), ' simulation years')
+        
         # [read] vector with hours in each year
         hrs_year = range(int(hrs_byyear[y]))
                 
@@ -605,9 +640,9 @@ for HPP in range(HPP_number):
                 A_CONV_hourly[n+1,y,HPP] = calibrate_area[h_temp,HPP]
             
             # [calculate] whether lake levels have dropped so low as to require hydropower curtailment
-            # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
+            # [calculate] for small HPPs: use 'RoR' flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
             # (see explanation below eq. S33)
-            if HPP_category[HPP] == "B":
+            if HPP_category[HPP] == 'B':
                 if V_CONV_hourly[n+1,y,HPP] < f_restart_cumul[HPP]*V_max_cumul[HPP]:
                     if n < len(hrs_year) - 1:
                         Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
@@ -642,6 +677,7 @@ for HPP in range(HPP_number):
             # [calculate] total hydropower generation in MWh/year (eq. S24)
             E_hydro_CONV_stable_yearly[y,HPP] = np.sum(P_CONV_hydro_stable_hourly[hrs_year,y,HPP])
             E_hydro_CONV_RoR_yearly[y,HPP] = np.sum(P_CONV_hydro_RoR_hourly[hrs_year,y,HPP])
+            E_hydro_CONV_yearly[y,HPP] = E_hydro_CONV_stable_yearly[y,HPP] + E_hydro_CONV_RoR_yearly[y,HPP]
             
     
     # [arrange] complete time series of water volume, area and levels
@@ -672,21 +708,21 @@ for HPP in range(HPP_number):
 
     # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
     if fraction_outage_CONV[HPP] > 0:
-        print("Warning: CONV operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_CONV[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]))
+        print('> Warning: CONV operation may fail in dry periods with failure rate =', np.around(100*fraction_outage_CONV[HPP],2), '%. To improve, try reducing f_reg =', np.min([np.around(f_reg[HPP], 2), 1]))
       
     # [calculate] percentage of flow in which this operation leads to spilling
     fraction_overflow_CONV[HPP] = np.nanmean(Q_CONV_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
         
     if fraction_overflow_CONV[HPP] > 0:
-        print("Note: Average spilling in CONV equal to", np.around(100*fraction_overflow_CONV[HPP],2), "% of average inflow.")
+        print('> Note: Average spilling in CONV equal to', np.around(100*fraction_overflow_CONV[HPP],2), '% of average inflow.')
         
     
     # [display] once CONV simulation is complete
-    print("done")
+    print('done')
     
     # [check] if user selected calibration run, script is finished
     if calibration_only == 1:
-        print("calibration done; check outcomes and re-run with calibration_only = 0 for full run")
+        print('> Calibration done; check outcomes and re-run with calibration_only = 0 for full run')
     
     # [check] if user selected full run, script continues simulation
     if calibration_only == 0:
@@ -696,7 +732,7 @@ for HPP in range(HPP_number):
         ###############################################################
         
         # [display] start of iterations to find optimal solution for BAL operation
-        print("(ii) finding optimal BAL solution")
+        print('(ii) finding optimal BAL solution')
               
         # [set by user] array of C_{OR} values (eq. S14). The first value is the default. If the
         # criterium on k_turb (eq. S28) is not met, the simulation is redone with the second value, &c.
@@ -710,16 +746,16 @@ for HPP in range(HPP_number):
             Q_stable_ratio = 1 - C_OR_range_BAL[q]
     
             # [display] refinement step in BAL simulation
-            print("C_OR = ", np.round(100*C_OR_range_BAL[q], decimals = 1), "%")
+            print('C_OR = ', np.round(100*C_OR_range_BAL[q], decimals = 1), '%')
             
             # [loop] across refinement steps to increase accuracy
-            for n_refine_BAL in range(N_refine_BAL):
+            for n_refine_BAL in range(int(N_refine_BAL[HPP])):
                 
                 # [initialize] range for current refinement step; each step increases accuracy by one digit
                 if n_refine_BAL == 0:
-                    f_demand_BAL_start = f_init_BAL_start
-                    f_demand_BAL_step = f_init_BAL_step
-                    f_demand_BAL_end = f_init_BAL_end
+                    f_demand_BAL_start = f_init_BAL_start[HPP]
+                    f_demand_BAL_step = f_init_BAL_step[HPP]
+                    f_demand_BAL_end = f_init_BAL_end[HPP]
                 elif n_refine_BAL > 0:
                     f_demand_BAL_start = f_demand_opt_BAL - f_demand_BAL_step
                     f_demand_BAL_end = f_demand_opt_BAL + f_demand_BAL_step
@@ -735,7 +771,7 @@ for HPP in range(HPP_number):
                 for f in range(len(f_demand_BAL)):
                     
                     # [display] progress within each refinement step in BAL simulation
-                    print("refinement step", n_refine_BAL + 1, "/", N_refine_BAL, "> scanning:", np.floor(100*(f + 1)/len(f_demand_BAL)), "%")
+                    print('refinement step', n_refine_BAL + 1, '/', int(N_refine_BAL[HPP]), '> scanning:', np.floor(100*(f + 1)/len(f_demand_BAL)), '%')
     
                     # [initialize] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
                     E_SW_loop_BAL = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_BAL[f]*np.ones(shape = (len(E_hydro_CONV_stable_yearly[:,HPP])))
@@ -754,7 +790,7 @@ for HPP in range(HPP_number):
                         if c_VRE_corrector[HPP] == 1: c_multiplier_BAL[y,HPP] = E_SW_loop_BAL[y]/E_SW_per_MW_BAL_yearly[y,HPP]
                         
                     # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
-                    for x in range(X_max_BAL):
+                    for x in range(X_max):
                                         
                         # [calculate] required stable outflow (eq. S14)
                         temp_Q_out_BAL = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
@@ -923,9 +959,9 @@ for HPP in range(HPP_number):
                                         P_BAL_ramp_restr_hourly[n+1,y,HPP] = 0
                                     
                                 # [calculate] whether lake levels have dropped so low as to require hydropower curtailment
-                                # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
+                                # [calculate] for small HPPs: use 'RoR' flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
                                 # (see explanation below eq. S33)
-                                if HPP_category[HPP] == "B":
+                                if HPP_category[HPP] == 'B':
                                     if V_BAL_hourly[n+1,y,HPP] < f_restart_cumul[HPP]*V_max_cumul[HPP]:
                                         if n < len(hrs_year) - 1:
                                             Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
@@ -965,15 +1001,22 @@ for HPP in range(HPP_number):
                     temp_volume_upper_BAL_series = (np.transpose(temp_volume_upper_BAL_series)).ravel()
                     temp_volume_upper_BAL_series = temp_volume_upper_BAL_series[np.isfinite(temp_volume_upper_BAL_series)]
                     
-                    temp_volume_upper_CONV_series_calib = V_CONV_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP]
-                    temp_volume_upper_CONV_series_calib = (np.transpose(temp_volume_upper_CONV_series_calib)).ravel()
-                    temp_volume_upper_CONV_series_calib = temp_volume_upper_CONV_series_calib[np.isfinite(temp_volume_upper_CONV_series_calib)]
-                    
+                    # [use] calibration series for volume: from CONV as default
+                    if force_cascade_outflow[HPP] == 0:
+                        temp_volume_upper_CONV_series_calib = V_CONV_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP]
+                        temp_volume_upper_CONV_series_calib = (np.transpose(temp_volume_upper_CONV_series_calib)).ravel()
+                        temp_volume_upper_CONV_series_calib = temp_volume_upper_CONV_series_calib[np.isfinite(temp_volume_upper_CONV_series_calib)]
+                    # [use] calibration series for volume: from downstream BAL in cascade case
+                    if force_cascade_outflow[HPP] == 1:
+                        temp_volume_upper_CONV_series_calib = f_cascade_upstream[HPP_downstream]*V_BAL_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP_downstream]
+                        temp_volume_upper_CONV_series_calib = (np.transpose(temp_volume_upper_CONV_series_calib)).ravel()
+                        temp_volume_upper_CONV_series_calib = temp_volume_upper_CONV_series_calib[np.isfinite(temp_volume_upper_CONV_series_calib)]
+                            
                     # [calculate] deviation between CONV and BAL reservoir dynamics within calibration period (eq. S21)
                     psi_BAL[f] = np.mean(np.abs(temp_volume_upper_BAL_series - temp_volume_upper_CONV_series_calib))/np.mean(temp_volume_upper_CONV_series_calib)
                     
                     # [check] see explanation below eq. S21: if droughts occur in CONV, BAL should have no MORE days of curtailed flow than CONV ...
-                    # and curtailed flow should occur in less than 50% of the years in the simulation, so median yearly statistics represent normal operation
+                    # and curtailed flow should occur in less than 50% of the years in the simulation, so median yearly statistics represent normal operation.
                     if prevent_droughts_increase == 1:
                         if np.nanmin(V_CONV_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP]) < f_stop_cumul[HPP]*V_max_cumul[HPP] \
                         and (np.nansum(Q_BAL_out_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] == 0) > np.nansum(Q_CONV_out_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] == 0) \
@@ -1005,7 +1048,7 @@ for HPP in range(HPP_number):
                 
                 # [check] if range in which to identify ELCC is adequate
                 if f_demand_opt_BAL == f_demand_BAL[-1]:
-                    print("Warning: parameter f_init_BAL_end likely set too low")
+                    print('> Warning: parameter f_init_BAL_end possibly set too low')
                 
             # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
             E_SW_loop_BAL_opt[HPP] = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_opt_BAL
@@ -1016,10 +1059,10 @@ for HPP in range(HPP_number):
             ###############################################################
             
             # [display]
-            print("(iii) found optimum BAL solution - saving all variables")
+            print('(iii) found optimum BAL solution - saving all variables')
             
             # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
-            convergence_test_BAL = np.zeros(shape = (X_max_BAL))
+            convergence_test_BAL = np.zeros(shape = (X_max))
             
             # [loop] across all simulation years to identify realistic c_solar and c_wind values
             for y in range(len(simulation_years)):
@@ -1032,7 +1075,7 @@ for HPP in range(HPP_number):
                 if c_VRE_corrector[HPP] == 1: c_multiplier_BAL[y,HPP] = E_SW_loop_BAL_opt[HPP]/E_SW_per_MW_BAL_yearly[y,HPP]
             
             # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
-            for x in range(X_max_BAL):
+            for x in range(X_max):
                                         
                 # [calculate] required stable outflow (eq. S14)
                 temp_Q_out_BAL = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
@@ -1205,9 +1248,9 @@ for HPP in range(HPP_number):
                                 P_BAL_ramp_restr_hourly[n+1,y,HPP] = 0
                             
                         # [calculate] whether lake levels have dropped so low as to require hydropower curtailment
-                        # [calculate] for small HPPs: use "RoR" flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
+                        # [calculate] for small HPPs: use 'RoR' flow component to fill up reservoir in case water levels have dropped below f_restart*V_max
                         # (see explanation below eq. S33)
-                        if HPP_category[HPP] == "B":
+                        if HPP_category[HPP] == 'B':
                             if V_BAL_hourly[n+1,y,HPP] < f_restart_cumul[HPP]*V_max_cumul[HPP]:
                                 if n < len(hrs_year) - 1:
                                     Q_in_frac_hourly[n+1,y,HPP] = Q_in_frac_hourly[n+1,y,HPP] + Q_in_RoR_hourly[n+1,y,HPP]
@@ -1240,40 +1283,44 @@ for HPP in range(HPP_number):
                         
                     
                     ##### IDENTIFY YEARLY ELCC #####
+                    
+                    # [suppress] warnings of empty slices in case all-nan slices encountered
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore', category = RuntimeWarning)
     
-                    # [calculate] total supplied HSW generation under optimal BAL solution
-                    total_power_supply_BAL = P_BAL_hydro_stable_hourly[hrs_year,y,HPP] + P_BAL_hydro_flexible_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP]
-                    N_power_supply_BAL = int(np.ceil(np.max(total_power_supply_BAL)))
-    
-                    # [preallocate] range in which to identify ELCC
-                    P_followed_BAL_range[y,:,HPP] = np.linspace(0,N_power_supply_BAL,N_ELCC)
-                    power_unmet_BAL = np.zeros(shape = N_ELCC)
-                    
-                    # [loop] to identify ELCC under optimal BAL solution
-                    for n in range(N_ELCC):
-                        temp = total_power_supply_BAL - P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP]
-                        if np.abs(np.mean(temp[temp<=0])) > 0:
-                            power_unmet_BAL[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
-                    
-                    # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                    N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.Inf] > LOEE_allowed)[0][0]
-                    if N_demand_covered_BAL_temp.size == 0 or N_demand_covered_BAL_temp == 0:
-                        P_followed_BAL_index[y,HPP] = 0
-                    else:
-                        P_followed_BAL_index[y,HPP] = N_demand_covered_BAL_temp
-                    
-                    # [identify] hourly time series of L_followed (MW) (eq. S23)
-                    L_followed_BAL_hourly[hrs_year,y,HPP] = P_followed_BAL_range[y,int(P_followed_BAL_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
-    
-                    # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
-                    L_res_BAL_hourly[hrs_year,y,HPP] = L_followed_BAL_hourly[hrs_year,y,HPP] - total_power_supply_BAL
-                    
-                    # [arrange] mean fraction of unmet load by month
-                    for m in range(months_yr):
-                        temp1 = L_res_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
-                        temp2 = L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
-                        L_unmet_BAL_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
-                    
+                        # [calculate] total supplied HSW generation under optimal BAL solution
+                        total_power_supply_BAL = P_BAL_hydro_stable_hourly[hrs_year,y,HPP] + P_BAL_hydro_flexible_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP]
+                        N_power_supply_BAL = int(np.ceil(np.max(total_power_supply_BAL)))
+        
+                        # [preallocate] range in which to identify ELCC
+                        P_followed_BAL_range[y,:,HPP] = np.linspace(0,N_power_supply_BAL,N_ELCC)
+                        power_unmet_BAL = np.zeros(shape = N_ELCC)
+                        
+                        # [loop] to identify ELCC under optimal BAL solution
+                        for n in range(N_ELCC):
+                            temp = total_power_supply_BAL - P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP]
+                            if np.abs(np.mean(temp[temp<=0])) > 0:
+                                power_unmet_BAL[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
+                        
+                        # [identify] total P_followed given the constraint LOEE_allowed (default zero)
+                        N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.Inf] > LOEE_allowed)[0][0]
+                        if N_demand_covered_BAL_temp.size == 0 or N_demand_covered_BAL_temp == 0:
+                            P_followed_BAL_index[y,HPP] = 0
+                        else:
+                            P_followed_BAL_index[y,HPP] = N_demand_covered_BAL_temp
+                        
+                        # [identify] hourly time series of L_followed (MW) (eq. S23)
+                        L_followed_BAL_hourly[hrs_year,y,HPP] = P_followed_BAL_range[y,int(P_followed_BAL_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
+        
+                        # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
+                        L_res_BAL_hourly[hrs_year,y,HPP] = L_followed_BAL_hourly[hrs_year,y,HPP] - total_power_supply_BAL
+                        
+                        # [arrange] mean fraction of unmet load by month
+                        for m in range(months_yr):
+                            temp1 = L_res_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
+                            temp2 = L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
+                            L_unmet_BAL_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
+                        
                     
                 # [check] to check convergence of solution towards P_stable
                 convergence_test_BAL[x] = np.nanmean(P_BAL_hydro_stable_hourly[:,:,HPP])
@@ -1301,7 +1348,7 @@ for HPP in range(HPP_number):
             h_BAL_series_hourly[:,HPP] = temp_head_BAL_series
             
             # [display] once BAL simulation is complete
-            print("done")
+            print('done')
             
             
             # [calculate] percentage of time in which this operation fails
@@ -1310,13 +1357,13 @@ for HPP in range(HPP_number):
             
             # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
             if fraction_outage_BAL[HPP] > 0:
-                print("Warning: BAL operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_BAL[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]), 'and/or set prevent_droughts_increase = 1.')
+                print('> Warning: BAL operation may fail in dry periods with failure rate =', np.around(100*fraction_outage_BAL[HPP],2), '%. To improve, try reducing f_reg =', np.min([np.around(f_reg[HPP], 2), 1]), 'and/or set prevent_droughts_increase = 1.')
                 
             # [calculate] percentage of flow in which this operation leads to spilling
             fraction_overflow_BAL[HPP] = np.nanmean(Q_BAL_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
                 
             if fraction_overflow_BAL[HPP] > 0:
-                print("Note: Average spilling in BAL equal to", np.around(100*fraction_overflow_BAL[HPP],2), "% of average inflow.")
+                print('> Note: Average spilling in BAL equal to', np.around(100*fraction_overflow_BAL[HPP],2), '% of average inflow.')
                 
             
             ###############################################################
@@ -1331,7 +1378,7 @@ for HPP in range(HPP_number):
                 break
             else:
                 # [display] in case k_turb criterion was not met (eq. S28)
-                print("requires resimulating at lower C_OR...")
+                print('> Requires resimulating at lower C_OR...')
         
         
         
@@ -1340,12 +1387,12 @@ for HPP in range(HPP_number):
         ###############################################################
             
         # [initialize] STOR scenario is only relevant for large HPPs
-        if HPP_category[HPP] == "B" and option_storage == 1:
+        if HPP_category[HPP] == 'B' and option_storage == 1:
             STOR_break[HPP] = 1
-            print("STOR not simulated as reservoir is small compared to inflow")
-        if cascade_bool[HPP] == 1:
+            print('> STOR not simulated as reservoir is small compared to inflow')
+        if (cascade_bool[HPP] == 1 or force_cascade_outflow[HPP] == 1) and option_storage == 1:
             STOR_break[HPP] = 1
-            print("STOR not simulated as storage divided across cascade")
+            print('> STOR not simulated as storage divided across cascade')
         elif option_storage == 0:
             STOR_break[HPP] = 1
         
@@ -1353,7 +1400,7 @@ for HPP in range(HPP_number):
         if STOR_break[HPP] == 0:
             
             # [display] start of iterations to find optimal solution for STOR operation
-            print("(iv) finding optimal STOR solution")
+            print('(iv) finding optimal STOR solution')
             
             for q in range(len(C_OR_range_STOR)):
             
@@ -1361,16 +1408,16 @@ for HPP in range(HPP_number):
                 Q_stable_ratio = 1 - C_OR_range_STOR[q]
         
                 # [display] refinement step in STOR simulation
-                print("C_OR = ", np.round(100*C_OR_range_STOR[q], decimals = 1), "%")
+                print('C_OR = ', np.round(100*C_OR_range_STOR[q], decimals = 1), '%')
                 
                 # [loop] across refinement steps to increase accuracy
-                for n_refine_STOR in range(N_refine_STOR):
+                for n_refine_STOR in range(int(N_refine_STOR[HPP])):
                     
                     # [initialize] range for current refinement step; each step increases accuracy by one digit
                     if n_refine_STOR == 0:
-                        f_demand_STOR_start = f_init_STOR_start
-                        f_demand_STOR_step = f_init_STOR_step
-                        f_demand_STOR_end = f_init_STOR_end  
+                        f_demand_STOR_start = f_init_STOR_start[HPP]
+                        f_demand_STOR_step = f_init_STOR_step[HPP]
+                        f_demand_STOR_end = f_init_STOR_end[HPP]
                     elif n_refine_STOR > 0:
                         f_demand_STOR_start = f_demand_opt_STOR - f_demand_STOR_step
                         f_demand_STOR_end = f_demand_opt_STOR + f_demand_STOR_step
@@ -1386,7 +1433,7 @@ for HPP in range(HPP_number):
                     for f in range(len(f_demand_STOR)):
                         
                         # [display] progress within each refinement step in STOR simulation
-                        print("refinement step", n_refine_STOR + 1, "/", N_refine_STOR, "> scanning:", np.floor(100*(f + 1)/len(f_demand_STOR)), "%")
+                        print('refinement step', n_refine_STOR + 1, '/', int(N_refine_STOR[HPP]), '> scanning:', np.floor(100*(f + 1)/len(f_demand_STOR)), '%')
         
                         # [initialize] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
                         E_SW_loop_STOR = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_STOR[f]*np.ones(shape = (len(E_hydro_CONV_stable_yearly[:,HPP])))
@@ -1405,7 +1452,7 @@ for HPP in range(HPP_number):
                             if c_VRE_corrector[HPP] == 1: c_multiplier_STOR[y,HPP] = E_SW_loop_STOR[y]/E_SW_per_MW_STOR_yearly[y,HPP]
                             
                         # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
-                        for x in range(X_max_STOR):
+                        for x in range(X_max):
                                             
                             # [calculate] required stable outflow (eq. S14)
                             temp_Q_out_STOR = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
@@ -1688,7 +1735,7 @@ for HPP in range(HPP_number):
                     
                     # [check] if range in which to identify ELCC is adequate
                     if f_demand_opt_STOR == f_demand_STOR[-1]:
-                        print("Warning: parameter f_init_STOR_end likely set too low")
+                        print('> Warning: parameter f_init_STOR_end possibly set too low')
                     
                 # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
                 E_SW_loop_STOR_opt[HPP] = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_opt_STOR
@@ -1699,10 +1746,10 @@ for HPP in range(HPP_number):
                 ###############################################################
                 
                 # [display]
-                print("(v) found optimum STOR solution - saving all variables")
+                print('(v) found optimum STOR solution - saving all variables')
                 
                 # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
-                convergence_test_STOR = np.zeros(shape = (X_max_STOR))
+                convergence_test_STOR = np.zeros(shape = (X_max))
                 
                 # [loop] across all simulation years to identify realistic c_solar and c_wind values
                 for y in range(len(simulation_years)):
@@ -1715,7 +1762,7 @@ for HPP in range(HPP_number):
                     if c_VRE_corrector[HPP] == 1: c_multiplier_STOR[y,HPP] = E_SW_loop_STOR_opt[HPP]/E_SW_per_MW_STOR_yearly[y,HPP]
                     
                 # [loop] perform iterations to get converged estimate of P_stable (see explanation below eq. S19)
-                for x in range(X_max_STOR):
+                for x in range(X_max):
                                     
                     # [calculate] required stable outflow (eq. S14)
                     temp_Q_out_STOR = Q_in_nat_av*np.ones(shape = (len(Q_CONV_stable_hourly),len(Q_CONV_stable_hourly[0])))
@@ -1955,39 +2002,44 @@ for HPP in range(HPP_number):
                             
                         
                         ##### IDENTIFY YEARLY ELCC #####
-                        # [calculate] total supplied HSW generation under optimal STOR solution
-                        total_power_supply_STOR = P_STOR_hydro_stable_hourly[hrs_year,y,HPP] + P_STOR_hydro_flexible_hourly[hrs_year,y,HPP] - P_STOR_pump_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP]
-                        N_power_supply_STOR = int(np.ceil(np.max(total_power_supply_STOR)))
-                                                                  
-                        # [preallocate] range in which to identify ELCC
-                        P_followed_STOR_range[y,:,HPP] = np.linspace(0,N_power_supply_STOR,N_ELCC)
-                        power_unmet_STOR = np.zeros(shape = N_ELCC)
                         
-                        # [loop] to identify ELCC under optimal STOR solution
-                        for n in range(N_ELCC):
-                            temp = total_power_supply_STOR - P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP]
-                            if np.abs(np.mean(temp[temp<=0])) > 0:
-                                power_unmet_STOR[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
+                        # [suppress] warnings of empty slices in case all-nan slices encountered
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore', category = RuntimeWarning)
                         
-                        # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                        N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.Inf] > LOEE_allowed)[0][0]
-                        if N_demand_covered_STOR_temp.size == 0 or N_demand_covered_STOR_temp == 0:
-                            P_followed_STOR_index[y,HPP] = 0
-                        else:
-                            P_followed_STOR_index[y,HPP] = N_demand_covered_STOR_temp
-                        
-                        # [identify] hourly time series of L_followed (MW) (eq. S23)
-                        L_followed_STOR_hourly[hrs_year,y,HPP] = P_followed_STOR_range[y,int(P_followed_STOR_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
-        
-                        # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
-                        L_res_STOR_hourly[hrs_year,y,HPP] = L_followed_STOR_hourly[hrs_year,y,HPP] - total_power_supply_STOR
-                        
-                        # [arrange] mean fraction of unmet load by month
-                        for m in range(months_yr):
-                            temp1 = L_res_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
-                            temp2 = L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
-                            L_unmet_STOR_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
-                        
+                            # [calculate] total supplied HSW generation under optimal STOR solution
+                            total_power_supply_STOR = P_STOR_hydro_stable_hourly[hrs_year,y,HPP] + P_STOR_hydro_flexible_hourly[hrs_year,y,HPP] - P_STOR_pump_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP]
+                            N_power_supply_STOR = int(np.ceil(np.max(total_power_supply_STOR)))
+                                                                      
+                            # [preallocate] range in which to identify ELCC
+                            P_followed_STOR_range[y,:,HPP] = np.linspace(0,N_power_supply_STOR,N_ELCC)
+                            power_unmet_STOR = np.zeros(shape = N_ELCC)
+                            
+                            # [loop] to identify ELCC under optimal STOR solution
+                            for n in range(N_ELCC):
+                                temp = total_power_supply_STOR - P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP]
+                                if np.abs(np.mean(temp[temp<=0])) > 0:
+                                    power_unmet_STOR[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
+                            
+                            # [identify] total P_followed given the constraint LOEE_allowed (default zero)
+                            N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.Inf] > LOEE_allowed)[0][0]
+                            if N_demand_covered_STOR_temp.size == 0 or N_demand_covered_STOR_temp == 0:
+                                P_followed_STOR_index[y,HPP] = 0
+                            else:
+                                P_followed_STOR_index[y,HPP] = N_demand_covered_STOR_temp
+                            
+                            # [identify] hourly time series of L_followed (MW) (eq. S23)
+                            L_followed_STOR_hourly[hrs_year,y,HPP] = P_followed_STOR_range[y,int(P_followed_STOR_index[y,HPP]),HPP]*L_norm[hrs_year,y,HPP]
+            
+                            # [calculate] difference between ELCC and total HSW generated (excl. RoR component) to obtain Residual Load Duration Curve (RLDC) (eq. S22)
+                            L_res_STOR_hourly[hrs_year,y,HPP] = L_followed_STOR_hourly[hrs_year,y,HPP] - total_power_supply_STOR
+                            
+                            # [arrange] mean fraction of unmet load by month
+                            for m in range(months_yr):
+                                temp1 = L_res_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
+                                temp2 = L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP]
+                                L_unmet_STOR_frac_bymonth[m,y,HPP] = np.sum(temp1[temp1>0])/np.sum(temp2)
+                            
                         
                     # [check] to check convergence of solution towards P_stable
                     convergence_test_STOR[x] = np.nanmean(P_STOR_hydro_stable_hourly[:,:,HPP])
@@ -2021,7 +2073,7 @@ for HPP in range(HPP_number):
                 h_STOR_series_hourly[:,HPP] = temp_head_STOR_series
                 
                 # [display] once STOR simulation is complete
-                print("done")
+                print('done')
                 
                 
                 # [calculate] percentage of time in which this operation fails
@@ -2030,13 +2082,13 @@ for HPP in range(HPP_number):
                 
                 # [warning] in case hydropower curtailment occurs, let user know about possibility to resimulate with lower f_reg
                 if fraction_outage_STOR[HPP] > 0:
-                    print("Warning: STOR operation may fail in dry periods with failure rate =", np.around(100*fraction_outage_STOR[HPP],2), "%. To improve, try reducing f_reg =", np.min([np.around(f_reg[HPP], 2), 1]), 'and/or set prevent_droughts_increase = 1.')
+                    print('> Warning: STOR operation may fail in dry periods with failure rate =', np.around(100*fraction_outage_STOR[HPP],2), '%. To improve, try reducing f_reg =', np.min([np.around(f_reg[HPP], 2), 1]), 'and/or set prevent_droughts_increase = 1.')
                     
                 # [calculate] percentage of flow in which this operation leads to spilling
                 fraction_overflow_STOR[HPP] = np.nanmean(Q_STOR_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
                     
                 if fraction_overflow_STOR[HPP] > 0:
-                    print("Note: Average spilling in STOR equal to", np.around(100*fraction_overflow_STOR[HPP],2), "% of average inflow.")
+                    print('> Note: Average spilling in STOR equal to', np.around(100*fraction_overflow_STOR[HPP],2), '% of average inflow.')
                     
                 
                 ###############################################################
@@ -2051,7 +2103,7 @@ for HPP in range(HPP_number):
                     break
                 else:
                     # [display] in case k_turb criterion was not met (eq. S28)
-                    print("requires resimulating at lower C_OR...")
+                    print('> Requires resimulating at lower C_OR...')
                 
             
         else:
@@ -2060,7 +2112,7 @@ for HPP in range(HPP_number):
         
     
 
-# %% REVUB.5) Post-processing
+# %% REVUB.4) Post-processing
 
 
 # [initialise] use STOR equal to BAL for reservoirs where STOR not modelled (except RoR component). 
@@ -2076,149 +2128,170 @@ for HPP in range(HPP_number):
         L_followed_STOR_hourly[:,:,HPP] = L_followed_BAL_hourly[:,:,HPP]
 
 
-# [loop] across all HPPs
-for HPP in range(HPP_number):
-    
-    # [calculate] yearly hydropower capacity factor for CONV
-    CF_hydro_CONV_yearly[:,HPP] = (E_hydro_CONV_stable_yearly[:,HPP] + E_hydro_CONV_RoR_yearly[:,HPP])/((P_r_turb[HPP])*hrs_byyear)
-    
-    # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
-    if calibration_only == 0:
-        # [calculate] hourly hydropower capacity factor for BAL (eq. S42)
-        CF_hydro_BAL_hourly[:,:,HPP] = (P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP])/(P_r_turb[HPP])
+# [suppress] warnings of empty slices in case all-nan slices encountered
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', category = RuntimeWarning)
         
-        # [calculate] hourly hydropower capacity factor for STOR (eq. S42)
-        CF_hydro_STOR_hourly[:,:,HPP] = (P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP])/(P_r_turb[HPP])
+    # [loop] across all HPPs
+    for HPP in range(HPP_number):
         
-        # [calculate] whether hydropower/turbine flow capacity is maxed out to determine regime
-        temp_maxed_out_BAL[:,:,HPP] = np.logical_or((Q_in_RoR_hourly[:,:,HPP] > Q_max_turb[HPP] - Q_BAL_stable_hourly[:,:,HPP] - Q_BAL_flexible_hourly[:,:,HPP]), CF_hydro_BAL_hourly[:,:,HPP] >= 1).astype(int)
-        
-    # [loop] across all simulation years
-    for y in range(len(simulation_years)):
-             
-        # [loop] across all months of the year
-        for m in range(months_yr):
-                        
-            # [calculate] average monthly inflow (m^3/s)
-            Q_in_nat_monthly[m,y,HPP] = np.mean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            
-            # [calculate] average monthly outflows (m^3/s)
-            Q_CONV_out_monthly[m,y,HPP] = np.mean(Q_CONV_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            if calibration_only == 0:
-                Q_BAL_out_monthly[m,y,HPP] = np.mean(Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                Q_STOR_out_monthly[m,y,HPP] = np.mean(Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                
-            # [calculate] load profile by month
-            L_norm_bymonth[m,y,HPP] = np.mean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-            
-            # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-            E_hydro_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            E_hydro_CONV_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_CONV_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            E_hydro_CONV_total_bymonth[m,y,HPP] = E_hydro_CONV_stable_bymonth[m,y,HPP] + E_hydro_CONV_RoR_bymonth[m,y,HPP]
-            
-            # [calculate] average monthly hydraulic head as proxy for water level (m)
-            h_CONV_bymonth[m,y,HPP] = np.mean(h_CONV_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-            
-            # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
-            if calibration_only == 0:
-                
-                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
-                E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.sum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_BAL_total_bymonth[m,y,HPP] = E_hydro_BAL_stable_bymonth[m,y,HPP] + E_hydro_BAL_flexible_bymonth[m,y,HPP] + E_hydro_BAL_RoR_bymonth[m,y,HPP]
-                
-                E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.sum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                E_hydro_STOR_total_bymonth[m,y,HPP] = E_hydro_STOR_stable_bymonth[m,y,HPP] + E_hydro_STOR_flexible_bymonth[m,y,HPP] 
-                
-                # [calculate] average monthly hydraulic head as proxy for water level (m)
-                h_BAL_bymonth[m,y,HPP] = np.mean(h_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                h_STOR_bymonth[m,y,HPP] = np.mean(h_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                                
-                # [calculate] binary variable indicating hydropower curtailment in given month
-                hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.min(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
-                
-                # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = mixed, 1 = baseload)
-                temp_maxed_out_BAL_monthly[m,y,HPP] = np.mean(temp_maxed_out_BAL[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                if hydro_BAL_curtailment_factor_monthly[m,y,HPP] == 0:
-                    temp_maxed_out_BAL_monthly[m,y,HPP] = -1
-                if temp_maxed_out_BAL_monthly[m,y,HPP] > 0 and temp_maxed_out_BAL_monthly[m,y,HPP] < 1:
-                    temp_maxed_out_BAL_monthly[m,y,HPP] = 0.5
-                
-                # [calculate] ELCC by month (MWh/h)
-                ELCC_BAL_bymonth[m,y,HPP] = np.sum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-                ELCC_STOR_bymonth[m,y,HPP] = np.sum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
-                
-        
-        # [read] vector with hours in each year
-        hrs_year = range(int(hrs_byyear[y]))
+        # [calculate] yearly hydropower capacity factor for CONV
+        CF_hydro_CONV_yearly[:,HPP] = (E_hydro_CONV_stable_yearly[:,HPP] + E_hydro_CONV_RoR_yearly[:,HPP])/((P_r_turb[HPP])*hrs_byyear)
         
         # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
         if calibration_only == 0:
-            # [arrange] yearly average outflow under optimal BAL solution (m^3/s)
-            Q_BAL_out_yearly[y,HPP] = np.mean(Q_BAL_out_hourly[hrs_year,y,HPP])
+            # [calculate] hourly hydropower capacity factor for BAL (eq. S42)
+            CF_hydro_BAL_hourly[:,:,HPP] = (P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP])/(P_r_turb[HPP])
             
-            # [calculate] total flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-            E_hydro_BAL_flexible_yearly[y,HPP] = np.sum(P_BAL_hydro_flexible_hourly[hrs_year,y,HPP])
+            # [calculate] hourly hydropower capacity factor for STOR (eq. S42)
+            CF_hydro_STOR_hourly[:,:,HPP] = (P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP])/(P_r_turb[HPP])
+            
+            # [calculate] whether hydropower/turbine flow capacity is maxed out to determine regime
+            temp_maxed_out_BAL[:,:,HPP] = np.logical_or((Q_in_RoR_hourly[:,:,HPP] > Q_max_turb[HPP] - Q_BAL_stable_hourly[:,:,HPP] - Q_BAL_flexible_hourly[:,:,HPP]), CF_hydro_BAL_hourly[:,:,HPP] >= 1).astype(int)
+            
+        # [loop] across all simulation years
+        for y in range(len(simulation_years)):
+                 
+            # [loop] across all months of the year
+            for m in range(months_yr):
+                            
+                # [calculate] average monthly inflow (m^3/s)
+                Q_in_nat_monthly[m,y,HPP] = np.nanmean(Q_in_nat_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                
+                # [calculate] average monthly outflows (m^3/s)
+                Q_CONV_out_monthly[m,y,HPP] = np.nanmean(Q_CONV_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                if calibration_only == 0:
+                    Q_BAL_out_monthly[m,y,HPP] = np.nanmean(Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    Q_STOR_out_monthly[m,y,HPP] = np.nanmean(Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     
-            # [calculate] total stable hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-            E_hydro_BAL_stable_yearly[y,HPP] = np.sum(P_BAL_hydro_stable_hourly[hrs_year,y,HPP])
+                # [calculate] load profile by month
+                L_norm_bymonth[m,y,HPP] = np.nanmean(L_norm[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+                
+                # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
+                E_hydro_CONV_stable_bymonth[m,y,HPP] = 1e-3*np.nansum(P_CONV_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                E_hydro_CONV_RoR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_CONV_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                E_hydro_CONV_total_bymonth[m,y,HPP] = E_hydro_CONV_stable_bymonth[m,y,HPP] + E_hydro_CONV_RoR_bymonth[m,y,HPP]
+                
+                # [calculate] average monthly hydraulic head as proxy for water level (m)
+                h_CONV_bymonth[m,y,HPP] = np.nanmean(h_CONV_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                
+                # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
+                if calibration_only == 0:
+                    
+                    # [calculate] power generation, converting hourly values (MW or MWh/h) to GWh/month
+                    E_hydro_BAL_stable_bymonth[m,y,HPP] = 1e-3*np.nansum(P_BAL_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_solar_BAL_bymonth[m,y,HPP] = 1e-3*np.nansum(P_BAL_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_wind_BAL_bymonth[m,y,HPP] = 1e-3*np.nansum(P_BAL_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_BAL_flexible_bymonth[m,y,HPP] = 1e-3*np.nansum(P_BAL_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_BAL_RoR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_BAL_hydro_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_BAL_total_bymonth[m,y,HPP] = E_hydro_BAL_stable_bymonth[m,y,HPP] + E_hydro_BAL_flexible_bymonth[m,y,HPP] + E_hydro_BAL_RoR_bymonth[m,y,HPP]
+                    
+                    E_hydro_STOR_stable_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_hydro_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_STOR_total_bymonth[m,y,HPP] = E_hydro_STOR_stable_bymonth[m,y,HPP] + E_hydro_STOR_flexible_bymonth[m,y,HPP] 
+                    
+                    # [calculate] average monthly hydraulic head as proxy for water level (m)
+                    h_BAL_bymonth[m,y,HPP] = np.nanmean(h_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    h_STOR_bymonth[m,y,HPP] = np.nanmean(h_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    
+                    # [calculate] average monthly storage volume
+                    V_BAL_bymonth[m,y,HPP] = np.nanmean(V_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    V_STOR_bymonth_upper[m,y,HPP] = np.nanmean(V_STOR_hourly_upper[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    
+                    # [calculate] binary variable indicating hydropower curtailment in given month
+                    hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+                    hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
+                    
+                    # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = mixed, 1 = baseload)
+                    temp_maxed_out_BAL_monthly[m,y,HPP] = np.mean(temp_maxed_out_BAL[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    if hydro_BAL_curtailment_factor_monthly[m,y,HPP] == 0:
+                        temp_maxed_out_BAL_monthly[m,y,HPP] = -1
+                    if temp_maxed_out_BAL_monthly[m,y,HPP] > 0 and temp_maxed_out_BAL_monthly[m,y,HPP] < 1:
+                        temp_maxed_out_BAL_monthly[m,y,HPP] = 0.5
+                    
+                    # [calculate] ELCC by month (MWh/h)
+                    ELCC_BAL_bymonth[m,y,HPP] = np.nansum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
+                    ELCC_STOR_bymonth[m,y,HPP] = np.nansum(L_followed_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day
+                    
             
-            # [calculate] total stable + flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
-            E_hydro_BAL_nonRoR_yearly[y,HPP] = E_hydro_BAL_flexible_yearly[y,HPP] + E_hydro_BAL_stable_yearly[y,HPP]
+            # [read] vector with hours in each year
+            hrs_year = range(int(hrs_byyear[y]))
             
-            # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
-            E_hydro_BAL_RoR_yearly[y,HPP] = np.sum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
+            # [calculate] yearly power generation in MWh/year for RoR plants (since CONV calculation, where this is normally calculated beforehand as BAL/STOR input, was skipped)
+            if HPP_category[HPP] == 'RoR':
+                E_hydro_CONV_stable_yearly[y,HPP] = np.nansum(P_CONV_hydro_stable_hourly[hrs_year,y,HPP])
+                E_hydro_CONV_RoR_yearly[y,HPP] = np.nansum(P_CONV_hydro_RoR_hourly[hrs_year,y,HPP])
+                E_hydro_CONV_yearly[y,HPP] = E_hydro_CONV_stable_yearly[y,HPP] + E_hydro_CONV_RoR_yearly[y,HPP]
+                CF_hydro_CONV_yearly[:,HPP] = (E_hydro_CONV_stable_yearly[:,HPP] + E_hydro_CONV_RoR_yearly[:,HPP])/((P_r_turb[HPP])*hrs_byyear)
             
-            # [calculate] total hydropower generation under optimal BAL solution in MWh/year (eq. S33)
-            E_hydro_BAL_yearly[y,HPP] = E_hydro_BAL_nonRoR_yearly[y,HPP] + E_hydro_BAL_RoR_yearly[y,HPP]
-            
-            # [calculate] ELCC by year in MWh/year (eq. S23)
-            ELCC_BAL_yearly[y,HPP] = np.sum(L_followed_BAL_hourly[hrs_year,y,HPP])
-            
-            # [calculate] total solar and wind power generation under optimal BAL solution in MWh/year (eq. S25)
-            E_solar_BAL_yearly[y,HPP] = np.sum(P_BAL_solar_hourly[hrs_year,y,HPP])
-            E_wind_BAL_yearly[y,HPP] = np.sum(P_BAL_wind_hourly[hrs_year,y,HPP])
-            
-            # [arrange] yearly average outflow under optimal STOR solution (m^3/s)
-            Q_STOR_out_yearly[y,HPP] = np.mean(Q_STOR_out_hourly[hrs_year,y,HPP])
-
-            # [calculate] total flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-            E_hydro_STOR_flexible_yearly[y,HPP] = np.sum(P_STOR_hydro_flexible_hourly[hrs_year,y,HPP])
-            
-            # [calculate] total stable hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-            E_hydro_STOR_stable_yearly[y,HPP] = np.sum(P_STOR_hydro_stable_hourly[hrs_year,y,HPP])
-            
-            # [calculate] total stable + flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
-            E_hydro_STOR_yearly[y,HPP] = E_hydro_STOR_flexible_yearly[y,HPP] + E_hydro_STOR_stable_yearly[y,HPP]
-            
-            # [calculate] total energy pumped up into reservoir in MWh/year
-            E_hydro_STOR_pump_yearly[y,HPP] = np.sum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump[HPP]
-            
-            # [calculate] ELCC by year in MWh/year (eq. S23)
-            ELCC_STOR_yearly[y,HPP] = np.sum(L_followed_STOR_hourly[hrs_year,y,HPP])
+            # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
+            if calibration_only == 0:
+                # [arrange] yearly average outflow under optimal BAL solution (m^3/s)
+                Q_BAL_out_yearly[y,HPP] = np.nanmean(Q_BAL_out_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+                E_hydro_BAL_flexible_yearly[y,HPP] = np.nansum(P_BAL_hydro_flexible_hourly[hrs_year,y,HPP])
                         
-            # [calculate] total solar and wind power generation under optimal STOR solution in MWh/year (eq. S24)
-            E_solar_STOR_yearly[y,HPP] = np.sum(P_STOR_solar_hourly[hrs_year,y,HPP])
-            E_wind_STOR_yearly[y,HPP] = np.sum(P_STOR_wind_hourly[hrs_year,y,HPP])
+                # [calculate] total stable hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+                E_hydro_BAL_stable_yearly[y,HPP] = np.nansum(P_BAL_hydro_stable_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total stable + flexible hydropower generation under optimal BAL solution in MWh/year (eq. S24)
+                E_hydro_BAL_nonRoR_yearly[y,HPP] = E_hydro_BAL_flexible_yearly[y,HPP] + E_hydro_BAL_stable_yearly[y,HPP]
+                
+                # [calculate] total RoR hydropower generation under optimal BAL solution in MWh/year (eq. S33)
+                E_hydro_BAL_RoR_yearly[y,HPP] = np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total hydropower generation under optimal BAL solution in MWh/year (eq. S33)
+                E_hydro_BAL_yearly[y,HPP] = E_hydro_BAL_nonRoR_yearly[y,HPP] + E_hydro_BAL_RoR_yearly[y,HPP]
+                
+                # [calculate] average CF for BAL
+                CF_hydro_BAL_yearly[y,HPP] = np.nanmean(CF_hydro_BAL_hourly[hrs_year,y,HPP])
+                
+                # [calculate] ELCC by year in MWh/year (eq. S23)
+                ELCC_BAL_yearly[y,HPP] = np.nansum(L_followed_BAL_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total solar and wind power generation under optimal BAL solution in MWh/year (eq. S25)
+                E_solar_BAL_yearly[y,HPP] = np.nansum(P_BAL_solar_hourly[hrs_year,y,HPP])
+                E_wind_BAL_yearly[y,HPP] = np.nansum(P_BAL_wind_hourly[hrs_year,y,HPP])
+                
+                # [arrange] yearly average outflow under optimal STOR solution (m^3/s)
+                Q_STOR_out_yearly[y,HPP] = np.nanmean(Q_STOR_out_hourly[hrs_year,y,HPP])
     
-    
-    # [calculate] statistics of power generation under user-defined p_exceedance criterion (MW)
-    P_CONV_total_guaranteed[HPP] = np.nanpercentile(P_CONV_hydro_stable_hourly[:,:,HPP] + P_CONV_hydro_RoR_hourly[:,:,HPP], 100 - p_exceedance[HPP])
-    
-    # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
-    if calibration_only == 0:
-        P_BAL_total_guaranteed[HPP] = np.nanpercentile(P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP] + P_BAL_solar_hourly[:,:,HPP] + P_BAL_wind_hourly[:,:,HPP], 100 - p_exceedance[HPP])
-        if STOR_break[HPP] == 0 and option_storage == 1:
-            P_STOR_total_guaranteed[HPP] = np.nanpercentile(P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP] + P_STOR_solar_hourly[:,:,HPP] + P_STOR_wind_hourly[:,:,HPP], 100 - p_exceedance[HPP])
-    
+                # [calculate] total flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+                E_hydro_STOR_flexible_yearly[y,HPP] = np.nansum(P_STOR_hydro_flexible_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total stable hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+                E_hydro_STOR_stable_yearly[y,HPP] = np.nansum(P_STOR_hydro_stable_hourly[hrs_year,y,HPP])
+                
+                # [calculate] total stable + flexible hydropower generation under optimal STOR solution in MWh/year (eq. S24)
+                E_hydro_STOR_yearly[y,HPP] = E_hydro_STOR_flexible_yearly[y,HPP] + E_hydro_STOR_stable_yearly[y,HPP]
+                
+                # [calculate] total energy pumped up into reservoir in MWh/year
+                E_hydro_STOR_pump_yearly[y,HPP] = np.nansum(P_STOR_pump_hourly[hrs_year,y,HPP])*eta_pump[HPP]
+                
+                # [calculate] average CF for BAL
+                CF_hydro_STOR_yearly[y,HPP] = np.nanmean(CF_hydro_STOR_hourly[hrs_year,y,HPP])
+                
+                # [calculate] ELCC by year in MWh/year (eq. S23)
+                ELCC_STOR_yearly[y,HPP] = np.nansum(L_followed_STOR_hourly[hrs_year,y,HPP])
+                            
+                # [calculate] total solar and wind power generation under optimal STOR solution in MWh/year (eq. S24)
+                E_solar_STOR_yearly[y,HPP] = np.nansum(P_STOR_solar_hourly[hrs_year,y,HPP])
+                E_wind_STOR_yearly[y,HPP] = np.nansum(P_STOR_wind_hourly[hrs_year,y,HPP])
+                
+            
+        # [calculate] statistics of power generation under user-defined p_exceedance criterion (MW)
+        P_CONV_total_guaranteed[HPP] = np.nanpercentile(P_CONV_hydro_stable_hourly[:,:,HPP] + P_CONV_hydro_RoR_hourly[:,:,HPP], 100 - p_exceedance)
+        
+        # [check] if user selected calibration run only, not needed to calculate BAL/STOR parameters
+        if calibration_only == 0:
+            P_BAL_total_guaranteed[HPP] = np.nanpercentile(P_BAL_hydro_stable_hourly[:,:,HPP] + P_BAL_hydro_flexible_hourly[:,:,HPP] + P_BAL_hydro_RoR_hourly[:,:,HPP] + P_BAL_solar_hourly[:,:,HPP] + P_BAL_wind_hourly[:,:,HPP], 100 - p_exceedance)
+            if STOR_break[HPP] == 0 and option_storage == 1:
+                P_STOR_total_guaranteed[HPP] = np.nanpercentile(P_STOR_hydro_stable_hourly[:,:,HPP] + P_STOR_hydro_flexible_hourly[:,:,HPP] + P_STOR_solar_hourly[:,:,HPP] + P_STOR_wind_hourly[:,:,HPP], 100 - p_exceedance)
+        
 
 # [display] signal simulation end
-print("simulation finished")
+print('simulation finished')
