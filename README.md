@@ -40,7 +40,7 @@ The code is divided into four scripts: one for initialisation (A), one containin
 
 This script initialises the data needed for a simulation to run.
 
-The script is controlled by an Excel file where the user defines overall modelling parameters ("parameters_simulation.xlsx"), and reads in several Excel files with tabulated time series and other data ("data_xxx.xlsx"). 
+The script is controlled by an Excel file where the user controls overall modelling parameters ("parameters_simulation.xlsx"), and reads in several Excel files with tabulated time series and other data ("data_xxx.xlsx"). 
 
 In the training dataset, the user learns how to work with these files. 
 
@@ -68,17 +68,19 @@ For a user-defined ensemble of the simulated plants, which the user can set in t
 The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 
 ## Versions
-Version 0.1.0 - January 2020
+Version 1.1.0 - May 2025
 
-Version 1.0.0 - August 2023
-
-Version 1.0.1 - September 2023
-
-Version 1.0.2 - October 2023
+Version 1.0.4 - April 2024
 
 Version 1.0.3 - November 2023
 
-Version 1.0.4 - April 2024
+Version 1.0.2 - October 2023
+
+Version 1.0.1 - September 2023
+
+Version 1.0.0 - August 2023
+
+Version 0.1.0 - January 2020
 
 ## License
 See also the [LICENSE](./LICENSE.md) file.
@@ -91,11 +93,11 @@ The following funding sources are gratefully acknowledged:
 
 ## References
 The REVUB model has so far been used in, and/or inspired the methods of, the following publications/documents:
-* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. <ins>_Smart renewable electricity portfolios in West Africa_</ins>. Nature Sustainability __3__, 710–719 (2020). https://doi.org/10.1038/s41893-020-0539-0.
-* S. Sterl, P. Donk, P. Willems, and W. Thiery. <ins>_Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power_</ins>. Renewable and Sustainable Energy Reviews __134__ (2020) 110352. https://doi.org/10.1016/j.rser.2020.110352.
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname_</ins>. Renewable Energy __173__, 57–75 (2021). https://doi.org/10.1016/j.renene.2021.03.117.
-* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. <ins>_Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam_</ins>. Nature Energy __6__, 407–418 (2021). https://doi.org/10.1038/s41560-021-00799-5.
-* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. <ins>_A spatiotemporal atlas of hydropower in Africa for energy modelling purposes_</ins>. Open Research Europe __1__, 29 (2021). https://doi.org/10.12688/openreseurope.13392.3.
-* S. Sterl and W. Thiery. <ins>_La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative_</ins>. Vrije Universiteit Brussel, Brussels, Belgium (2022). http://dx.doi.org/10.13140/RG.2.2.26548.83848.
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective_</ins>. Energy Policy __177__ (2023). https://doi.org/10.1016/j.enpol.2023.113526.
 * H. Hoff, M. Ogeya, D. de Condappa, R.J. Brecha, M.A.D. Larsen, K. Halsnæs, S. Salack, S. Sanfo, S. Sterl, and S. Liersch. <ins>_Stakeholder-guided, model-based scenarios for a climate- and water-smart electricity transition in Ghana and Burkina Faso_</ins>. Energy Strategy Reviews __49__ (2023). https://doi.org/10.1016/j.esr.2023.101149.
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective_</ins>. Energy Policy __177__ (2023). https://doi.org/10.1016/j.enpol.2023.113526.
+* S. Sterl and W. Thiery. <ins>_La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative_</ins>. Vrije Universiteit Brussel, Brussels, Belgium (2022). http://dx.doi.org/10.13140/RG.2.2.26548.83848.
+* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. <ins>_A spatiotemporal atlas of hydropower in Africa for energy modelling purposes_</ins>. Open Research Europe __1__, 29 (2021). https://doi.org/10.12688/openreseurope.13392.3.
+* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. <ins>_Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam_</ins>. Nature Energy __6__, 407–418 (2021). https://doi.org/10.1038/s41560-021-00799-5.
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname_</ins>. Renewable Energy __173__, 57–75 (2021). https://doi.org/10.1016/j.renene.2021.03.117.
+* S. Sterl, P. Donk, P. Willems, and W. Thiery. <ins>_Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power_</ins>. Renewable and Sustainable Energy Reviews __134__ (2020) 110352. https://doi.org/10.1016/j.rser.2020.110352.
+* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. <ins>_Smart renewable electricity portfolios in West Africa_</ins>. Nature Sustainability __3__, 710–719 (2020). https://doi.org/10.1038/s41893-020-0539-0.

@@ -822,7 +822,7 @@ for HPP in range(HPP_number):
                         # [calculate] P_load according to constraints on overproduction (eq. S11)
                         if c_VRE_corrector[HPP] == 1:
                             P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size[HPP])
-                        # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here)
+                        # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here) (eq. S43)
                         if c_VRE_corrector[HPP] == 0:
                             P_load_BAL = P_r_turb[HPP]*f_demand_BAL[f]*f_reg[HPP]
                         
@@ -1111,7 +1111,7 @@ for HPP in range(HPP_number):
                 # [calculate] P_load according to constraints on overproduction (eq. S11)
                 if c_VRE_corrector[HPP] == 1:
                     P_load_BAL = np.nanpercentile(P_BAL_inflexible_hourly[:,:,HPP],f_size[HPP])
-                # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here)
+                # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here) (eq. S43)
                 if c_VRE_corrector[HPP] == 0:
                     P_load_BAL = P_r_turb[HPP]*f_demand_opt_BAL*f_reg[HPP]
     
@@ -1480,7 +1480,7 @@ for HPP in range(HPP_number):
                             # [calculate] P_load according to constraints on overproduction (eq. S11)
                             if c_VRE_corrector[HPP] == 1:
                                 P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size[HPP])
-                            # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here)
+                            # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here) (eq. S43)
                             if c_VRE_corrector[HPP] == 0:
                                 P_load_STOR = P_r_turb[HPP]*f_demand_STOR[f]*f_reg[HPP]
                             
@@ -1795,7 +1795,7 @@ for HPP in range(HPP_number):
                     # [calculate] P_load according to constraints on overproduction (eq. S11)
                     if c_VRE_corrector[HPP] == 1:
                         P_load_STOR = np.nanpercentile(P_STOR_inflexible_hourly[:,:,HPP],f_size[HPP])
-                    # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here)
+                    # [set] dummy P_load in case of no-VRE simulations (overproduction does not apply here) (eq. S43)
                     if c_VRE_corrector[HPP] == 0:
                         P_load_STOR = P_r_turb[HPP]*f_demand_opt_STOR*f_reg[HPP]
                     

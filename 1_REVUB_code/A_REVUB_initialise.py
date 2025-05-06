@@ -420,6 +420,9 @@ for n in range(len(HPP_name)):
     else:
         
         # [set] exception in case of RoR plant without reservoir
+        V_max[n] = 0
+        A_max[n] = 0
+        f_reg[n] = 0
         calibrate_volume[0,n] = V_max[n]
         calibrate_area[0,n] = A_max[n]
         calibrate_head[0,n] = h_max[n]
