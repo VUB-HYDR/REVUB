@@ -558,7 +558,7 @@ for HPP in range(HPP_number):
         if y == 0:
             
             # [calculate] overall regulation volume (cumulative in case of cascade)
-            V_CONV_hourly[0,y,HPP] = V_max_cumul[HPP]*V_initial_frac[HPP]
+            V_CONV_hourly[0,y,HPP] = V_max_cumul[HPP]*f_initial_frac[HPP]
             
             # [find] hydraulic head in current HPP (in case of cascade, assuming relative volume change equally divided over reservoirs)
             h_temp = np.where(abs(calibrate_volume[:,HPP] - f_cascade_downstream[HPP]*V_CONV_hourly[0,y,HPP]) == min(abs(calibrate_volume[:,HPP] - f_cascade_downstream[HPP]*V_CONV_hourly[0,y,HPP])))[0][0]

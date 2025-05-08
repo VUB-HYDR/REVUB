@@ -205,7 +205,7 @@ A_max_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list =
 # [set by user] maximum storage volume (m^3) and initial filling fraction
 V_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_max', True, False)][0]
 V_max_cumul = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_max', True, False)][0]
-V_initial_frac = parameters_hydropower_values[np.where(parameters_hydropower_list == 'V_initial_frac', True, False)][0]
+f_initial_frac = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_initial_frac', True, False)][0]
 
 # [set by user] turbine capacity (MW)
 P_r_turb = parameters_hydropower_values[np.where(parameters_hydropower_list == 'P_r_turb', True, False)][0]
