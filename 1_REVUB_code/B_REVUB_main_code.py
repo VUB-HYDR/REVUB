@@ -371,10 +371,6 @@ for HPP in range(HPP_number):
         # [define] clean boolean for cascade calculation with upstream reservoir
         cascade_bool[HPP] = 1
         
-        # [warn] in case upstream plant in cascade not activated
-        if np.size(np.where(HPP_name == HPP_cascade_upstream[HPP])[0]) == 0:
-            print('> Error: upstream plant in cascade not activated')
-        
         # [find] index of HPP upstream in cascade
         HPP_index_cascade[HPP] = int(np.where(HPP_name == HPP_cascade_upstream[HPP])[0][0])
         HPP_upstream = int(HPP_index_cascade[HPP])
@@ -396,16 +392,16 @@ for HPP in range(HPP_number):
     # [check] if cascade calculation using results from earlier downstream reservoir operation needed
     if HPP_active[HPP] == -1 and HPP_active_save[HPP] == 1:
         if np.size(np.where(HPP_cascade_upstream == HPP_name[HPP])) > 1:
-            print('> Unclear instructions: which plant is downstream of ', HPP_name[HPP], '?')
+            print('> Unclear instructions: which plant is downstream of', HPP_name[HPP], '?')
         force_cascade_outflow[HPP] = 1
         HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
-        # [adapt] f_reg parameter to cascade case ()
+        # [adapt] f_reg parameter to cascade case
         f_reg[HPP] = f_cascade_upstream[HPP_downstream]*f_reg[HPP_downstream]
     
     # [check] if cascade calculation using results from upstream reservoir outflow needed
     if HPP_active[HPP] == -2 and HPP_active_save[HPP] == 1:
         if np.size(np.where(HPP_cascade_downstream == HPP_name[HPP])) > 1:
-            print('> Unclear instructions: which plant is upstream of ', HPP_name[HPP], '?')
+            print('> Unclear instructions: which plant is upstream of', HPP_name[HPP], '?')
         force_cascade_inflow[HPP] = 1
     
     # [verify] that calibration year period makes sense
@@ -489,13 +485,14 @@ for HPP in range(HPP_number):
 # [loop] carry out CONV, BAL and (optionally) STOR simulation for every HPP
 for HPP in range(HPP_number):
     
-    # [display] HPP for which simulation is being performed
-    print('HPP', HPP + 1, '/', HPP_number, ':', HPP_name[HPP])
-    
     # [break] in case of an upstream cascade plant deactivated in input sheet but with activated downstream plants
     if (HPP_active[HPP] == -1 or HPP_active[HPP] == -2) and HPP_active_save[HPP] == 0:
         print('> Not simulating ', HPP_name[HPP], ': check settings for cascade plants')
         break
+    
+    # [display] HPP for which simulation is being performed
+    print('HPP', HPP + 1, '/', HPP_number_run, ':', HPP_name[HPP])
+    
     
     # [adapt] parameters for upstream cascade reservoir serving downstream plant
     if force_cascade_outflow[HPP] == 1:
@@ -1059,7 +1056,7 @@ for HPP in range(HPP_number):
             ###############################################################
             
             # [display]
-            print('(iii) found optimum BAL solution - saving all variables')
+            print('(iii) found optimum BAL solution at f_opt_BAL =', np.around(f_demand_opt_BAL, 2), '- saving all variables')
             
             # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
             convergence_test_BAL = np.zeros(shape = (X_max))
@@ -1746,7 +1743,7 @@ for HPP in range(HPP_number):
                 ###############################################################
                 
                 # [display]
-                print('(v) found optimum STOR solution - saving all variables')
+                print('(v) found optimum STOR solution at f_opt_BAL =', np.around(f_demand_opt_STOR, 2), '- saving all variables')
                 
                 # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
                 convergence_test_STOR = np.zeros(shape = (X_max))

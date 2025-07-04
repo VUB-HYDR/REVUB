@@ -68,11 +68,6 @@ parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(
 HPP_active_save = np.delete(HPP_active_save, np.where(HPP_active == 0)[0])
 HPP_active = np.delete(HPP_active, np.where(HPP_active == 0)[0])
 
-# [delete] deactivated downstream plants
-parameters_hydropower_values = np.delete(parameters_hydropower_values, np.where(HPP_active_save == 0)[0],1)
-HPP_active = np.delete(HPP_active, np.where(HPP_active_save == 0)[0])
-HPP_active_save = np.delete(HPP_active_save, np.where(HPP_active_save == 0)[0])
-
 # [swap] positions so the plants with upstream cascade function come last in the simulation
 parameters_hydropower_values = np.concatenate((np.delete(parameters_hydropower_values, np.where(HPP_active != 1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active != -1)[0],1), np.delete(parameters_hydropower_values, np.where(HPP_active != -2)[0],1)), axis = 1)
 HPP_active_save = np.concatenate((np.delete(HPP_active_save, np.where(HPP_active != 1)[0],0), np.delete(HPP_active_save, np.where(HPP_active != -1)[0],0), np.delete(HPP_active_save, np.where(HPP_active != -2)[0],0)), axis = 0)
@@ -83,6 +78,7 @@ HPP_active = np.concatenate((np.delete(HPP_active, np.where(HPP_active != 1)[0],
 
 # [set by user] number of hydropower plants in this simulation
 HPP_number = len(parameters_hydropower_values[0,:])
+HPP_number_run = np.sum(HPP_active_save)
 
 # [set by user] the reference years used in the simulation
 year_start = int(parameters_general_values[np.where(parameters_general_list == 'year_start', True, False)][0])
