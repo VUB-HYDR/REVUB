@@ -19,6 +19,9 @@ import pandas as pd
 import numbers as nb
 import matplotlib.pyplot as plt
 import numpy.matlib
+import warnings
+warnings.filterwarnings(action = 'ignore', message = 'Mean of empty slice')
+from matplotlib.ticker import PercentFormatter
 
 
 # import Excel file with user specifications on plotting
@@ -51,9 +54,17 @@ plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(p
 plot_ELCC_line_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ELCC_line_multiple', True, False)][0])
 
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
-P_total_av = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0])
+P_total_av = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0]
+P_total_av_series = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'P_total_av_series', True, False)][0].astype(float)
+choose_demand_type = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'choose_demand_type', True, False)][0])
 L_norm_HPP = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'chosen_load', True, False)][0]
-P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
+
+if choose_demand_type == 0:
+    P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
+if choose_demand_type == 1:
+    P_total_hourly = P_total_av_series*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
+
+##### CALCULATE NEEDED NON-HYDRO CONTRIBUTION TO FLEXIBILITY #####
 
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
 P_BAL_thermal_hourly = P_total_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
@@ -62,14 +73,44 @@ P_STOR_thermal_hourly = P_total_hourly - np.nansum(P_STOR_hydro_stable_hourly[:,
 P_BAL_thermal_hourly[P_BAL_thermal_hourly < 0] = 0
 P_STOR_thermal_hourly[P_STOR_thermal_hourly < 0] = 0
 
+# [import] available capacity of thermal power
+P_r_total_thermal = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_r_total_thermal', True, False)][0]
+P_r_total_thermal_series = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'P_r_total_thermal_series', True, False)][0].astype(float)
+
+# [cap] thermal power to available capacity
+# [in case] demand is static
+if choose_demand_type == 0:
+    P_BAL_thermal_hourly[P_BAL_thermal_hourly > P_r_total_thermal] = P_r_total_thermal
+    P_STOR_thermal_hourly[P_STOR_thermal_hourly > P_r_total_thermal] = P_r_total_thermal
+
+# [in case] demand is dynamic
+if choose_demand_type == 1:
+    for y in range(len(simulation_years)):
+        temp_thermal = P_BAL_thermal_hourly[:,y]
+        temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
+        P_BAL_thermal_hourly[:,y] = temp_thermal
+        
+        temp_thermal = P_STOR_thermal_hourly[:,y]
+        temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
+        P_STOR_thermal_hourly[:,y] = temp_thermal
+
+# [calculate] moments of unsatisfied power demand (LOLE)        
+P_BAL_unsatisfied_hourly = P_total_hourly - P_BAL_thermal_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)
+P_BAL_unsatisfied_hourly[P_BAL_unsatisfied_hourly < 0] = 0
+
+P_STOR_unsatisfied_hourly = P_total_hourly - P_STOR_thermal_hourly - np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_STOR_wind_hourly[:,:,plot_HPP_multiple] + P_STOR_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple] - P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2)
+P_STOR_unsatisfied_hourly[P_STOR_unsatisfied_hourly < 0] = 0
+        
 # [calculate] excess (to-be-curtailed) power
-P_BAL_curtailed_hourly = np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2) + P_BAL_thermal_hourly - P_total_hourly
-P_STOR_curtailed_hourly = np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_STOR_wind_hourly[:,:,plot_HPP_multiple] + P_STOR_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple] - P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2) + P_STOR_thermal_hourly - P_total_hourly
+P_BAL_curtailed_hourly = np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2) + P_BAL_thermal_hourly + P_BAL_unsatisfied_hourly - P_total_hourly
+P_STOR_curtailed_hourly = np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_STOR_wind_hourly[:,:,plot_HPP_multiple] + P_STOR_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple] - P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2) + P_STOR_thermal_hourly + P_STOR_unsatisfied_hourly - P_total_hourly
 
 # [preallocate] extra variables for thermal power generation assessment
 E_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 E_thermal_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 E_thermal_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_unsatisfied_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+E_unsatisfied_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 E_curtailed_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 E_curtailed_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
 
@@ -80,9 +121,11 @@ for y in range(len(simulation_years)):
         E_total_bymonth[m,y] = 10**(-3)*np.sum(P_total_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
         E_thermal_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
         E_thermal_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_thermal_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_unsatisfied_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_unsatisfied_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
+        E_unsatisfied_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_unsatisfied_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
         E_curtailed_BAL_bymonth[m,y] = 10**(-3)*np.sum(P_BAL_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
         E_curtailed_STOR_bymonth[m,y] = 10**(-3)*np.sum(P_STOR_curtailed_hourly[int(positions[m,y]):int(positions[m+1,y]),y])
-        
+
 
 # [read] vector with hours in each year
 hrs_year = range(int(hrs_byyear[plot_year_multiple]))
@@ -119,15 +162,16 @@ colour_wind = np.array([77, 175, 74]) / 255
 colour_hydro_RoR = np.array([158, 202, 225]) / 255
 colour_hydro_pumped = np.array([77, 191, 237]) / 255
 colour_thermal = np.array([75, 75, 75]) / 255
+colour_unsatisfied = np.array([220, 138, 138]) / 255
 colour_curtailed = np.array([200, 200, 200]) / 255
 
 
 # [figure] (cf. Fig. S4a, S9a)
 # [plot] average monthly power mix in user-selected year
 fig = plt.figure()
-area_mix_BAL_bymonth = [np.nansum(E_hydro_BAL_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_BAL_bymonth[:,plot_year_multiple], -1*E_curtailed_BAL_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
-labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal', 'Curtailed VRE']
-plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
+area_mix_BAL_bymonth = [np.nansum(E_hydro_BAL_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_BAL_bymonth[:,plot_year_multiple], E_unsatisfied_BAL_bymonth[:,plot_year_multiple], -1*E_curtailed_BAL_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
+labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal/imports', 'Unsatisfied', 'Curtailed/exports']
+plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
 plt.plot(np.array(range(months_yr)), E_total_bymonth[:,plot_year_multiple]/days_year[:,plot_year_multiple]*10**3/hrs_day, label = 'Total load', color = 'black', linewidth = 3)
 if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(months_yr)), np.nansum(ELCC_BAL_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
@@ -140,14 +184,15 @@ plt.savefig("Total_Fig1.png", dpi = 300, bbox_inches = 'tight')
 # [figure] (cf. Fig. S4b, S9b)
 # [plot] power mix by year
 fig = plt.figure()
-E_generated_BAL_bymonth_sum = [np.nansum(np.sum(E_hydro_BAL_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_BAL_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_BAL_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_BAL_bymonth, axis = 0), -1*np.sum(E_curtailed_BAL_bymonth, axis = 0)]
+E_generated_BAL_bymonth_sum = [np.nansum(np.sum(E_hydro_BAL_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_BAL_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_BAL_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_BAL_bymonth, axis = 0), np.sum(E_unsatisfied_BAL_bymonth, axis = 0), -1*np.sum(E_curtailed_BAL_bymonth, axis = 0)]
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[0], bottom = np.sum(E_generated_BAL_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[1], bottom = np.sum(E_generated_BAL_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[2], bottom = np.sum(E_generated_BAL_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[3], bottom = np.sum(E_generated_BAL_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[4], bottom = np.sum(E_generated_BAL_bymonth_sum[0:4], axis = 0), label = 'Hydropower (RoR)', color = colour_hydro_RoR)
-plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[5], bottom = np.sum(E_generated_BAL_bymonth_sum[0:5], axis = 0), label = 'Thermal', color = colour_thermal)
-plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[6], bottom = np.sum(E_generated_BAL_bymonth_sum[0:6], axis = 0), label = 'Curtailed VRE', color = colour_curtailed)
+plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[5], bottom = np.sum(E_generated_BAL_bymonth_sum[0:5], axis = 0), label = 'Thermal/imports', color = colour_thermal)
+plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[6], bottom = np.sum(E_generated_BAL_bymonth_sum[0:6], axis = 0), label = 'Unsatisfied', color = colour_unsatisfied)
+plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[7], bottom = np.sum(E_generated_BAL_bymonth_sum[0:7], axis = 0), label = 'Curtailed/exports', color = colour_curtailed)
 plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
 if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_BAL_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
@@ -162,8 +207,8 @@ plt.savefig("Total_Fig2.png", dpi = 300, bbox_inches = 'tight')
 # [figure] (cf. Fig. 2 main paper, Fig. S5)
 # [plot] power mix for selected days of selected month
 fig = plt.figure()
-area_mix_full = [np.nansum(P_BAL_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_BAL_thermal_hourly[hrs_year,plot_year_multiple], -1*P_BAL_curtailed_hourly[hrs_year,plot_year_multiple]]
-plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
+area_mix_full = [np.nansum(P_BAL_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_BAL_thermal_hourly[hrs_year,plot_year_multiple], P_BAL_unsatisfied_hourly[hrs_year,plot_year_multiple], -1*P_BAL_curtailed_hourly[hrs_year,plot_year_multiple]]
+plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
 plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
 if plot_ELCC_line_multiple == 1: plt.plot(np.array(hrs_year), np.nansum(L_followed_BAL_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
@@ -182,9 +227,9 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     # [figure] (cf. Fig. S4a, S9a)
     # [plot] average monthly power mix in user-selected year
     fig = plt.figure()
-    area_mix_STOR_bymonth = [np.nansum(E_hydro_STOR_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_STOR_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_STOR_bymonth[:,plot_year_multiple], -1*E_curtailed_STOR_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
-    labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal', 'Curtailed VRE']
-    plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
+    area_mix_STOR_bymonth = [np.nansum(E_hydro_STOR_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_STOR_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_STOR_bymonth[:,plot_year_multiple], E_unsatisfied_STOR_bymonth[:,plot_year_multiple], -1*E_curtailed_STOR_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
+    labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal/imports', 'Unsatisfied', 'Curtailed/exports']
+    plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
     plt.fill_between(np.array(range(months_yr)), -1*np.nansum(E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'Stored VRE', facecolor = colour_hydro_pumped)
     plt.plot(np.array(range(months_yr)), E_total_bymonth[:,plot_year_multiple]/days_year[:,plot_year_multiple]*10**3/hrs_day, label = 'Total load', color = 'black', linewidth = 3)
     plt.plot(np.array(range(months_yr)), np.nansum(ELCC_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
@@ -199,14 +244,15 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     # [figure] (cf. Fig. S4b, S9b)
     # [plot] power mix by year
     fig = plt.figure()
-    E_generated_STOR_bymonth_sum = [np.nansum(np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_STOR_bymonth[:,:,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_STOR_bymonth, axis = 0), -1*np.sum(E_curtailed_STOR_bymonth, axis = 0)]
+    E_generated_STOR_bymonth_sum = [np.nansum(np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_STOR_bymonth[:,:,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_STOR_bymonth, axis = 0), np.sum(E_unsatisfied_STOR_bymonth, axis = 0), -1*np.sum(E_curtailed_STOR_bymonth, axis = 0)]
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[0], bottom = np.sum(E_generated_STOR_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Hydropower (RoR)', color = colour_hydro_RoR)
-    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[5], bottom = np.sum(E_generated_STOR_bymonth_sum[0:5], axis = 0), label = 'Thermal', color = colour_thermal)
-    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[6], bottom = np.sum(E_generated_STOR_bymonth_sum[0:6], axis = 0), label = 'Curtailed VRE', color = colour_curtailed)
+    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[5], bottom = np.sum(E_generated_STOR_bymonth_sum[0:5], axis = 0), label = 'Thermal/imports', color = colour_thermal)
+    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[6], bottom = np.sum(E_generated_STOR_bymonth_sum[0:6], axis = 0), label = 'Unsatisfied', color = colour_unsatisfied)
+    plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[7], bottom = np.sum(E_generated_STOR_bymonth_sum[0:7], axis = 0), label = 'Curtailed/exports', color = colour_curtailed)
     plt.bar(np.array(range(len(simulation_years))), -1*np.nansum(np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), label = 'Stored VRE', color = colour_hydro_pumped)
     plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
     plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_STOR_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
@@ -223,8 +269,8 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
     # [plot] power mix for selected days of selected month
     fig = plt.figure()
-    area_mix_full = [np.nansum(P_STOR_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]] - P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_STOR_thermal_hourly[hrs_year,plot_year_multiple], -1*P_STOR_curtailed_hourly[hrs_year,plot_year_multiple]]
-    plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_curtailed])
+    area_mix_full = [np.nansum(P_STOR_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]] - P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_STOR_thermal_hourly[hrs_year,plot_year_multiple], P_STOR_unsatisfied_hourly[hrs_year,plot_year_multiple], -1*P_STOR_curtailed_hourly[hrs_year,plot_year_multiple]]
+    plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
     plt.fill_between(np.array(hrs_year), -1*np.nansum(P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
     plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
     plt.plot(np.array(hrs_year), np.nansum(L_followed_STOR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
@@ -237,3 +283,96 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.ylabel('Power generation (MWh/h)')
     plt.title('Daily generation & load profiles (STOR)')
     plt.savefig("Total_Fig3_b.png", dpi = 300, bbox_inches = 'tight')
+
+
+##### CALCULATE NEEDED RAMPING FROM HYDRO AND NON-HYDRO #####
+
+# [import] range of hours for calculating ramping envelopes
+plot_ramping_range = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ramping_range', True, False)][0])
+
+# [preallocate] ramping needs
+ramp_vector_thermal_BAL = np.full([int(np.max(positions)), plot_ramping_range], np.nan)
+ramp_vector_hydro_BAL = np.full([int(np.max(positions)), plot_ramping_range, HPP_number], np.nan)
+ramp_thermal_mean_upward_BAL = np.full([plot_ramping_range], np.nan)
+ramp_thermal_mean_downward_BAL = np.full([plot_ramping_range], np.nan)
+ramp_hydro_mean_upward_BAL = np.full([plot_ramping_range], np.nan)
+ramp_hydro_mean_downward_BAL = np.full([plot_ramping_range], np.nan)
+
+# [loop] across user-defined range of hours for thermal power
+for r in range(plot_ramping_range):
+    
+    # [loop] across hours in selected year
+    for n in range(len(hrs_year) - r):
+        
+        # [calculate] difference between successive time steps with distance r
+        ramp_vector_thermal_BAL[n, r] = P_BAL_thermal_hourly[n + r, plot_year_multiple] - P_BAL_thermal_hourly[n, plot_year_multiple]
+    
+    # [calculate] average
+    temp_ramp_vector = ramp_vector_thermal_BAL[:, r]
+    ramp_thermal_mean_upward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector > 0)])
+    ramp_thermal_mean_downward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector < 0)])
+
+
+# [loop] across user-defined range of hours for hydropower
+for r in range(plot_ramping_range):
+    
+    # [loop] across hours in selected year
+    for n in range(len(hrs_year) - r):
+        
+        # [loop] across hydropower plants
+        for HPP in range(HPP_number):
+            
+            # [skip] iteration in case plant not operated flexibly
+            if HPP_category[HPP] == 'RoR':
+                continue
+            
+            # [calculate] difference between successive time steps with distance r
+            ramp_vector_hydro_BAL[n, r, HPP] = P_BAL_hydro_flexible_hourly[n + r, plot_year_multiple, HPP] - P_BAL_hydro_flexible_hourly[n, plot_year_multiple, HPP]
+        
+    # [calculate] average ramping for each hour across the sum of hydropower plants
+    temp_ramp_vector = np.nansum(ramp_vector_hydro_BAL[:, r, :], axis = 1)
+    ramp_hydro_mean_upward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector > 0)])
+    ramp_hydro_mean_downward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector < 0)])
+
+
+# [establish] ramping envelopes
+ramp_thermal_envelope = np.stack((ramp_thermal_mean_upward_BAL, ramp_thermal_mean_downward_BAL))
+ramp_thermal_envelope[np.isnan(ramp_thermal_envelope)] = 0
+ramp_hydro_envelope = np.stack((ramp_hydro_mean_upward_BAL, ramp_hydro_mean_downward_BAL))
+ramp_hydro_envelope[np.isnan(ramp_hydro_envelope)] = 0
+
+# [calculate] total capacity capable of ramping
+P_r_total_ramping_hydro = np.nansum(P_r_turb[np.where(np.asarray(HPP_category) != 'RoR')])
+
+# [preallocate] ramping speeds
+ramp_hydro_envelope_speed = np.full([2, plot_ramping_range], np.nan)
+ramp_thermal_envelope_speed = np.full([2, plot_ramping_range], np.nan)
+
+
+# [figure]
+# [plot] thermal and hydro ramping envelopes
+fig, (ax1, ax2) = plt.subplots(1,2)
+ax1.plot(range(plot_ramping_range), ramp_hydro_envelope[0,:], color = colour_hydro_flexible, linestyle = '--', label = ('hydro'))
+ax1.plot(range(plot_ramping_range), ramp_hydro_envelope[1,:], color = colour_hydro_flexible, linestyle = '--')
+ax1.plot(range(plot_ramping_range), ramp_thermal_envelope[0,:], color = colour_thermal, linestyle = '-.', label = ('thermal'))
+ax1.plot(range(plot_ramping_range), ramp_thermal_envelope[1,:], color = colour_thermal, linestyle = '-.')
+ax1.set_xlabel('Time (hours)')
+ax1.set_ylabel('Average ramping needs (MW)')
+
+# [loop] across hours to calculate relative ramping speed
+for r in range(1, plot_ramping_range):
+    ramp_hydro_envelope_speed[:, r] = ramp_hydro_envelope[:, r]/P_r_total_ramping_hydro/r
+    ramp_thermal_envelope_speed[:, r] = ramp_thermal_envelope[:, r]/P_r_total_thermal/r
+
+# [plot] thermal and hydro ramping envelopes per unit of time expressed as percentage of capacity
+ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_speed[0,:], color = colour_hydro_flexible, linestyle = '--')
+ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_speed[1,:], color = colour_hydro_flexible, linestyle = '--')
+ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_speed[0,:], color = colour_thermal, linestyle = '-.')
+ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_speed[1,:], color = colour_thermal, linestyle = '-.')
+ax2.set_xlabel('Time (hours)')
+ax2.set_ylabel('idem (in fraction of capacity/hr)')
+
+plt.suptitle('Ramping envelopes (year #' + str(plot_year_multiple + 1) + '), BAL')
+plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
+plt.tight_layout()
+plt.savefig("Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
