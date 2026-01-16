@@ -175,6 +175,7 @@ HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == '
 HPP_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_upstream', True, False)][0].astype(str)
 HPP_cascade_downstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_downstream', True, False)][0].astype(str)
 HPP_name_data_inflow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_inflow', True, False)][0].tolist()
+HPP_name_data_lateral_flow = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_lateral_flow', True, False)][0].tolist()
 HPP_name_data_precipitation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_precipitation', True, False)][0].tolist()
 HPP_name_data_evaporation = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_evaporation', True, False)][0].tolist()
 HPP_name_data_outflow_prescribed = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name_data_outflow_prescribed', True, False)][0].tolist()
@@ -272,6 +273,7 @@ year_calibration_end = parameters_hydropower_values[np.where(parameters_hydropow
 
 # [preallocate]
 Q_in_nat_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
+Q_in_nat_lateral_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 precipitation_flux_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 evaporation_flux_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 Q_out_stable_env_irr_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
@@ -289,6 +291,10 @@ for n in range(len(HPP_name)):
     if str(HPP_name_data_inflow[n]) != 'nan':
         Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
+    # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
+    if str(HPP_name_data_lateral_flow[n]) != 'nan':
+        Q_in_nat_lateral_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_lateral_flow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+        
     # [set by user] Precipitation flux (kg/m^2/s)
     if str(HPP_name_data_precipitation[n]) != 'nan':
         precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_data_precipitation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))

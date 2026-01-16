@@ -396,7 +396,7 @@ for HPP in range(HPP_number):
         force_cascade_outflow[HPP] = 1
         HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
         # [adapt] f_reg parameter to cascade case
-        f_reg[HPP] = f_cascade_upstream[HPP_downstream]*f_reg[HPP_downstream]
+        f_reg[HPP] = f_cascade_upstream[HPP_downstream]*f_reg[HPP_downstream]*np.nanmean(Q_in_nat_hourly[:,:,HPP_downstream])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
     
     # [check] if cascade calculation using results from upstream reservoir outflow needed
     if HPP_active[HPP] == -2 and HPP_active_save[HPP] == 1:
@@ -508,7 +508,7 @@ for HPP in range(HPP_number):
         HPP_upstream = int(np.where(HPP_cascade_downstream == HPP_name[HPP])[0])
         # [force] downstream plant to turbine outflow from upstream plant
         print('> Using outflow of', HPP_name[HPP_upstream], 'as inflow of', HPP_name[HPP])
-        Q_in_nat_hourly[:,:,HPP] = Q_CONV_out_hourly[:,:,HPP_upstream]
+        Q_in_nat_hourly[:,:,HPP] = Q_CONV_out_hourly[:,:,HPP_upstream] + Q_in_nat_lateral_hourly[:,:,HPP]
     
     # [run] simplified solution for run-of-river plants
     if HPP_category[HPP] == 'RoR':
