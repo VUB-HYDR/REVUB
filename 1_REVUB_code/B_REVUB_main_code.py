@@ -47,7 +47,6 @@ HPP_category = ['' for x in range(HPP_number)]
 HPP_index_cascade = np.full([HPP_number], np.nan)
 cascade_bool = np.full([HPP_number], 0)
 f_cascade_downstream = np.ones(shape = HPP_number)
-f_cascade_upstream = np.ones(shape = HPP_number)
 force_cascade_inflow = np.zeros(shape = HPP_number)
 force_cascade_outflow = np.zeros(shape = HPP_number)
 
@@ -376,8 +375,11 @@ for HPP in range(HPP_number):
         HPP_upstream = int(HPP_index_cascade[HPP])
         
         # [calculate] fractions representing downstream and upstream storage volume in cascade
-        f_cascade_downstream[HPP] = V_max[HPP]/(V_max[HPP] + V_max[HPP_upstream])
-        f_cascade_upstream[HPP] = V_max[HPP_upstream]/(V_max[HPP] + V_max[HPP_upstream])
+        if np.isnan(f_cascade_upstream[HPP]):
+            f_cascade_downstream[HPP] = V_max[HPP]/(V_max[HPP] + V_max[HPP_upstream])
+            f_cascade_upstream[HPP] = V_max[HPP_upstream]/(V_max[HPP] + V_max[HPP_upstream])
+        else:
+            f_cascade_downstream[HPP] = 1 - f_cascade_upstream[HPP]
         
         if year_calibration_start[HPP_upstream] != year_calibration_start[HPP] or year_calibration_end[HPP_upstream] != year_calibration_end[HPP]:
             print('> Error: calibration period between reservoirs in same cascade should match')

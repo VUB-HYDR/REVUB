@@ -192,6 +192,9 @@ c_wind_relative = 1 - c_solar_relative
 # [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
 f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
 
+# [set by user] the parameter f_cascade_upstream controls the fraction of volume changes allocated to the upper reservoir in a cascade
+f_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_cascade_upstream', True, False)][0]
+
 # [set by user] maximum head (m)
 h_max = parameters_hydropower_values[np.where(parameters_hydropower_list == 'h_max', True, False)][0]
 
