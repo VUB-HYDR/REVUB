@@ -10,7 +10,7 @@ Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
 ---
-The main objective of REVUB is to model how the operation of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services. The model can be used, for instance, in due diligence processes for power plant financing.
+The main objective of REVUB is to model how the operation and dispatch of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services. The model can be used, for instance, in due diligence processes for power plant financing.
 
 This model was first introduced in the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al. (2020; https://www.nature.com/articles/s41893-020-0539-0); hereafter referred to as "the publication". It has since been used for several more peer-reviewed publications.
 
@@ -20,7 +20,7 @@ The REVUB code simulates dedicated hydropower plant operation to provide an effe
 
 * Suitable mixes of hydro, solar and wind power to maximise load-following under user-defined constraints;
 * Reliable operating rules for hydropower reservoirs to enable this load-following across wet- and dry-year conditions;
-* Hourly to decadally resolved hydro, solar and wind power generation.
+* Hourly to decadally resolved hydro, solar and wind power generation and dispatch.
 
 # 2. Installation
 ---
@@ -65,9 +65,13 @@ This script produces figure outputs of the overall power mix of a given region/c
 
 For a user-defined ensemble of the simulated plants, which the user can set in the Excel file "plotting_settings.xlsx", the script plots overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). 
 
-The difference between hydro-VRE and this overall demand is assumed to be covered by other power sources (thermal power sources are used as default in the script). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
+The difference between hydro-VRE and this overall demand is assumed to be covered by other flexible power sources (e.g. thermal power sources or imports). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
+
+The script also provides statistics on ramping needs of hydropower plants and other flexible sources under the investigated scenarios.
 
 ## Versions
+Version 1.1.1 - January 2026
+
 Version 1.1.0 - May 2025
 
 Version 1.0.4 - April 2024
