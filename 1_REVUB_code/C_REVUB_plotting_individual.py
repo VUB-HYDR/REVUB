@@ -232,13 +232,14 @@ if Figure2_on == 1:
 # [figure]
 if Figure3_on == 1:
     # [plot] lake volume time series, monthly inflow vs. outflow
+    starting_volume = V_max[plot_HPP]*f_initial_frac[plot_HPP]
     fig, (ax1, ax2) = plt.subplots(2,1)
-    ax1.plot(f_cascade_downstream[plot_HPP]*V_CONV_series_hourly[:,plot_HPP], color = colour_CONV)
+    ax1.plot(f_cascade_downstream[plot_HPP]*(V_CONV_series_hourly[:,plot_HPP] - V_CONV_series_hourly[0,plot_HPP]) + starting_volume, color = colour_CONV)
     if calibration_only == 0:
-        ax1.plot(f_cascade_downstream[plot_HPP]*V_BAL_series_hourly[:,plot_HPP], color = colour_BAL)
+        ax1.plot(f_cascade_downstream[plot_HPP]*(V_BAL_series_hourly[:,plot_HPP] - V_BAL_series_hourly[0,plot_HPP]) + starting_volume, color = colour_BAL)
         if force_cascade_outflow[plot_HPP] == 1:
             HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[plot_HPP])[0])
-            ax1.plot(f_cascade_upstream[HPP_downstream]*V_BAL_series_hourly[:,HPP_downstream], color = colour_hydro_flexible, linestyle = 'dashed')
+            ax1.plot(f_cascade_upstream[HPP_downstream]*(V_BAL_series_hourly[:,HPP_downstream] - V_BAL_series_hourly[0,HPP_downstream]) + starting_volume, color = colour_hydro_flexible, linestyle = 'dashed')
             ax1.legend(['CONV', 'BAL', 'BAL calib.'])
         elif STOR_break[plot_HPP] == 0 and option_storage == 1:
             ax1.plot(V_STOR_series_hourly_upper[:,plot_HPP], color = colour_STOR)
