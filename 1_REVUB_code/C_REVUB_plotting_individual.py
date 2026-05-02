@@ -9,10 +9,9 @@ Created on Tue Jan 21 16:43:56 2020
 ######### REVUB plotting results #########
 ##########################################
 
-# © 2019 CIREG project
+# 2019-present
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
-# All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
+# All equation, section &c. numbers refer to the REVUB manual.
 
 import numpy as np
 import pandas as pd
@@ -36,29 +35,32 @@ parameters_plotting_release_values = np.array(parameters_plotting_release)[0:,2:
 # [set by user] select hydropower plant (by name) and year (starting count at one) for which to display results
 plot_HPP_name = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
 plot_HPP = np.where(np.array(HPP_name) == plot_HPP_name)[0][0]
-plot_year = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1
 
-# [set by user] select month of year (1 = Jan, 2 = Feb, &c.) and day of month, and number of days to display results
-plot_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_month', True, False)][0])
-plot_day_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
-plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
-
-# [set by user] select whether or not to plot RoR-component of power generation (0 = no, 1 = yes)
-plot_RoR_part = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
-
-# [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
-plot_ELCC_line = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_ELCC_line', True, False)][0])
+# [strings] string arrays containing the names and abbreviations of the different months
+months_names_full = np.array(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
+months_names_short = np.array(["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"])
+months_byyear = np.empty(shape = (months_yr,len(simulation_years)), dtype = 'object')
 
 # [set by user] select which figures to produce (0 = no, 1 = yes)
 Figure1_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure1_on', True, False)][0])
 Figure2_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure2_on', True, False)][0])
 Figure3_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure3_on', True, False)][0])
-Figure4_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure4_on', True, False)][0])
-Figure5_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure5_on', True, False)][0])
-Figure6_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure6_on', True, False)][0])
-Figure7_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure7_on', True, False)][0])
-Figure8_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure8_on', True, False)][0])
-Figure9_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure9_on', True, False)][0])
+
+# [turn off] dispatch figures in case of calibration-only run
+if calibration_only == 1:
+    Figure4_on = 0
+    Figure5_on = 0
+    Figure6_on = 0
+    Figure7_on = 0
+    Figure8_on = 0 
+    Figure9_on = 0
+else:  
+    Figure4_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure4_on', True, False)][0])
+    Figure5_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure5_on', True, False)][0])
+    Figure6_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure6_on', True, False)][0])
+    Figure7_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure7_on', True, False)][0])
+    Figure8_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure8_on', True, False)][0])
+    Figure9_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure9_on', True, False)][0])
 
 # [turn off] figures only useful for reservoir plants in case of run-of-river
 if HPP_category[plot_HPP] == 'RoR':
@@ -69,42 +71,6 @@ if HPP_category[plot_HPP] == 'RoR':
     Figure3_on = 0
     Figure7_on = 0
     Figure9_on = 0
-
-# [set by user] select months and hours of day (= o'clock) for which to show release rules
-plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
-plot_rules_month = np.array(plot_rules_month, dtype = float)
-plot_rules_month = plot_rules_month[~np.isnan(plot_rules_month)].astype(int)
-
-plot_rules_hr = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_hr', True, False)][0]
-plot_rules_hr = np.array(plot_rules_hr, dtype = float)
-plot_rules_hr = plot_rules_hr[~np.isnan(plot_rules_hr)].astype(int)
-
-# [read] vector with hours in each year
-hrs_year = range(int(hrs_byyear[plot_year]))
-
-# [identify] index of day of month to plot
-plot_day_load = np.sum(days_year[range(plot_month - 1),plot_year]) + plot_day_month - 1
-
-# [strings] string arrays containing the names and abbreviations of the different months
-months_names_full = np.array(["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"])
-months_names_short = np.array(["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"])
-months_byyear = np.empty(shape = (months_yr,len(simulation_years)), dtype = 'object')
-
-# [arrange] create string for each month-year combination in the time series
-for y in range(len(simulation_years)):
-    for m in range(months_yr):
-        months_byyear[m,y] = months_names_full[m] + str(simulation_years[y])
-
-# [arrange] create string for each day-month-year combination in the time series
-days_bymonth_byyear = np.empty(shape = (int(np.max(days_year)), months_yr,len(simulation_years)), dtype = 'object')
-for y in range(len(simulation_years)):
-    for m in range(months_yr):
-        for d in range(int(days_year[m,y])):
-            days_bymonth_byyear[d,m,y] = str(d+1) + months_names_full[m] + 'Yr' + str(y+1)
-
-days_bymonth_byyear_axis = (np.transpose(days_bymonth_byyear[:,:,plot_year])).ravel()
-days_bymonth_byyear_axis = numpy.append(days_bymonth_byyear_axis, 'NextYear')
-days_bymonth_byyear_axis = list(filter(None, days_bymonth_byyear_axis))
 
 # [colours] for plotting
 colour_nat = np.array([77, 175, 74]) / 255
@@ -316,7 +282,50 @@ if Figure3_on == 1:
 
 # [plot] BAL and STOR scenario results, in case plant deemed suitable for flexibility
 if d_min[plot_HPP] != 1 and calibration_only == 0:
+    
+    # [set by user] select year, month of year (1 = Jan, 2 = Feb, &c.), day of month, and number of days to display results
+    plot_year = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1
+    plot_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_month', True, False)][0])
+    plot_day_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
+    plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
+    
+    # [set by user] select whether or not to plot RoR-component of power generation (0 = no, 1 = yes)
+    plot_RoR_part = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
+    
+    # [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
+    plot_ELCC_line = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_ELCC_line', True, False)][0])
+    
+    # [set by user] select months and hours of day (= o'clock) for which to show release rules
+    plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
+    plot_rules_month = np.array(plot_rules_month, dtype = float)
+    plot_rules_month = plot_rules_month[~np.isnan(plot_rules_month)].astype(int)
 
+    plot_rules_hr = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_hr', True, False)][0]
+    plot_rules_hr = np.array(plot_rules_hr, dtype = float)
+    plot_rules_hr = plot_rules_hr[~np.isnan(plot_rules_hr)].astype(int)
+
+    # [read] vector with hours in each year
+    hrs_year = range(int(hrs_byyear[plot_year]))
+
+    # [identify] index of day of month to plot
+    plot_day_load = np.sum(days_year[range(plot_month - 1),plot_year]) + plot_day_month - 1
+
+    # [arrange] create string for each month-year combination in the time series
+    for y in range(len(simulation_years)):
+        for m in range(months_yr):
+            months_byyear[m,y] = months_names_full[m] + str(simulation_years[y])
+
+    # [arrange] create string for each day-month-year combination in the time series
+    days_bymonth_byyear = np.empty(shape = (int(np.max(days_year)), months_yr,len(simulation_years)), dtype = 'object')
+    for y in range(len(simulation_years)):
+        for m in range(months_yr):
+            for d in range(int(days_year[m,y])):
+                days_bymonth_byyear[d,m,y] = str(d+1) + months_names_full[m] + 'Yr' + str(y+1)
+
+    days_bymonth_byyear_axis = (np.transpose(days_bymonth_byyear[:,:,plot_year])).ravel()
+    days_bymonth_byyear_axis = numpy.append(days_bymonth_byyear_axis, 'NextYear')
+    days_bymonth_byyear_axis = list(filter(None, days_bymonth_byyear_axis))
+    
     # [figure] (cf. Fig. S4a, S9a)
     if Figure4_on == 1:
         # [plot] average monthly power mix in user-selected year

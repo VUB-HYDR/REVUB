@@ -9,10 +9,9 @@ Created on Thu Jan 16 08:35:12 2020
 #### REVUB initialise ####
 ##########################
 
-# © 2019 CIREG project
+# 2019-present
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
-# All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
+# All equation, section &c. numbers refer to the REVUB manual.
 
 import numpy as np
 import pandas as pd
@@ -386,7 +385,7 @@ temp_length_array = np.zeros(HPP_number)
 for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
-    if str(HPP_name_data_load[n]) != 'nan':
+    if str(HPP_name_data_bathymetry[n]) != 'nan':
         temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
         temp_length_array[n] = len(temp)
     else:
@@ -404,7 +403,7 @@ for n in range(len(HPP_name)):
     
     # [set by user] head-area-volume curves used during simulations
     
-    if str(HPP_name_data_load[n]) != 'nan':
+    if str(HPP_name_data_bathymetry[n]) != 'nan':
         temp = pd.read_excel (filename_bathymetry, sheet_name = HPP_name_data_bathymetry[n], header = None)
         
         # [extract] volume (m^3)

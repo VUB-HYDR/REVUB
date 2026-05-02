@@ -9,10 +9,9 @@ Created on Thu Jan 16 12:12:57 2020
 ######### REVUB core code #########
 ###################################
 
-# © 2019 CIREG project
+# 2019-present
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper 'Smart renewable electricity portfolios in West Africa' by Sterl et al.
-# All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
+# All equation, section &c. numbers refer to the REVUB manual.
 
 import numpy as np
 import pandas as pd
@@ -543,6 +542,7 @@ for HPP in range(HPP_number):
     
     # [display] CONV simulation underway
     print('(i) simulating CONV')
+    print('f_reg =', np.min([np.around(f_reg[HPP], 2), 1]))
     
     # [loop] across all simulation years
     for y in range(len(simulation_years)):
@@ -910,7 +910,7 @@ for HPP in range(HPP_number):
                                     Q_BAL_flexible_hourly[n,y,HPP] = 0
                                 
                                 # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                                P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
+                                P_BAL_hydro_RoR_hourly[n,y,HPP] = np.max([np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]]), 0])
                                 
                                 # [calculate] spilling component in m^3/s (eq. S19)
                                 if V_BAL_hourly[n,y,HPP]/V_max_cumul[HPP] < f_spill[HPP]:
@@ -1199,7 +1199,7 @@ for HPP in range(HPP_number):
                             Q_BAL_flexible_hourly[n,y,HPP] = 0
                         
                         # [calculate] hydropower generation from RoR flow component in MW (eq. S32)
-                        P_BAL_hydro_RoR_hourly[n,y,HPP] = np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]])
+                        P_BAL_hydro_RoR_hourly[n,y,HPP] = np.max([np.min([np.min([Q_in_RoR_hourly[n,y,HPP], np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP] - Q_BAL_flexible_hourly[n,y,HPP]]) ])*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] - P_BAL_hydro_flexible_hourly[n,y,HPP]]), 0])
                         
                         # [calculate] spilling component in m^3/s (eq. S19)
                         if V_BAL_hourly[n,y,HPP]/V_max_cumul[HPP] < f_spill[HPP]:

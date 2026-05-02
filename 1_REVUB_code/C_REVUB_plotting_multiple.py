@@ -9,10 +9,9 @@ Created on Tue Jan 21 16:43:56 2020
 ######### REVUB plotting results #########
 ##########################################
 
-# © 2019 CIREG project
+# 2019-present
 # Author: Sebastian Sterl, Vrije Universiteit Brussel
-# This code accompanies the paper "Smart renewable electricity portfolios in West Africa" by Sterl et al.
-# All equation, section &c. numbers refer to that paper's Supplementary Information or equivalently the REVUB manual.
+# All equation, section &c. numbers refer to the REVUB manual.
 
 import numpy as np
 import pandas as pd
