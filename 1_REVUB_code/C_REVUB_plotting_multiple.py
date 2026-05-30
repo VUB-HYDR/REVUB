@@ -23,11 +23,8 @@ warnings.filterwarnings(action = 'ignore', message = 'Mean of empty slice')
 from matplotlib.ticker import PercentFormatter
 
 
-# import Excel file with user specifications on plotting
-filename_plotting = 'plotting_settings.xlsx'
-
 # [load] plotting parameters
-parameters_plotting_multiple = pd.read_excel (filename_plotting, sheet_name = 'Plot power output (multi HPP)', header = None)
+parameters_plotting_multiple = pd.read_excel (filename_parameters, sheet_name = 'Plot power output (multi HPP)', header = None)
 parameters_plotting_multiple_list = np.array(parameters_plotting_multiple[0][0:].tolist())
 parameters_plotting_multiple_values = np.array(parameters_plotting_multiple)[0:,1:]
 

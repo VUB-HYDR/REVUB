@@ -20,20 +20,13 @@ import matplotlib.pyplot as plt
 import numpy.matlib
 
 
-# import Excel file with user specifications on plotting
-filename_plotting = 'plotting_settings.xlsx'
-
 # [load] plotting parameters
-parameters_plotting_single = pd.read_excel (filename_plotting, sheet_name = 'Plot power output (single HPP)', header = None)
+parameters_plotting_single = pd.read_excel (filename_parameters, sheet_name = 'Plot power output (single HPP)', header = None)
 parameters_plotting_single_list = np.array(parameters_plotting_single[0][0:].tolist())
-parameters_plotting_single_values = np.array(parameters_plotting_single[1][0:].tolist())
-
-parameters_plotting_release = pd.read_excel (filename_plotting, sheet_name = 'Plot release rules (single HPP)', header = None)
-parameters_plotting_release_list = np.array(parameters_plotting_release[0][0:].tolist())
-parameters_plotting_release_values = np.array(parameters_plotting_release)[0:,2:]
+parameters_plotting_single_values = np.array(parameters_plotting_single)[0:,1:]
 
 # [set by user] select hydropower plant (by name) and year (starting count at one) for which to display results
-plot_HPP_name = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
+plot_HPP_name = parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
 plot_HPP = np.where(np.array(HPP_name) == plot_HPP_name)[0][0]
 
 # [strings] string arrays containing the names and abbreviations of the different months
@@ -42,9 +35,9 @@ months_names_short = np.array(["J", "F", "M", "A", "M", "J", "J", "A", "S", "O",
 months_byyear = np.empty(shape = (months_yr,len(simulation_years)), dtype = 'object')
 
 # [set by user] select which figures to produce (0 = no, 1 = yes)
-Figure1_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure1_on', True, False)][0])
-Figure2_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure2_on', True, False)][0])
-Figure3_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure3_on', True, False)][0])
+Figure1_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure1_on', True, False)][0])
+Figure2_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure2_on', True, False)][0])
+Figure3_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure3_on', True, False)][0])
 
 # [turn off] dispatch figures in case of calibration-only run
 if calibration_only == 1:
@@ -55,12 +48,12 @@ if calibration_only == 1:
     Figure8_on = 0 
     Figure9_on = 0
 else:  
-    Figure4_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure4_on', True, False)][0])
-    Figure5_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure5_on', True, False)][0])
-    Figure6_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure6_on', True, False)][0])
-    Figure7_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure7_on', True, False)][0])
-    Figure8_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure8_on', True, False)][0])
-    Figure9_on = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'Figure9_on', True, False)][0])
+    Figure4_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure4_on', True, False)][0])
+    Figure5_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure5_on', True, False)][0])
+    Figure6_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure6_on', True, False)][0])
+    Figure7_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure7_on', True, False)][0])
+    Figure8_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure8_on', True, False)][0])
+    Figure9_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure9_on', True, False)][0])
 
 # [turn off] figures only useful for reservoir plants in case of run-of-river
 if HPP_category[plot_HPP] == 'RoR':
@@ -285,23 +278,23 @@ if Figure3_on == 1:
 if d_min[plot_HPP] != 1 and calibration_only == 0:
     
     # [set by user] select year, month of year (1 = Jan, 2 = Feb, &c.), day of month, and number of days to display results
-    plot_year = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1
-    plot_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_month', True, False)][0])
-    plot_day_month = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
-    plot_num_days = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
+    plot_year = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_year', True, False)][0]) - 1
+    plot_month = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_month', True, False)][0])
+    plot_day_month = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_day_month', True, False)][0])
+    plot_num_days = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_num_days', True, False)][0])
     
     # [set by user] select whether or not to plot RoR-component of power generation (0 = no, 1 = yes)
-    plot_RoR_part = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
+    plot_RoR_part = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_RoR_part', True, False)][0])
     
     # [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
-    plot_ELCC_line = int(parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_ELCC_line', True, False)][0])
+    plot_ELCC_line = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_ELCC_line', True, False)][0])
     
     # [set by user] select months and hours of day (= o'clock) for which to show release rules
-    plot_rules_month = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_month', True, False)][0]
+    plot_rules_month = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_rules_month', True, False)][0]
     plot_rules_month = np.array(plot_rules_month, dtype = float)
     plot_rules_month = plot_rules_month[~np.isnan(plot_rules_month)].astype(int)
 
-    plot_rules_hr = parameters_plotting_release_values[np.where(parameters_plotting_release_list == 'plot_rules_hr', True, False)][0]
+    plot_rules_hr = parameters_plotting_single_values[np.where(parameters_plotting_single_list == 'plot_rules_hr', True, False)][0]
     plot_rules_hr = np.array(plot_rules_hr, dtype = float)
     plot_rules_hr = plot_rules_hr[~np.isnan(plot_rules_hr)].astype(int)
 
