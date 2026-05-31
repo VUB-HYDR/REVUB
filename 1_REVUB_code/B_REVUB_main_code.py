@@ -882,25 +882,25 @@ for HPP in range(HPP_number):
                                 
                                 # [check] stable outflow is reduced to zero in case of droughts
                                 Q_BAL_stable_hourly[n,y,HPP] = Q_BAL_stable_hourly[n,y,HPP] * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
+                                                                
+                                # [calculate] stable hydropower generation in MW (eq. S15)
+                                Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
+                                P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
                                 
                                 # [calculate] flexible hydropower generation in MW (eq. S16 & S17)
                                 if P_BAL_difference_hourly[n,y,HPP] < 0:
                                     Q_BAL_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP]]) * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
                                     # [calculate] if ramping up
                                     if temp_sgn_turb == 1:
-                                        P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                        P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                                     # [calculate] if ramping down
                                     elif temp_sgn_turb == -1:
-                                        P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                        P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                                     
                                 # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                                 if P_BAL_difference_hourly[n,y,HPP] >= 0:
                                     P_BAL_hydro_flexible_hourly[n,y,HPP] = 0
-                                    
-                                # [calculate] stable hydropower generation in MW (eq. S15)
-                                Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                                P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
-                                                                
+                              
                                 # [calculate] flexible turbined flow in m^3/s (eq. S18)
                                 if h_BAL_hourly[n,y,HPP] > 0:
                                     Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP])*10**6
@@ -1172,24 +1172,25 @@ for HPP in range(HPP_number):
                         # [check] stable outflow is reduced to zero in case of droughts
                         Q_BAL_stable_hourly[n,y,HPP] = Q_BAL_stable_hourly[n,y,HPP] * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
                         
+                        # [calculate] stable hydropower generation in MW (eq. S15)
+                        Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
+                        P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
+                                                
                         # [calculate] flexible hydropower generation in MW (eq. S16 & S17)
                         if P_BAL_difference_hourly[n,y,HPP] < 0:
                             Q_BAL_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_BAL_stable_hourly[n,y,HPP]]) * hydro_BAL_curtailment_factor_hourly[n,y,HPP]
                             # [calculate] if ramping up
                             if temp_sgn_turb == 1:
-                                P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.min([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                             # [calculate] if ramping down
                             elif temp_sgn_turb == -1:
-                                P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]) ])
+                                P_BAL_hydro_flexible_hourly[n,y,HPP] = np.min([Q_BAL_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6, np.max([np.abs(P_BAL_difference_hourly[n,y,HPP]), P_BAL_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                             
                         # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                         if P_BAL_difference_hourly[n,y,HPP] >= 0:
                             P_BAL_hydro_flexible_hourly[n,y,HPP] = 0
                             
-                        # [calculate] stable hydropower generation in MW (eq. S15)
-                        Q_pot_turb_BAL = np.min([Q_BAL_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                        P_BAL_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_BAL*eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP]/10**6
-                        
+
                         # [calculate] flexible turbined flow in m^3/s (eq. S18)
                         if h_BAL_hourly[n,y,HPP] > 0:
                             Q_BAL_flexible_hourly[n,y,HPP] = P_BAL_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_BAL_hourly[n,y,HPP])*10**6
@@ -1563,15 +1564,19 @@ for HPP in range(HPP_number):
                                     # [check] stable outflow is reduced to zero in case of droughts
                                     Q_STOR_stable_hourly[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                                     
+                                    # [calculate] stable hydropower generation in MW (eq. S15)
+                                    Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
+                                    P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
+                                    
                                     # [calculate] flexible hydropower generation in MW (eq. S16, S17)
                                     if P_STOR_difference_hourly[n,y,HPP] < 0:
                                         Q_STOR_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_STOR_stable_hourly[n,y,HPP]]) * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                                         # [calculate] if ramping up
                                         if temp_sgn_turb == 1:
-                                            P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                            P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_STOR_hydro_stable_hourly[n,y,HPP] ])
                                         # [calculate] if ramping down
                                         elif temp_sgn_turb == -1:
-                                            P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                            P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_STOR_hydro_stable_hourly[n,y,HPP] ])
                                         # [calculate] if P_d < 0 pumping is not performed (eq. S37)
                                         P_STOR_pump_hourly[n,y,HPP] = 0
                                     
@@ -1590,10 +1595,6 @@ for HPP in range(HPP_number):
                                         # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                                         P_STOR_hydro_flexible_hourly[n,y,HPP] = 0
                                         
-                                    # [calculate] stable hydropower generation in MW (eq. S15)
-                                    Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                                    P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
-        
                                     # [calculate] flexible turbined flow (eq. S18) and pumped flow (eq. 39) in m^3/s
                                     if h_STOR_hourly[n,y,HPP] > 0:
                                         Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP])*10**6
@@ -1878,15 +1879,19 @@ for HPP in range(HPP_number):
                             # [check] stable outflow is reduced to zero in case of droughts
                             Q_STOR_stable_hourly[n,y,HPP] = Q_STOR_stable_hourly[n,y,HPP] * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                             
+                            # [calculate] stable hydropower generation in MW (eq. S15)
+                            Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
+                            P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
+                            
                             # [calculate] flexible hydropower generation in MW (eq. S16, S17)
                             if P_STOR_difference_hourly[n,y,HPP] < 0:
                                 Q_STOR_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_STOR_stable_hourly[n,y,HPP]]) * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                                 # [calculate] if ramping up
                                 if temp_sgn_turb == 1:
-                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                                 # [calculate] if ramping down
                                 elif temp_sgn_turb == -1:
-                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]) ])
+                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
                                 # [calculate] if P_d < 0 pumping is not performed (eq. S37)
                                 P_STOR_pump_hourly[n,y,HPP] = 0
                             
@@ -1905,10 +1910,6 @@ for HPP in range(HPP_number):
                                 # [check] flexible hydropower generation is zero when P_d >= 0 (eq. S16)
                                 P_STOR_hydro_flexible_hourly[n,y,HPP] = 0
                                 
-                            # [calculate] stable hydropower generation in MW (eq. S15)
-                            Q_pot_turb_STOR = np.min([Q_STOR_stable_hourly[n,y,HPP], Q_max_turb[HPP]])
-                            P_STOR_hydro_stable_hourly[n,y,HPP] = Q_pot_turb_STOR*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6
-    
                             # [calculate] flexible turbined flow (eq. S18) and pumped flow (eq. 39) in m^3/s
                             if h_STOR_hourly[n,y,HPP] > 0:
                                 Q_STOR_flexible_hourly[n,y,HPP] = P_STOR_hydro_flexible_hourly[n,y,HPP]/(eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP])*10**6
