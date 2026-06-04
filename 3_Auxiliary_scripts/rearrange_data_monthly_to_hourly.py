@@ -40,7 +40,7 @@ hours_month_leap = dayhrs*days_leap
 no_years = int(len(data_for_conversion)/months_yr)
 
 # [preallocate] matrix for converted output at hourly scale
-output_hourly_byyear = np.full([np.sum(days_leap)*dayhrs, no_years, series_number], np.nan)
+output_hourly_byyear = np.full([series_number, np.sum(days_leap)*dayhrs, no_years], np.nan)
 
 # [loop] over the selected time series to parse monthly to hourly
 
@@ -66,9 +66,9 @@ for q in range(series_number):
         
         if (year/4).is_integer():
             for m in range(months_yr):
-                output_hourly_byyear[int(positions_month_leap[m]) : int(positions_month_leap[m+1]), y, q] = data_for_conversion[y*months_yr + m, q]
+                output_hourly_byyear[q, int(positions_month_leap[m]) : int(positions_month_leap[m+1]), y] = data_for_conversion[y*months_yr + m, q]
         else:
             for m in range(months_yr):
-                output_hourly_byyear[int(positions_month[m]) : int(positions_month[m+1]), y, q] = data_for_conversion[y*months_yr + m, q]
+                output_hourly_byyear[q, int(positions_month[m]) : int(positions_month[m+1]), y] = data_for_conversion[y*months_yr + m, q]
     
 print('open array "output_hourly_byyear" from workspace to access parsed data')
