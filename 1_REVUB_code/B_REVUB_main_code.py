@@ -515,8 +515,8 @@ for HPP in range(HPP_number):
     if HPP_category[HPP] == 'RoR':
         print('> Simulating', HPP_name[HPP], 'as run-of-river plant')
         Q_CONV_out_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP]
-        P_CONV_hydro_RoR_hourly[:,:,HPP] = np.fmin(np.fmin(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
-        P_BAL_hydro_RoR_hourly[:,:,HPP] = np.fmin(np.fmin(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
+        P_CONV_hydro_RoR_hourly[:,:,HPP] = np.minimum(np.minimum(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
+        P_BAL_hydro_RoR_hourly[:,:,HPP] = np.minimum(np.minimum(Q_in_nat_hourly[:,:,HPP], Q_max_turb[HPP])*eta_turb[HPP]*rho*g*h_max[HPP]/10**6, P_r_turb[HPP])
         P_CONV_hydro_stable_hourly[:,:,HPP] = 0
         P_BAL_hydro_stable_hourly[:,:,HPP] = 0
         P_BAL_hydro_flexible_hourly[:,:,HPP] = 0

@@ -49,6 +49,9 @@ plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(p
 # [set by user] select whether or not to plot ELCC (0 = no, 1 = yes)
 plot_ELCC_line_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ELCC_line_multiple', True, False)][0])
 
+# [set by user] select whether to produce output tables
+tables_on_multiple = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'tables_on_multiple', True, False)][0]
+
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0]
 P_total_av_series = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'P_total_av_series', True, False)][0].astype(float)
@@ -284,7 +287,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
 ##### CALCULATE NEEDED RAMPING FROM HYDRO AND NON-HYDRO #####
 
 # [import] range of hours for calculating ramping envelopes
-plot_ramping_range = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ramping_range', True, False)][0])
+plot_ramping_range = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ramping_range', True, False)][0]) + 1
 
 # [preallocate] ramping needs
 ramp_vector_thermal_BAL = np.full([int(np.max(positions)), plot_ramping_range], np.nan)
@@ -372,3 +375,47 @@ plt.suptitle('Ramping envelopes (year #' + str(plot_year_multiple + 1) + '), BAL
 plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
 plt.tight_layout()
 plt.savefig("Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
+
+
+# [output] tables with time series
+if tables_on_multiple == 1 and calibration_only == 0:
+    
+    # [set] output filename
+    output_filename_multiple = "output_total_dispatch.xlsx"
+    
+    # [parse] run-of-river hydropower component (MW)
+    with pd.ExcelWriter(output_filename_multiple) as writer:
+        pd.DataFrame(np.sum(P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_RoR (MW)", index = False, header = False)
+    
+    # [parse] stable hydropower component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+        pd.DataFrame(np.sum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW)", index = False, header = False)
+    
+    # [parse] flexible hydropower component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(np.sum(P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW)", index = False, header = False)
+    
+    # [parse] solar component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(np.sum(P_BAL_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW)", index = False, header = False)
+    
+    # [parse] wind component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(np.sum(P_BAL_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW)", index = False, header = False)
+    
+    # [parse] thermal/imports component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(P_BAL_thermal_hourly[:,:]).to_excel(writer, sheet_name = "thermal or imports (MW)", index = False, header = False)
+    
+    # [parse] unsatisfied component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(P_BAL_unsatisfied_hourly[:,:]).to_excel(writer, sheet_name = "unsatisfied (MW)", index = False, header = False)
+    
+    # [parse] curtailed/export component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(P_BAL_curtailed_hourly[:,:]).to_excel(writer, sheet_name = "curtailed or exports (MW)", index = False, header = False)
+    
+    # [parse] curtailed/export component (MW)
+    with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(P_total_hourly[:,:]).to_excel(writer, sheet_name = "load (MW)", index = False, header = False)
+    

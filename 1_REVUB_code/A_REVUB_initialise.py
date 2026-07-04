@@ -21,7 +21,7 @@ import numbers as nb
 # %% pre.0) Read Excel files with inputs
 
 # filename of Excel sheets with collected data
-filename_parameters = 'parameters_simulation.xlsx'
+filename_parameters = 'control_file.xlsx'
 filename_bathymetry = 'data_bathymetry.xlsx'
 filename_CF_solar = 'data_CF_solar.xlsx'
 filename_CF_wind = 'data_CF_wind.xlsx'

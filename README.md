@@ -54,7 +54,7 @@ In the training dataset, the user learns how to run this code after having succe
  
 * **C_REVUB_plotting_individual**
 
-This script produces figure outputs for the individually simulated plants, chosen by the user from the master file.
+This script produces figure and table outputs for the individually simulated plants, chosen by the user from the master file.
 
 The figures include various time series and statistical charts on - among other things - reservoir dynamics (drawdown and refilling) without and with hydro-VRE hybridisation, electricity generation of the hydro-VRE complex from hourly to seasonal and multianual scales, and the corresponding hydropower plant operation (rule curves, turbine activity, mode of operation).
 
@@ -63,15 +63,17 @@ In the training dataset, the user learns how to produce meaningful figures using
 
 * **C_REVUB_plotting_multiple**
 
-This script produces figure outputs of the overall power mix of a given region/country/grid. 
+This script produces figure and table outputs of the overall power mix of a given region/country/grid. 
 
-For a user-defined ensemble of the simulated plants, which the user can set in the master file, the script plots overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). 
+For a user-defined ensemble of the simulated plants, which the user can set in the master file, the script aggregates overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). 
 
 The difference between hydro-VRE and this overall demand is assumed to be covered by other flexible power sources (e.g. thermal power sources or imports). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 
 The script also provides statistics on ramping needs of hydropower plants and other flexible sources under the investigated scenarios.
 
 ## Versions
+Version 1.2.0 - July 2026
+
 Version 1.1.1 - January 2026
 
 Version 1.1.0 - May 2025

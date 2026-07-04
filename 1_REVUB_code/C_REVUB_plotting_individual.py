@@ -39,6 +39,9 @@ Figure1_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plot
 Figure2_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure2_on', True, False)][0])
 Figure3_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure3_on', True, False)][0])
 
+# [set by user] select whether to produce output tables
+tables_on = parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'tables_on', True, False)][0]
+
 # [turn off] dispatch figures in case of calibration-only run
 if calibration_only == 1:
     Figure4_on = 0
@@ -593,3 +596,71 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Fraction of time')
         plt.title('Operational regime (BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
+       
+        
+# [output] tables with time series for calibration run
+if tables_on == 1 and calibration_only == 1:
+        
+    # [set] output filename
+    output_filename_calibration = "output_" + plot_HPP_name + "_calibration.xlsx"
+    
+    # [parse] run-of-river hydropower component (MW)
+    with pd.ExcelWriter(output_filename_calibration) as writer:
+        pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "calibration volume (m^3)", index = False, header = False)
+    
+    with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
+        pd.DataFrame(h_CONV_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "calibration head (m)", index = False, header = False)
+        
+    
+# [output] tables with time series for dispatch run
+if tables_on == 1 and calibration_only == 0:
+    
+    # [set] output filename
+    if HPP_category[plot_HPP] != 'RoR':
+        output_filename_dispatch = "output_" + plot_HPP_name + "_dispatch.xlsx"
+    if HPP_category[plot_HPP] == 'RoR':
+        output_filename_dispatch = "output_" + plot_HPP_name + "_RoR.xlsx"
+    
+    # [parse] run-of-river hydropower component (MW)
+    with pd.ExcelWriter(output_filename_dispatch) as writer:
+        pd.DataFrame(P_BAL_hydro_RoR_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_RoR (MW)", index = False, header = False)
+    
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] stable hydropower component (MW)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(P_BAL_hydro_stable_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_stable (MW)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] flexible hydropower component (MW)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(P_BAL_hydro_flexible_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = " hydro_flexible (MW)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':    
+        # [parse] solar component (MW)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(P_BAL_solar_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "solar (MW)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] wind component (MW)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(P_BAL_wind_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "wind (MW)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] ELCC component (MW)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(L_followed_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "ELCC (MW)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] lake volume (m^3)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_BAL_hourly[:,:,plot_HPP] - V_BAL_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3)", index = False, header = False)
+        
+    if HPP_category[plot_HPP] != 'RoR':
+        # [parse] head drop (m)
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(h_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m)", index = False, header = False)
+    
+    if HPP_category[plot_HPP] != 'RoR':
+        with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(Q_BAL_out_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "outflow (m^3 s^-1)", index = False, header = False)
+            
