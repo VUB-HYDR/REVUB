@@ -1746,7 +1746,7 @@ for HPP in range(HPP_number):
                 ###############################################################
                 
                 # [display]
-                print('(v) found optimum STOR solution at f_opt_BAL =', np.around(f_demand_opt_STOR, 2), '- saving all variables')
+                print('(v) found optimum STOR solution at f_opt_STOR =', np.around(f_demand_opt_STOR, 2), '- saving all variables')
                 
                 # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
                 convergence_test_STOR = np.zeros(shape = (X_max))
@@ -2085,7 +2085,7 @@ for HPP in range(HPP_number):
                     print('> Warning: STOR operation may fail in dry periods with failure rate =', np.around(100*fraction_outage_STOR[HPP],2), '%. To improve, try reducing f_reg =', np.min([np.around(f_reg[HPP], 2), 1]), 'and/or set prevent_droughts_increase = 1.')
                     
                 # [calculate] percentage of flow in which this operation leads to spilling
-                fraction_overflow_STOR[HPP] = np.nanmean(Q_STOR_spill_hourly[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
+                fraction_overflow_STOR[HPP] = np.nanmean(Q_STOR_spill_hourly_upper[:,:,HPP])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
                     
                 if fraction_overflow_STOR[HPP] > 0:
                     print('> Note: Average spilling in STOR equal to', np.around(100*fraction_overflow_STOR[HPP],2), '% of average inflow.')

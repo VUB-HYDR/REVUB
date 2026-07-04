@@ -30,7 +30,7 @@ The most recent version of the REVUB model was written for Python 3.9.
 
 No specific packages are needed except for the regular *numpy*, *pandas*, and *matplotlib*.
 
-A training dataset, allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in the folder https://github.com/VUB-HYDR/REVUB/tree/master/5_Training_dataset.
+A training dataset, allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES) in the folder https://github.com/VUB-HYDR/REVUB/tree/master/5_Training_dataset.
 
 # 3. Tool's structure
 ---
@@ -42,7 +42,7 @@ The code is divided into four scripts: one for initialisation (A), one containin
 
 This script initialises the data needed for a simulation to run.
 
-The script is controlled by a "master file" in Excel (*parameters_simulation.xlsx*) where the user controls overall modelling parameters, and reads in several Excel files with tabulated time series and other data (*data_xxx.xlsx*). 
+The script is controlled by a "control file" in Excel (*control_file.xlsx*) where the user controls overall modelling parameters, and reads in several Excel files with tabulated time series and other data (*data_xxx.xlsx*). 
 
 In the training dataset, the user learns how to work with these files. 
 
@@ -54,7 +54,7 @@ In the training dataset, the user learns how to run this code after having succe
  
 * **C_REVUB_plotting_individual**
 
-This script produces figure and table outputs for the individually simulated plants, chosen by the user from the master file.
+This script produces figure and table outputs for the individually simulated plants, chosen by the user from the control file.
 
 The figures include various time series and statistical charts on - among other things - reservoir dynamics (drawdown and refilling) without and with hydro-VRE hybridisation, electricity generation of the hydro-VRE complex from hourly to seasonal and multianual scales, and the corresponding hydropower plant operation (rule curves, turbine activity, mode of operation).
 
@@ -65,7 +65,7 @@ In the training dataset, the user learns how to produce meaningful figures using
 
 This script produces figure and table outputs of the overall power mix of a given region/country/grid. 
 
-For a user-defined ensemble of the simulated plants, which the user can set in the master file, the script aggregates overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). 
+For a user-defined ensemble of the simulated plants, which the user can set in the control file, the script aggregates overall hydro-solar-wind power generation from this ensemble at hourly, seasonal and multiannual time scales, and compares it to a user-set overall hourly power demand curve (representing overall demand in the country/region/grid). 
 
 The difference between hydro-VRE and this overall demand is assumed to be covered by other flexible power sources (e.g. thermal power sources or imports). Thus, this script can be used to provide insights on the overall power mix of a country/region/grid upon implementing hydro-VRE complementary operation.
 

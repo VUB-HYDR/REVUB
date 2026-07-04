@@ -238,7 +238,7 @@ if Figure3_on == 1:
             ax1.plot(f_cascade_upstream[HPP_downstream]*(V_BAL_series_hourly[:,HPP_downstream] - V_BAL_series_hourly[0,HPP_downstream]) + starting_volume, color = colour_hydro_flexible, linestyle = 'dashed')
             ax1.legend(['CONV', 'BAL', 'BAL calib.'])
         elif STOR_break[plot_HPP] == 0 and option_storage == 1:
-            ax1.plot(V_STOR_series_hourly_upper[:,plot_HPP], color = colour_STOR)
+            ax1.plot(f_cascade_downstream[plot_HPP]*(V_STOR_series_hourly_upper[:,plot_HPP] - V_STOR_series_hourly_upper[0,plot_HPP]) + starting_volume, color = colour_STOR)
             ax1.legend(['CONV', 'BAL', 'STOR'])
         else:
             ax1.legend(['CONV', 'BAL'])
@@ -384,7 +384,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             # [plot] average monthly power mix in user-selected year
             fig = plt.figure()
             area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_pump_STOR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
-            labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored VRE']
+            labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored']
             labels_load = 'ELCC'
             plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
             if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
@@ -404,7 +404,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[3], bottom = np.sum(E_generated_STOR_bymonth_sum[0:3], axis = 0), label = 'Solar power', color = colour_solar)
-            plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
+            plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[4], bottom = np.sum(E_generated_STOR_bymonth_sum[0:4], axis = 0), label = 'Stored', color = colour_hydro_pumped)
             if plot_ELCC_line == 1: plt.plot(np.array(range(len(simulation_years))), ELCC_STOR_yearly[:,plot_HPP]/10**3, label = 'ELCC', color = 'black', linewidth = 3)
             plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
             plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
@@ -606,10 +606,10 @@ if tables_on == 1 and calibration_only == 1:
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_calibration) as writer:
-        pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "calibration volume (m^3)", index = False, header = False)
+        pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) CONV", index = False, header = False)
     
     with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(h_CONV_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "calibration head (m)", index = False, header = False)
+        pd.DataFrame(h_CONV_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m) CONV", index = False, header = False)
         
     
 # [output] tables with time series for dispatch run
@@ -623,44 +623,82 @@ if tables_on == 1 and calibration_only == 0:
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_dispatch) as writer:
-        pd.DataFrame(P_BAL_hydro_RoR_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_RoR (MW)", index = False, header = False)
+        pd.DataFrame(P_BAL_hydro_RoR_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_RoR (MW) BAL", index = False, header = False)
     
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] stable hydropower component (MW)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(P_BAL_hydro_stable_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_stable (MW)", index = False, header = False)
+            pd.DataFrame(P_BAL_hydro_stable_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_stable (MW) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(P_STOR_hydro_stable_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_stable (MW) STOR", index = False, header = False)
         
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] flexible hydropower component (MW)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(P_BAL_hydro_flexible_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = " hydro_flexible (MW)", index = False, header = False)
+            pd.DataFrame(P_BAL_hydro_flexible_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = " hydro_flexible (MW) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(P_STOR_hydro_flexible_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro_flexible (MW) STOR", index = False, header = False)
         
     if HPP_category[plot_HPP] != 'RoR':    
         # [parse] solar component (MW)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(P_BAL_solar_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "solar (MW)", index = False, header = False)
+            pd.DataFrame(P_BAL_solar_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "solar (MW) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(P_STOR_solar_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "solar (MW) STOR", index = False, header = False) 
         
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] wind component (MW)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(P_BAL_wind_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "wind (MW)", index = False, header = False)
+            pd.DataFrame(P_BAL_wind_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "wind (MW) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(P_STOR_wind_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "wind (MW) STOR", index = False, header = False) 
+    
+    if STOR_break[HPP] == 0:
+        # [parse] pumping power (MW)
+       with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+           pd.DataFrame(P_STOR_pump_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "hydro pumped (MW) STOR", index = False, header = False)
         
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] ELCC component (MW)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(L_followed_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "ELCC (MW)", index = False, header = False)
+            pd.DataFrame(L_followed_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "ELCC (MW) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(L_followed_STOR_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "ELCC (MW) STOR", index = False, header = False) 
         
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] lake volume (m^3)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_BAL_hourly[:,:,plot_HPP] - V_BAL_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3)", index = False, header = False)
-        
+            pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_BAL_hourly[:,:,plot_HPP] - V_BAL_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_STOR_hourly_upper[:,:,plot_HPP] - V_STOR_hourly_upper[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) STOR", index = False, header = False) 
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(V_STOR_hourly_lower[:,:,plot_HPP]).to_excel(writer, sheet_name = "volume lower (m^3) STOR", index = False, header = False)
+               
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] head drop (m)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(h_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m)", index = False, header = False)
-    
+            pd.DataFrame(h_BAL_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(h_STOR_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m) STOR", index = False, header = False) 
+        
     if HPP_category[plot_HPP] != 'RoR':
+        # [parse] outflow (m^3/s)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(Q_BAL_out_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "outflow (m^3 s^-1)", index = False, header = False)
-            
+            pd.DataFrame(Q_BAL_out_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "outflow (m^3 s^-1) BAL", index = False, header = False)
+        if STOR_break[HPP] == 0:
+           with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+               pd.DataFrame(Q_STOR_out_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "outflow (m^3 s^-1) STOR", index = False, header = False) 
+    
+    if STOR_break[HPP] == 0:
+        # [parse] pumped flow into upper reservoir (m^3/s)
+       with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
+           pd.DataFrame(Q_STOR_pump_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "pumped flow (m^3 s^-1) STOR", index = False, header = False)
+        

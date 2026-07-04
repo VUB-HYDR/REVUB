@@ -229,9 +229,9 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     area_mix_STOR_bymonth = [np.nansum(E_hydro_STOR_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_STOR_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_STOR_bymonth[:,plot_year_multiple], E_unsatisfied_STOR_bymonth[:,plot_year_multiple], -1*E_curtailed_STOR_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
     labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal/imports', 'Unsatisfied', 'Curtailed/exports']
     plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
-    plt.fill_between(np.array(range(months_yr)), -1*np.nansum(E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'Stored VRE', facecolor = colour_hydro_pumped)
+    plt.fill_between(np.array(range(months_yr)), -1*np.nansum(E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'Stored', facecolor = colour_hydro_pumped)
     plt.plot(np.array(range(months_yr)), E_total_bymonth[:,plot_year_multiple]/days_year[:,plot_year_multiple]*10**3/hrs_day, label = 'Total load', color = 'black', linewidth = 3)
-    plt.plot(np.array(range(months_yr)), np.nansum(ELCC_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+    if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(months_yr)), np.nansum(ELCC_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(range(months_yr)), np.zeros(months_yr), color = 'black', linewidth = 1)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
@@ -252,9 +252,9 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[5], bottom = np.sum(E_generated_STOR_bymonth_sum[0:5], axis = 0), label = 'Thermal/imports', color = colour_thermal)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[6], bottom = np.sum(E_generated_STOR_bymonth_sum[0:6], axis = 0), label = 'Unsatisfied', color = colour_unsatisfied)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[7], bottom = np.sum(E_generated_STOR_bymonth_sum[0:7], axis = 0), label = 'Curtailed/exports', color = colour_curtailed)
-    plt.bar(np.array(range(len(simulation_years))), -1*np.nansum(np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), label = 'Stored VRE', color = colour_hydro_pumped)
+    plt.bar(np.array(range(len(simulation_years))), -1*np.nansum(np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), label = 'Stored', color = colour_hydro_pumped)
     plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
-    plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_STOR_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+    if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_STOR_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(range(len(simulation_years))), np.zeros(len(simulation_years)), color = 'black', linewidth = 1)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
@@ -270,9 +270,9 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     fig = plt.figure()
     area_mix_full = [np.nansum(P_STOR_hydro_stable_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_hydro_flexible_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_wind_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_STOR_solar_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]] - P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), np.nansum(P_BAL_hydro_RoR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), P_STOR_thermal_hourly[hrs_year,plot_year_multiple], P_STOR_unsatisfied_hourly[hrs_year,plot_year_multiple], -1*P_STOR_curtailed_hourly[hrs_year,plot_year_multiple]]
     plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
-    plt.fill_between(np.array(hrs_year), -1*np.nansum(P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'Stored VRE', color = colour_hydro_pumped)
+    plt.fill_between(np.array(hrs_year), -1*np.nansum(P_STOR_pump_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'Stored', color = colour_hydro_pumped)
     plt.plot(np.array(hrs_year), P_total_hourly[hrs_year,plot_year_multiple], label = 'Total load', color = 'black', linewidth = 3)
-    plt.plot(np.array(hrs_year), np.nansum(L_followed_STOR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+    if plot_ELCC_line_multiple == 1: plt.plot(np.array(hrs_year), np.nansum(L_followed_STOR_hourly[hrs_year,plot_year_multiple,plot_HPP_multiple[:,np.newaxis]], axis = 0), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(hrs_year), np.zeros(len(hrs_year)), color = 'black', linewidth = 1)
     plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
     plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
@@ -385,37 +385,63 @@ if tables_on_multiple == 1 and calibration_only == 0:
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple) as writer:
-        pd.DataFrame(np.sum(P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_RoR (MW)", index = False, header = False)
+        pd.DataFrame(np.sum(P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_RoR (MW) BAL", index = False, header = False)
     
     # [parse] stable hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-        pd.DataFrame(np.sum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW)", index = False, header = False)
-    
+        pd.DataFrame(np.sum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(np.sum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) STOR", index = False, header = False)
+        
     # [parse] flexible hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW)", index = False, header = False)
+        pd.DataFrame(np.sum(P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(np.sum(P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) STOR", index = False, header = False)
     
     # [parse] solar component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW)", index = False, header = False)
+        pd.DataFrame(np.sum(P_BAL_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(np.sum(P_STOR_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) STOR", index = False, header = False)
     
     # [parse] wind component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW)", index = False, header = False)
+        pd.DataFrame(np.sum(P_BAL_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(np.sum(P_STOR_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) STOR", index = False, header = False)
     
     # [parse] thermal/imports component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(P_BAL_thermal_hourly[:,:]).to_excel(writer, sheet_name = "thermal or imports (MW)", index = False, header = False)
+        pd.DataFrame(P_BAL_thermal_hourly[:,:]).to_excel(writer, sheet_name = "thermal or imports (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(P_STOR_thermal_hourly[:,:]).to_excel(writer, sheet_name = "thermal or imports (MW) STOR", index = False, header = False)
     
     # [parse] unsatisfied component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(P_BAL_unsatisfied_hourly[:,:]).to_excel(writer, sheet_name = "unsatisfied (MW)", index = False, header = False)
+        pd.DataFrame(P_BAL_unsatisfied_hourly[:,:]).to_excel(writer, sheet_name = "unsatisfied (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(P_STOR_unsatisfied_hourly[:,:]).to_excel(writer, sheet_name = "unsatisfied (MW) STOR", index = False, header = False)
     
     # [parse] curtailed/export component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(P_BAL_curtailed_hourly[:,:]).to_excel(writer, sheet_name = "curtailed or exports (MW)", index = False, header = False)
+        pd.DataFrame(P_BAL_curtailed_hourly[:,:]).to_excel(writer, sheet_name = "curtailed or exports (MW) BAL", index = False, header = False)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(P_STOR_curtailed_hourly[:,:]).to_excel(writer, sheet_name = "curtailed or exports (MW) STOR", index = False, header = False)
     
-    # [parse] curtailed/export component (MW)
+    # [parse] pumped component (MW)
+    if STOR_break[HPP] == 0:
+        with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
+            pd.DataFrame(np.sum(P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total pumped (MW) STOR", index = False, header = False)
+    
+    # [parse] overall demand curve (MW) P_STOR_pump_hourly
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
         pd.DataFrame(P_total_hourly[:,:]).to_excel(writer, sheet_name = "load (MW)", index = False, header = False)
     
