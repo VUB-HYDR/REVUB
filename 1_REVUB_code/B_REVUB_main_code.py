@@ -357,6 +357,14 @@ P_BAL_total_guaranteed = np.full(HPP_number,np.nan)
 P_STOR_total_guaranteed = np.full(HPP_number,np.nan)
 
 
+##### OPTIMISATION PARAMETERS #####
+
+
+# [preallocate] optimisation parameters
+f_opt_BAL = np.full(HPP_number,np.nan)
+f_opt_STOR = np.full(HPP_number,np.nan)
+
+
 # %% REVUB.2) Classify HPPs
 
 
@@ -1059,6 +1067,7 @@ for HPP in range(HPP_number):
             
             # [display]
             print('(iii) found optimum BAL solution at f_opt_BAL =', np.around(f_demand_opt_BAL, 2), '- saving all variables')
+            f_opt_BAL[HPP] = f_demand_opt_BAL
             
             # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
             convergence_test_BAL = np.zeros(shape = (X_max))
@@ -1747,6 +1756,7 @@ for HPP in range(HPP_number):
                 
                 # [display]
                 print('(v) found optimum STOR solution at f_opt_STOR =', np.around(f_demand_opt_STOR, 2), '- saving all variables')
+                f_opt_STOR[HPP] = f_demand_opt_STOR
                 
                 # [preallocate] to test convergence towards P_stable (see explanation below eq. S19)
                 convergence_test_STOR = np.zeros(shape = (X_max))
@@ -2115,9 +2125,14 @@ for HPP in range(HPP_number):
 # %% REVUB.4) Post-processing
 
 
-# [initialise] use STOR equal to BAL for reservoirs where STOR not modelled (except RoR component). 
-# This step has no physical meaning and is purely meant to avoid plotting errors in script C_multiple if users want to plot scenarios where certain dams have STOR scenarios and others only BAL.
+# [initialise] correct RoR production in cascade to account for upstream outages.
+# Also use STOR equal to BAL for reservoirs where STOR not modelled (except RoR component). 
+# This latter step has no physical meaning and is purely meant to avoid plotting errors in script C_multiple if users want to plot scenarios where certain dams have STOR scenarios and others only BAL.
 for HPP in range(HPP_number):
+    if HPP_category[HPP] == 'RoR' and HPP_active[HPP] == -2:
+        P_CONV_hydro_RoR_hourly[:,:,HPP] = P_CONV_hydro_RoR_hourly[:,:,HPP] * hydro_CONV_curtailment_factor_hourly[:,:,np.where(HPP_name[HPP] == HPP_cascade_downstream)[0][0]]
+        P_BAL_hydro_RoR_hourly[:,:,HPP] = P_BAL_hydro_RoR_hourly[:,:,HPP] * hydro_BAL_curtailment_factor_hourly[:,:,np.where(HPP_name[HPP] == HPP_cascade_downstream)[0][0]]
+        
     if STOR_break[HPP] == 1:
         P_STOR_hydro_stable_hourly[:,:,HPP] = P_BAL_hydro_stable_hourly[:,:,HPP]
         P_STOR_hydro_flexible_hourly[:,:,HPP] = P_BAL_hydro_flexible_hourly[:,:,HPP]
