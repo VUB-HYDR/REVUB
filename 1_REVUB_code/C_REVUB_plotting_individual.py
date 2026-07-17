@@ -27,6 +27,9 @@ parameters_plotting_single_values = np.array(parameters_plotting_single)[0:,1:]
 
 # [set by user] select hydropower plant (by name) and year (starting count at one) for which to display results
 plot_HPP_name = parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'plot_HPP', True, False)][0]
+if np.size(np.where(np.array(HPP_name) == plot_HPP_name)[0]) == 0:
+    print('> Error: hydropower plant selected for plotting was not simulated')
+    raise SystemExit
 plot_HPP = np.where(np.array(HPP_name) == plot_HPP_name)[0][0]
 
 # [strings] string arrays containing the names and abbreviations of the different months

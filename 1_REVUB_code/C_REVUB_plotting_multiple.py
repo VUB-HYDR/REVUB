@@ -36,7 +36,10 @@ for n in range(len(plot_HPP_name_multiple)):
     if temp == 'nan':
         plot_HPP_multiple[n] = -1
     else:
-        plot_HPP_multiple[n] = np.where(np.array(HPP_name) == temp)[0]
+        if np.size(np.where(np.array(HPP_name) == temp)[0]) == 0:
+            print('> Error: at least one hydropower plant selected for plotting was not simulated')
+            raise SystemExit
+        plot_HPP_multiple[n] = np.where(np.array(HPP_name) == temp)[0].item()
 plot_HPP_multiple = plot_HPP_multiple.astype(int)[plot_HPP_multiple.astype(int) >= 0]
 
 plot_year_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_year_multiple', True, False)][0]) - 1

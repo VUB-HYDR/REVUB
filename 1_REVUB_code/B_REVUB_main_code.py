@@ -403,7 +403,7 @@ for HPP in range(HPP_number):
         if np.size(np.where(HPP_cascade_upstream == HPP_name[HPP])) > 1:
             print('> Unclear instructions: which plant is downstream of', HPP_name[HPP], '?')
         force_cascade_outflow[HPP] = 1
-        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
+        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0].item())
         # [adapt] f_reg parameter to cascade case
         f_reg[HPP] = f_cascade_upstream[HPP_downstream]*f_reg[HPP_downstream]*np.nanmean(Q_in_nat_hourly[:,:,HPP_downstream])/np.nanmean(Q_in_nat_hourly[:,:,HPP])
     
@@ -506,7 +506,7 @@ for HPP in range(HPP_number):
     # [adapt] parameters for upstream cascade reservoir serving downstream plant
     if force_cascade_outflow[HPP] == 1:
         print('> Simulating', HPP_name[HPP], 'as upstream cascade plant')
-        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0])
+        HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[HPP])[0].item())
         # [force] upstream plant to provide necessary outflow for operation of downstream plant
         print('> Using reservoir curve of', HPP_name[HPP_downstream], 'for calibration of', HPP_name[HPP])
         print('> Changed f_reg to', np.min([np.around(f_reg[HPP], 2), 1]))
@@ -514,7 +514,7 @@ for HPP in range(HPP_number):
     # [adapt] parameters for downstream cascade plant receiving upstream outflow
     if force_cascade_inflow[HPP] == 1:
         print('> Simulating', HPP_name[HPP], 'as downstream cascade plant')
-        HPP_upstream = int(np.where(HPP_cascade_downstream == HPP_name[HPP])[0])
+        HPP_upstream = int(np.where(HPP_cascade_downstream == HPP_name[HPP])[0].item())
         # [force] downstream plant to turbine outflow from upstream plant
         print('> Using outflow of', HPP_name[HPP_upstream], 'as inflow of', HPP_name[HPP])
         Q_in_nat_hourly[:,:,HPP] = Q_CONV_out_hourly[:,:,HPP_upstream] + Q_in_nat_lateral_hourly[:,:,HPP]
@@ -1312,7 +1312,7 @@ for HPP in range(HPP_number):
                                 power_unmet_BAL[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_BAL_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
                         
                         # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                        N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.Inf] > LOEE_allowed)[0][0]
+                        N_demand_covered_BAL_temp = np.where(power_unmet_BAL[power_unmet_BAL != np.inf] > LOEE_allowed)[0][0]
                         if N_demand_covered_BAL_temp.size == 0 or N_demand_covered_BAL_temp == 0:
                             P_followed_BAL_index[y,HPP] = 0
                         else:
@@ -2032,7 +2032,7 @@ for HPP in range(HPP_number):
                                     power_unmet_STOR[n] = np.abs(np.sum(temp[temp<=0]))/np.sum(P_followed_STOR_range[y,n,HPP]*L_norm[hrs_year,y,HPP])
                             
                             # [identify] total P_followed given the constraint LOEE_allowed (default zero)
-                            N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.Inf] > LOEE_allowed)[0][0]
+                            N_demand_covered_STOR_temp = np.where(power_unmet_STOR[power_unmet_STOR != np.inf] > LOEE_allowed)[0][0]
                             if N_demand_covered_STOR_temp.size == 0 or N_demand_covered_STOR_temp == 0:
                                 P_followed_STOR_index[y,HPP] = 0
                             else:

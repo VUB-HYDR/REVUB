@@ -26,7 +26,7 @@ The REVUB code simulates dedicated hydropower plant operation to provide an effe
 
 # 2. Installation
 ---
-The most recent version of the REVUB model was written for Python 3.9.
+The most recent version of the REVUB model was written for Python 3.13.
 
 No specific packages are needed except for the regular *numpy*, *pandas*, and *matplotlib*.
 
