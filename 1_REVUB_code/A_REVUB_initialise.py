@@ -350,6 +350,10 @@ for n in range(len(HPP_name)):
     # [set by user] Load curves (L_norm; see eq. S10)
     if str(HPP_name_data_load[n]) != 'nan':
         L_norm[:,:,n] = pd.read_excel (filename_load, sheet_name = HPP_name_data_load[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
+    else:
+        # [warn] in case load curve forgotten for non-RoR plant
+        if calibration_only == 0 and str(HPP_name_data_bathymetry[n]) != 'nan':
+            print('> Warning: No demand curve defined for reservoir plant ' + HPP_name[n] + ', solution impossible')
 
 
 # %% pre.5) Simulation accuracy
