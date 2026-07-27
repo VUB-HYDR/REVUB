@@ -755,18 +755,26 @@ for HPP in range(HPP_number):
             # [display] refinement step in BAL simulation
             print('C_OR = ', np.round(100*C_OR_range_BAL[q], decimals = 1), '%')
             
+            # [check] if optimality parameter known from previous simulation
+            if ~np.isnan(f_init_BAL_opt[HPP]):
+                f_demand_BAL_start = f_init_BAL_opt[HPP]
+                f_demand_BAL_step = 0.01
+                f_demand_BAL_end = f_demand_BAL_start - f_demand_BAL_step/2
+                N_refine_BAL[HPP] = 1
+            
             # [loop] across refinement steps to increase accuracy
             for n_refine_BAL in range(int(N_refine_BAL[HPP])):
                 
                 # [initialize] range for current refinement step; each step increases accuracy by one digit
-                if n_refine_BAL == 0:
-                    f_demand_BAL_start = f_init_BAL_start[HPP]
-                    f_demand_BAL_step = f_init_BAL_step[HPP]
-                    f_demand_BAL_end = f_init_BAL_end[HPP]
-                elif n_refine_BAL > 0:
-                    f_demand_BAL_start = f_demand_opt_BAL - f_demand_BAL_step
-                    f_demand_BAL_end = f_demand_opt_BAL + f_demand_BAL_step
-                    f_demand_BAL_step = f_demand_BAL_step/10
+                if np.isnan(f_init_BAL_opt[HPP]):
+                    if n_refine_BAL == 0:
+                        f_demand_BAL_start = f_init_BAL_start[HPP]
+                        f_demand_BAL_step = f_init_BAL_step[HPP]
+                        f_demand_BAL_end = f_init_BAL_end[HPP]
+                    elif n_refine_BAL > 0:
+                        f_demand_BAL_start = f_demand_opt_BAL - f_demand_BAL_step
+                        f_demand_BAL_end = f_demand_opt_BAL + f_demand_BAL_step
+                        f_demand_BAL_step = f_demand_BAL_step/10
 
                 
                 f_demand_BAL = np.arange(f_demand_BAL_start, f_demand_BAL_end + f_demand_BAL_step, f_demand_BAL_step)
@@ -1054,7 +1062,7 @@ for HPP in range(HPP_number):
                     break
                 
                 # [check] if range in which to identify ELCC is adequate
-                if f_demand_opt_BAL == f_demand_BAL[-1]:
+                if f_demand_opt_BAL == f_demand_BAL[-1] and np.isnan(f_init_BAL_opt[HPP]):
                     print('> Warning: parameter f_init_BAL_end possibly set too low')
                 
             # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
@@ -1419,18 +1427,26 @@ for HPP in range(HPP_number):
                 # [display] refinement step in STOR simulation
                 print('C_OR = ', np.round(100*C_OR_range_STOR[q], decimals = 1), '%')
                 
+                # [check] if optimality parameter known from previous simulation
+                if ~np.isnan(f_init_STOR_opt[HPP]):
+                    f_demand_STOR_start = f_init_STOR_opt[HPP]
+                    f_demand_STOR_step = 0.01
+                    f_demand_STOR_end = f_demand_STOR_start - f_demand_STOR_step/2
+                    N_refine_STOR[HPP] = 1
+                
                 # [loop] across refinement steps to increase accuracy
                 for n_refine_STOR in range(int(N_refine_STOR[HPP])):
                     
                     # [initialize] range for current refinement step; each step increases accuracy by one digit
-                    if n_refine_STOR == 0:
-                        f_demand_STOR_start = f_init_STOR_start[HPP]
-                        f_demand_STOR_step = f_init_STOR_step[HPP]
-                        f_demand_STOR_end = f_init_STOR_end[HPP]
-                    elif n_refine_STOR > 0:
-                        f_demand_STOR_start = f_demand_opt_STOR - f_demand_STOR_step
-                        f_demand_STOR_end = f_demand_opt_STOR + f_demand_STOR_step
-                        f_demand_STOR_step = f_demand_STOR_step/10
+                    if np.isnan(f_init_STOR_opt[HPP]):
+                        if n_refine_STOR == 0:
+                            f_demand_STOR_start = f_init_STOR_start[HPP]
+                            f_demand_STOR_step = f_init_STOR_step[HPP]
+                            f_demand_STOR_end = f_init_STOR_end[HPP]
+                        elif n_refine_STOR > 0:
+                            f_demand_STOR_start = f_demand_opt_STOR - f_demand_STOR_step
+                            f_demand_STOR_end = f_demand_opt_STOR + f_demand_STOR_step
+                            f_demand_STOR_step = f_demand_STOR_step/10
                     
                     f_demand_STOR = np.arange(f_demand_STOR_start, f_demand_STOR_end + f_demand_STOR_step, f_demand_STOR_step)
         
@@ -1743,7 +1759,7 @@ for HPP in range(HPP_number):
                         break
                     
                     # [check] if range in which to identify ELCC is adequate
-                    if f_demand_opt_STOR == f_demand_STOR[-1]:
+                    if f_demand_opt_STOR == f_demand_STOR[-1] and np.isnan(f_init_STOR_opt[HPP]):
                         print('> Warning: parameter f_init_STOR_end possibly set too low')
                     
                 # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)

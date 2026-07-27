@@ -379,6 +379,10 @@ f_init_STOR_end = parameters_hydropower_values[np.where(parameters_hydropower_li
 N_refine_BAL = parameters_hydropower_values[np.where(parameters_hydropower_list == 'N_refine_BAL', True, False)][0]
 N_refine_STOR = parameters_hydropower_values[np.where(parameters_hydropower_list == 'N_refine_STOR', True, False)][0]
 
+# [set by user] In case known from previous run: optimal value to speed up simulation
+f_init_BAL_opt = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_BAL_opt', True, False)][0]
+f_init_STOR_opt = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_init_STOR_opt', True, False)][0]
+
 
 # %% pre.6) Bathymetry
 

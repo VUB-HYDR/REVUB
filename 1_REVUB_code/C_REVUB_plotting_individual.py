@@ -153,6 +153,7 @@ if Figure1_on == 1:
     
     plt.tight_layout()
     plt.savefig(HPP_name[plot_HPP] + '_Fig1.png', dpi = 300)
+    print('> Saving Figure 1')
     plt.show
 
 
@@ -225,6 +226,7 @@ if Figure2_on == 1:
     
     plt.tight_layout()
     plt.savefig(HPP_name[plot_HPP] + '_Fig2.png', dpi = 300)
+    print('> Saving Figure 2')
     plt.show
 
 
@@ -237,7 +239,7 @@ if Figure3_on == 1:
     if calibration_only == 0:
         ax1.plot(f_cascade_downstream[plot_HPP]*(V_BAL_series_hourly[:,plot_HPP] - V_BAL_series_hourly[0,plot_HPP]) + starting_volume, color = colour_BAL)
         if force_cascade_outflow[plot_HPP] == 1:
-            HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[plot_HPP])[0])
+            HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[plot_HPP])[0].item())
             ax1.plot(f_cascade_upstream[HPP_downstream]*(V_BAL_series_hourly[:,HPP_downstream] - V_BAL_series_hourly[0,HPP_downstream]) + starting_volume, color = colour_hydro_flexible, linestyle = 'dashed')
             ax1.legend(['CONV', 'BAL', 'BAL calib.'])
         elif STOR_break[plot_HPP] == 0 and option_storage == 1:
@@ -277,6 +279,7 @@ if Figure3_on == 1:
     
     plt.tight_layout()
     plt.savefig(HPP_name[plot_HPP] + '_Fig3.png', dpi = 300)
+    print('> Saving Figure 3')
     plt.show
 
 
@@ -340,6 +343,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Power generation (MWh/h)')
         plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 4')
     
     
     # [figure] (cf. Fig. S4b, S9b)
@@ -360,6 +364,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylim([0, np.max(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
         plt.title('Multiannual generation (BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig5.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 5')
     
     
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -377,6 +382,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Power generation (MWh/h)')
         plt.title('Daily generation & load profiles (BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 6')
     
     
     # [check] if STOR scenario available
@@ -396,6 +402,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.ylabel('Power generation (MWh/h)')
             plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', STOR)')
             plt.savefig(HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 4b')
         
         
         # [figure] (cf. Fig. S4b, S9b)
@@ -416,6 +423,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.ylim([0, np.max(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
             plt.title('Multiannual generation (STOR)')
             plt.savefig(HPP_name[plot_HPP] + '_Fig5_b.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 5b')
         
         
         # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -433,6 +441,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.ylabel('Power generation (MWh/h)')
             plt.title('Daily generation & load profiles (STOR)')
             plt.savefig(HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 6b')
     
     
     # [preallocate] vectors for adapted rules under BAL
@@ -532,6 +541,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('$Q_{out}$ (m$^3$/s)')
         plt.title('release rules (BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 7')
     
     
     # [calculate] capacity of each turbine (MW)
@@ -586,6 +596,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Fraction of time')
         plt.title('Hydroturbine activity')
         plt.savefig(HPP_name[plot_HPP] + '_Fig8.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 8')
     
     
     # [figure] histogram of flexibility regime by month in BAL regime
@@ -599,24 +610,38 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Fraction of time')
         plt.title('Operational regime (BAL)')
         plt.savefig(HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
+        print('> Saving Figure 9')
        
         
 # [output] tables with time series for calibration run
-if tables_on == 1 and calibration_only == 1:
-        
+if tables_on == 1 and HPP_category[plot_HPP] != 'RoR':
+    
+    print('> Writing output tables: calibration (CONV)')
+    
     # [set] output filename
     output_filename_calibration = "output_" + plot_HPP_name + "_calibration.xlsx"
     
-    # [parse] run-of-river hydropower component (MW)
+    # [parse] lake volume (m^3)
     with pd.ExcelWriter(output_filename_calibration) as writer:
         pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) CONV", index = False, header = False)
     
+    # [parse] head drop (m)
     with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
         pd.DataFrame(h_CONV_hourly[:,:,plot_HPP]).to_excel(writer, sheet_name = "head (m) CONV", index = False, header = False)
-        
+    
+    # [parse] lake volume (m^3) if CONV superseded by cascade requirements
+    if force_cascade_outflow[plot_HPP] == 1:
+        with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
+            pd.DataFrame(f_cascade_upstream[HPP_downstream]*(V_BAL_hourly[:,:,HPP_downstream] - V_BAL_hourly[0,0,HPP_downstream]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL calib", index = False, header = False)
+            
     
 # [output] tables with time series for dispatch run
 if tables_on == 1 and calibration_only == 0:
+    
+    if HPP_category[plot_HPP] != 'RoR':
+        print('> Writing output tables: dispatch (BAL/STOR)')
+    if HPP_category[plot_HPP] == 'RoR':
+        print('> Writing output tables: RoR generation')
     
     # [set] output filename
     if HPP_category[plot_HPP] != 'RoR':

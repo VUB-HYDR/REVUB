@@ -181,6 +181,7 @@ plt.xticks(np.array(range(months_yr)), months_names_full, rotation = 'vertical')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('Monthly power generation (selected year #' + str(plot_year_multiple + 1) + ', BAL)')
 plt.savefig("Total_Fig1.png", dpi = 300, bbox_inches = 'tight')
+print('> Saving Figure 1 (multiple)')
 
 
 # [figure] (cf. Fig. S4b, S9b)
@@ -204,6 +205,7 @@ plt.ylabel('Power generation (GWh/year)')
 plt.ylim([0, np.nanmax(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
 plt.title('Multiannual generation (BAL)')
 plt.savefig("Total_Fig2.png", dpi = 300, bbox_inches = 'tight')
+print('> Saving Figure 2 (multiple)')
 
 
 # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -221,6 +223,7 @@ plt.xlabel('Day of the year')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('Daily generation & load profiles (BAL)')
 plt.savefig("Total_Fig3.png", dpi = 300, bbox_inches = 'tight')
+print('> Saving Figure 3 (multiple)')
 
 
 # [check] if STOR scenario available
@@ -241,6 +244,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.ylabel('Power generation (MWh/h)')
     plt.title('monthly power generation (selected year #' + str(plot_year_multiple + 1) + ', STOR)')
     plt.savefig("Total_Fig1_b.png", dpi = 300, bbox_inches = 'tight')
+    print('> Saving Figure 1b (multiple)')
     
     
     # [figure] (cf. Fig. S4b, S9b)
@@ -266,6 +270,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.ylim([np.nanmin(-1*np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0))*1.1, np.nanmax(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
     plt.title('Multiannual generation (STOR)')
     plt.savefig("Total_Fig2_b.png", dpi = 300, bbox_inches = 'tight')
+    print('> Saving Figure 2b (multiple)')
     
     
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
@@ -285,6 +290,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.ylabel('Power generation (MWh/h)')
     plt.title('Daily generation & load profiles (STOR)')
     plt.savefig("Total_Fig3_b.png", dpi = 300, bbox_inches = 'tight')
+    print('> Saving Figure 3b (multiple)')
 
 
 ##### CALCULATE NEEDED RAMPING FROM HYDRO AND NON-HYDRO #####
@@ -378,10 +384,13 @@ plt.suptitle('Ramping envelopes (year #' + str(plot_year_multiple + 1) + '), BAL
 plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
 plt.tight_layout()
 plt.savefig("Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
+print('> Saving Figure 4 (multiple)')
 
 
 # [output] tables with time series
 if tables_on_multiple == 1 and calibration_only == 0:
+    
+    print('> Writing output tables (full dispatch)')
     
     # [set] output filename
     output_filename_multiple = "output_total_dispatch.xlsx"
