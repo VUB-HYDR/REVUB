@@ -48,7 +48,7 @@ output_hourly_byyear = np.full([series_number, np.sum(days_leap)*dayhrs, no_year
 
 for q in range(series_number):
     
-    print('parsing data for', header[q])
+    print('> parsing data for', header[q])
     
     # [extract] first and last year
     year_start = first_year[q]
@@ -119,7 +119,7 @@ output_hourly_byyear = np.full([series_number, np.sum(days_leap)*dayhrs, no_year
 
 for q in range(series_number):
     
-    print('parsing data for', header[q])
+    print('> parsing data for', header[q])
     
     # [extract] first and last year
     year_start = first_year[q]

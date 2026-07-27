@@ -20,6 +20,8 @@ import numbers as nb
 
 # %% pre.0) Read Excel files with inputs
 
+print('> Processing input data files')
+
 # filename of Excel sheets with collected data
 filename_parameters = 'control_file.xlsx'
 filename_bathymetry = 'data_bathymetry.xlsx'
@@ -169,6 +171,8 @@ psi_min_threshold = parameters_general_values[np.where(parameters_general_list =
 
 # %% pre.3) Static parameters
 
+print('> Reading static parameters')
+
 # [set by user] name of hydropower plant
 HPP_name = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
 HPP_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_upstream', True, False)][0].astype(str)
@@ -273,6 +277,8 @@ year_calibration_end = parameters_hydropower_values[np.where(parameters_hydropow
 
 # %% pre.4) Time series
 
+print('> Reading input time series')
+
 # [preallocate]
 Q_in_nat_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 Q_in_nat_lateral_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
@@ -358,6 +364,8 @@ for n in range(len(HPP_name)):
 
 # %% pre.5) Simulation accuracy
 
+print('> Reading simulation accuracy')
+
 # [set by user] These values are used to get a good initial guess for the order of magnitude of the ELCC.
 # This is done by multiplying them with yearly average E_{hydro}.
 # A suitable range within which to identify the optimal solution (eq. S21) is thus obtained automatically
@@ -385,6 +393,8 @@ f_init_STOR_opt = parameters_hydropower_values[np.where(parameters_hydropower_li
 
 
 # %% pre.6) Bathymetry
+
+print('> Reading bathymetry')
 
 # [preallocate]
 temp_length_array = np.zeros(HPP_number)
@@ -439,3 +449,4 @@ for n in range(len(HPP_name)):
         calibrate_area[0,n] = A_max[n]
         calibrate_head[0,n] = h_max[n]
 
+print('data initialisation finished')
