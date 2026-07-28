@@ -53,7 +53,7 @@ plot_num_days_multiple = int(parameters_plotting_multiple_values[:,0][np.where(p
 plot_ELCC_line_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'plot_ELCC_line_multiple', True, False)][0])
 
 # [set by user] select whether to produce output tables
-tables_on_multiple = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'tables_on_multiple', True, False)][0]
+tables_on_multiple = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'tables_on_multiple', True, False)][0])
 
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0]
@@ -180,7 +180,7 @@ plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(months_yr)), months_names_full, rotation = 'vertical')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('Monthly power generation (selected year #' + str(plot_year_multiple + 1) + ', BAL)')
-plt.savefig("Total_Fig1.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(path_outputs + '\\' + "Total_Fig1.png", dpi = 300, bbox_inches = 'tight')
 print('> Saving Figure 1 (multiple)')
 
 
@@ -204,7 +204,7 @@ plt.xlabel('year')
 plt.ylabel('Power generation (GWh/year)')
 plt.ylim([0, np.nanmax(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
 plt.title('Multiannual generation (BAL)')
-plt.savefig("Total_Fig2.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(path_outputs + '\\' + "Total_Fig2.png", dpi = 300, bbox_inches = 'tight')
 print('> Saving Figure 2 (multiple)')
 
 
@@ -222,7 +222,7 @@ plt.ylim([0, np.nanmax(np.sum(area_mix_full, axis = 0)*1.1)])
 plt.xlabel('Day of the year')
 plt.ylabel('Power generation (MWh/h)')
 plt.title('Daily generation & load profiles (BAL)')
-plt.savefig("Total_Fig3.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(path_outputs + '\\' + "Total_Fig3.png", dpi = 300, bbox_inches = 'tight')
 print('> Saving Figure 3 (multiple)')
 
 
@@ -243,7 +243,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
     plt.ylabel('Power generation (MWh/h)')
     plt.title('monthly power generation (selected year #' + str(plot_year_multiple + 1) + ', STOR)')
-    plt.savefig("Total_Fig1_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(path_outputs + '\\' + "Total_Fig1_b.png", dpi = 300, bbox_inches = 'tight')
     print('> Saving Figure 1b (multiple)')
     
     
@@ -269,7 +269,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.ylabel('Power generation (GWh/year)')
     plt.ylim([np.nanmin(-1*np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0))*1.1, np.nanmax(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
     plt.title('Multiannual generation (STOR)')
-    plt.savefig("Total_Fig2_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(path_outputs + '\\' + "Total_Fig2_b.png", dpi = 300, bbox_inches = 'tight')
     print('> Saving Figure 2b (multiple)')
     
     
@@ -289,7 +289,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.xlabel('Day of the year')
     plt.ylabel('Power generation (MWh/h)')
     plt.title('Daily generation & load profiles (STOR)')
-    plt.savefig("Total_Fig3_b.png", dpi = 300, bbox_inches = 'tight')
+    plt.savefig(path_outputs + '\\' + "Total_Fig3_b.png", dpi = 300, bbox_inches = 'tight')
     print('> Saving Figure 3b (multiple)')
 
 
@@ -383,7 +383,7 @@ ax2.set_ylabel('idem (in fraction of capacity/hr)')
 plt.suptitle('Ramping envelopes (year #' + str(plot_year_multiple + 1) + '), BAL')
 plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
 plt.tight_layout()
-plt.savefig("Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
+plt.savefig(path_outputs + '\\' + "Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
 print('> Saving Figure 4 (multiple)')
 
 
@@ -393,7 +393,7 @@ if tables_on_multiple == 1 and calibration_only == 0:
     print('> Writing output tables (full dispatch)')
     
     # [set] output filename
-    output_filename_multiple = "output_total_dispatch.xlsx"
+    output_filename_multiple = path_outputs + '\\' + "output_total_dispatch.xlsx"
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple) as writer:

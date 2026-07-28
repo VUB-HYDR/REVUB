@@ -42,6 +42,7 @@ HPP_category = ['' for x in range(HPP_number)]
 
 ##### HPP OPERATIONAL PARAMETERS #####
 
+
 # [preallocate] cascade parameters
 HPP_index_cascade = np.full([HPP_number], np.nan)
 cascade_bool = np.full([HPP_number], 0)
@@ -390,7 +391,7 @@ for HPP in range(HPP_number):
         
         if year_calibration_start[HPP_upstream] != year_calibration_start[HPP] or year_calibration_end[HPP_upstream] != year_calibration_end[HPP]:
             print('> Error: calibration period between reservoirs in same cascade should match')
-            break
+            raise SystemExit
         
         # [calculate] effective total volume and surface area of cascade reservoirs
         V_max_cumul[HPP] = V_max[HPP] + V_max[HPP_upstream]
@@ -419,14 +420,14 @@ for HPP in range(HPP_number):
     if np.isnan(year_calibration_end[HPP]):
         year_calibration_end[HPP] = year_end
     if year_calibration_start[HPP] < year_start:
-        print('> Error: year_calibration_start cannot be lower than year_start')
-        break
+        print('> Error: {year_calibration_start} cannot be lower than {year_start}, check {year_start} and {years_skip} in control file')
+        raise SystemExit
     if year_calibration_end[HPP] > year_end:
-        print('> Error: year_calibration_end cannot be higher than year_end')
-        break
+        print('> Error: {year_calibration_end} cannot be higher than {year_end}')
+        raise SystemExit
     if year_calibration_end[HPP] < year_calibration_start[HPP]:
-        print('> Error: year_calibration_end must be a later year than year_calibration_start')
-        break
+        print('> Error: {year_calibration_end} must be a later year than {year_calibration_start}')
+        raise SystemExit
     
     # [calculate] if needed, default f_reg (eq. S29, S30 - solution for f_reg of t_fill,frac = 1 in eq. S29)
     if np.isnan(f_reg[HPP]):
@@ -462,7 +463,7 @@ for HPP in range(HPP_number):
         Q_in_frac_hourly[:,:,HPP] = 0*Q_in_nat_hourly[:,:,HPP]
     elif np.isnan(f_reg[HPP]):
         print('> Error: no inflow time series defined')
-        break
+        raise SystemExit
         
     # [calculate] the component Q_RoR for HPPs deemed to have less-than-a-year storage (Note 5)
     Q_in_RoR_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP] - Q_in_frac_hourly[:,:,HPP]

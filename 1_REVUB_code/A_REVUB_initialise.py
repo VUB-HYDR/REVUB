@@ -22,16 +22,26 @@ import numbers as nb
 
 print('> Processing input data files')
 
-# filename of Excel sheets with collected data
 filename_parameters = 'control_file.xlsx'
-filename_bathymetry = 'data_bathymetry.xlsx'
-filename_CF_solar = 'data_CF_solar.xlsx'
-filename_CF_wind = 'data_CF_wind.xlsx'
-filename_evaporation = 'data_evaporation.xlsx'
-filename_precipitation = 'data_precipitation.xlsx'
-filename_inflow = 'data_inflow.xlsx'
-filename_outflow_prescribed = 'data_outflow_prescribed.xlsx'
-filename_load = 'data_load.xlsx'
+
+# [load] path speficications
+parameters_path = pd.read_excel (filename_parameters, sheet_name = 'Paths', header = None)
+parameters_path_list = np.array(parameters_path[0][0:].tolist())
+parameters_path_values = np.array(parameters_path[1][0:].tolist())
+
+# [read] paths
+path_inputs = parameters_path_values[np.where(parameters_path_list == 'path_inputs', True, False)][0].astype(str)
+path_outputs = parameters_path_values[np.where(parameters_path_list == 'path_outputs', True, False)][0].astype(str)
+
+# [parse] filename of Excel sheets with collected data
+filename_bathymetry = path_inputs + '\data_bathymetry.xlsx'
+filename_CF_solar = path_inputs + '\data_CF_solar.xlsx'
+filename_CF_wind = path_inputs + '\data_CF_wind.xlsx'
+filename_evaporation = path_inputs + '\data_evaporation.xlsx'
+filename_precipitation = path_inputs + '\data_precipitation.xlsx'
+filename_inflow = path_inputs + '\data_inflow.xlsx'
+filename_outflow_prescribed = path_inputs + '\data_outflow_prescribed.xlsx'
+filename_load = path_inputs + '\data_load.xlsx'
 
 
 # [load] general simulation parameters
@@ -82,12 +92,15 @@ HPP_number = len(parameters_hydropower_values[0,:])
 HPP_number_run = np.sum(HPP_active_save)
 
 # [set by user] the reference years used in the simulation
-year_start = int(parameters_general_values[np.where(parameters_general_list == 'year_start', True, False)][0])
+years_skip = int(parameters_general_values[np.where(parameters_general_list == 'years_skip', True, False)][0])
+year_start = int(parameters_general_values[np.where(parameters_general_list == 'year_start', True, False)][0]) + years_skip
 year_end = int(parameters_general_values[np.where(parameters_general_list == 'year_end', True, False)][0])
 simulation_years = list(range(year_start, year_end + 1))
 
-column_start = int(parameters_general_values[np.where(parameters_general_list == 'column_start', True, False)][0])
+# [set by user] when opting to skip columns at the start
+column_start = years_skip + 1
 column_end = column_start + len(simulation_years) - 1
+
 
 # [constant] number of hours in a day
 hrs_day = 24
@@ -132,27 +145,27 @@ calibration_only = int(parameters_general_values[np.where(parameters_general_lis
 option_storage = int(parameters_general_values[np.where(parameters_general_list == 'option_storage', True, False)][0])
 
 # [constant] density of water (kg/m^3) (introduced in eq. S3)
-rho = parameters_general_values[np.where(parameters_general_list == 'rho', True, False)][0]
+rho = parameters_general_values[np.where(parameters_general_list == 'rho', True, False)][0].astype(float)
 
 # [constant] gravitational acceleration (m/s^2) (introduced in eq. S8)
-g = parameters_general_values[np.where(parameters_general_list == 'g', True, False)][0]
+g = parameters_general_values[np.where(parameters_general_list == 'g', True, False)][0].astype(float)
 
 # [set by user] percentile value used to calculate exceedance probability of delivered power
-p_exceedance = parameters_general_values[np.where(parameters_general_list == 'p_exceedance', True, False)][0]
+p_exceedance = parameters_general_values[np.where(parameters_general_list == 'p_exceedance', True, False)][0].astype(float)
 
 ##### HYDROPOWER OPERATION PARAMETERS #####
 
 # [set by user] threshold for determining whether HPP is "large" or "small" - if
 # t_fill (eq. S1) is larger than threshold, classify as "large"
-T_fill_thres = parameters_general_values[np.where(parameters_general_list == 'T_fill_thres', True, False)][0]
+T_fill_thres = parameters_general_values[np.where(parameters_general_list == 'T_fill_thres', True, False)][0].astype(float)
 
 # [set by user] optional: requirement on Loss of Energy Expectation (criterion (ii) in Figure S1).
 # As default, the HSW mix does not allow for any LOEE. However, this criterion could be relaxed.
 # E.g. LOEE_allowed = 0.01 would mean that criterion (ii) is relaxed to 1% of yearly allowed LOEE instead of 0%.
-LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LOEE_allowed', True, False)][0]
+LOEE_allowed = parameters_general_values[np.where(parameters_general_list == 'LOEE_allowed', True, False)][0].astype(float)
 
 # [set by user] prevent hydropower blackouts to be potentially worse under BAL/STOR than under CONV if turned on
-prevent_droughts_increase = parameters_general_values[np.where(parameters_general_list == 'prevent_droughts_increase', True, False)][0]
+prevent_droughts_increase = int(parameters_general_values[np.where(parameters_general_list == 'prevent_droughts_increase', True, False)][0])
 
 ##### SIMULATION ACCURACY PARAMETERS #####
 
@@ -166,7 +179,7 @@ X_max = int(parameters_general_values[np.where(parameters_general_list == 'X_max
 
 # [set by user] When min(Psi) (eq. S21) is lower than this threshold, no further refinement loops
 # are performed. This number can be increased to speed up the simulation.
-psi_min_threshold = parameters_general_values[np.where(parameters_general_list == 'psi_min_threshold', True, False)][0]
+psi_min_threshold = parameters_general_values[np.where(parameters_general_list == 'psi_min_threshold', True, False)][0].astype(float)
 
 
 # %% pre.3) Static parameters

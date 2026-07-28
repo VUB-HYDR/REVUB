@@ -43,7 +43,7 @@ Figure2_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plot
 Figure3_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'Figure3_on', True, False)][0])
 
 # [set by user] select whether to produce output tables
-tables_on = parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'tables_on', True, False)][0]
+tables_on = int(parameters_plotting_single_values[:,0][np.where(parameters_plotting_single_list == 'tables_on', True, False)][0])
 
 # [turn off] dispatch figures in case of calibration-only run
 if calibration_only == 1:
@@ -152,7 +152,7 @@ if Figure1_on == 1:
     ax2.set_title('area vs. volume')
     
     plt.tight_layout()
-    plt.savefig(HPP_name[plot_HPP] + '_Fig1.png', dpi = 300)
+    plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig1.png', dpi = 300)
     print('> Saving Figure 1')
     plt.show
 
@@ -225,7 +225,7 @@ if Figure2_on == 1:
     ax3.set_title('inflow vs. outflow')
     
     plt.tight_layout()
-    plt.savefig(HPP_name[plot_HPP] + '_Fig2.png', dpi = 300)
+    plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig2.png', dpi = 300)
     print('> Saving Figure 2')
     plt.show
 
@@ -278,7 +278,7 @@ if Figure3_on == 1:
     ax2.set_title('inflow vs. outflow (monthly)')
     
     plt.tight_layout()
-    plt.savefig(HPP_name[plot_HPP] + '_Fig3.png', dpi = 300)
+    plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig3.png', dpi = 300)
     print('> Saving Figure 3')
     plt.show
 
@@ -342,7 +342,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
         plt.ylabel('Power generation (MWh/h)')
         plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', BAL)')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 4')
     
     
@@ -363,7 +363,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.ylabel('Power generation (GWh/year)')
         plt.ylim([0, np.max(np.sum(E_generated_BAL_bymonth_sum, axis = 0))*1.1])
         plt.title('Multiannual generation (BAL)')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig5.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig5.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 5')
     
     
@@ -381,7 +381,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.xlabel('Day of the year')
         plt.ylabel('Power generation (MWh/h)')
         plt.title('Daily generation & load profiles (BAL)')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 6')
     
     
@@ -401,7 +401,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
             plt.ylabel('Power generation (MWh/h)')
             plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', STOR)')
-            plt.savefig(HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
             print('> Saving Figure 4b')
         
         
@@ -422,7 +422,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.ylabel('Power generation (GWh/year)')
             plt.ylim([0, np.max(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
             plt.title('Multiannual generation (STOR)')
-            plt.savefig(HPP_name[plot_HPP] + '_Fig5_b.png', dpi = 300, bbox_inches = 'tight')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig5_b.png', dpi = 300, bbox_inches = 'tight')
             print('> Saving Figure 5b')
         
         
@@ -440,7 +440,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             plt.xlabel('Day of the year')
             plt.ylabel('Power generation (MWh/h)')
             plt.title('Daily generation & load profiles (STOR)')
-            plt.savefig(HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
             print('> Saving Figure 6b')
     
     
@@ -540,7 +540,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.xlabel('Hydraulic head (m)')
         plt.ylabel('$Q_{out}$ (m$^3$/s)')
         plt.title('release rules (BAL)')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 7')
     
     
@@ -595,7 +595,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.xlabel('Number of active turbines')
         plt.ylabel('Fraction of time')
         plt.title('Hydroturbine activity')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig8.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig8.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 8')
     
     
@@ -609,7 +609,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.xticks(np.array(range(len(hist_maxed_out_monthly))), labels_maxed_out)
         plt.ylabel('Fraction of time')
         plt.title('Operational regime (BAL)')
-        plt.savefig(HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 9')
        
         
@@ -619,7 +619,7 @@ if tables_on == 1 and HPP_category[plot_HPP] != 'RoR':
     print('> Writing output tables: calibration (CONV)')
     
     # [set] output filename
-    output_filename_calibration = "output_" + plot_HPP_name + "_calibration.xlsx"
+    output_filename_calibration = path_outputs + '\\' + "output_" + plot_HPP_name + "_calibration.xlsx"
     
     # [parse] lake volume (m^3)
     with pd.ExcelWriter(output_filename_calibration) as writer:
@@ -645,9 +645,9 @@ if tables_on == 1 and calibration_only == 0:
     
     # [set] output filename
     if HPP_category[plot_HPP] != 'RoR':
-        output_filename_dispatch = "output_" + plot_HPP_name + "_dispatch.xlsx"
+        output_filename_dispatch = path_outputs + '\\' + "output_" + plot_HPP_name + "_dispatch.xlsx"
     if HPP_category[plot_HPP] == 'RoR':
-        output_filename_dispatch = "output_" + plot_HPP_name + "_RoR.xlsx"
+        output_filename_dispatch = path_outputs + '\\' + "output_" + plot_HPP_name + "_RoR.xlsx"
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_dispatch) as writer:

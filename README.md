@@ -16,7 +16,7 @@ The model can be used, for instance, in due diligence processes for power plant 
 
 This model has been used for several peer-reviewed publications related to regional power system interconnection, solar/wind integration, and drought resilience.
 
-A detailed description of all involved principles and equations can be found in the dedicated Manual (https://github.com/VUB-HYDR/REVUB/blob/master/4_Manual/REVUB_manual.pdf).
+A detailed description of all involved principles and equations can be found in the dedicated [Manual](https://github.com/VUB-HYDR/REVUB/blob/master/3_Manual/REVUB_manual.pdf).
 
 The REVUB code simulates dedicated hydropower plant operation to provide an effective capacity credit to VRE under technical, hydrological, and environmental constraints, and allows to derive:
 
@@ -28,15 +28,15 @@ The REVUB code simulates dedicated hydropower plant operation to provide an effe
 ---
 The most recent version of the REVUB model was written for Python 3.13.
 
-No specific packages are needed except for the regular *numpy*, *pandas*, and *matplotlib*.
+The [envs](https://github.com/VUB-HYDR/REVUB/tree/master/envs) folder contains a .yaml configuration file to install the needed packages to run the latest REVUB release.
 
-A training dataset, allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES) in the folder https://github.com/VUB-HYDR/REVUB/tree/master/5_Training_dataset.
+A [training dataset](https://github.com/VUB-HYDR/REVUB/tree/master/4_Training_dataset), allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES).
 
 # 3. Tool's structure
 ---
 
 ### Scripts
-The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual in the folder https://github.com/VUB-HYDR/REVUB/tree/master/4_Manual. The files are always run in sequence A-B-C.
+The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual. The files are always run in sequence A-B-C.
 
 * **A_REVUB_initialise**
 
