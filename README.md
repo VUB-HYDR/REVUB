@@ -30,13 +30,13 @@ The most recent version of the REVUB model was written for Python 3.13.
 
 The [envs](https://github.com/VUB-HYDR/REVUB/tree/master/envs) folder contains a .yaml configuration file to install the needed packages to run the latest REVUB release.
 
-A [training dataset](https://github.com/VUB-HYDR/REVUB/tree/master/4_Training_dataset), allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES).
+A [training dataset](https://github.com/VUB-HYDR/REVUB/tree/master/4_Training), allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES).
 
 # 3. Tool's structure
 ---
 
 ### Scripts
-The code is divided into four scripts: one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual. The files are always run in sequence A-B-C.
+The code is divided into [four scripts](https://github.com/VUB-HYDR/REVUB/tree/master/1_REVUB_code): one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual. The files are always run in sequence A-B-C.
 
 * **A_REVUB_initialise**
 
@@ -44,7 +44,9 @@ This script initialises the data needed for a simulation to run.
 
 The script is controlled by a "control file" in Excel (*control_file.xlsx*) where the user controls overall modelling parameters, and reads in several Excel files with tabulated time series and other data (*data_xxx.xlsx*). 
 
-In the training dataset, the user learns how to work with these files. 
+In the training dataset, the user learns how to work with these files.
+
+An [auxiliary script](https://github.com/VUB-HYDR/REVUB/tree/master/2_Auxiliary_script) is available to convert common non-hourly data formats into (pseudo)-hourly time series required for the *data_xxx.xlsx* files.
 
 * **B_REVUB_main_code**
 
@@ -95,19 +97,19 @@ See also the [LICENSE](./LICENSE.md) file.
 
 ## Acknowledgements
 The following funding sources are gratefully acknowledged:
-* 2025-26: Flemish Inter-University Development Cooperation (VLIR-UOS), Global Minds XREI Staff Mobility project "Ecuador's electricity crisis 2023-24: Drought impacts on hydropower and mitigation through variable renewables". 
-* 2023-24: The World Bank (WB), Infrastructure Energy & Extractives Global Knowledge Unit (IEEGK), PO Number 8831242.
-* 2022: International Rivers, consulting contract "Alternatives to new hydropower to meet energy needs in the Republic of Guinea".
-* 2018-21: Project CIREG, part of ERA4CS, an ERA-NET Co-fund action initiated by JPI Climate, funded by BMBF (DE), FORMAS (SE), BELSPO (BE) and IFD (DK) with co-funding from the EU's Horizon2020 Framework Program, Grant 690462.
+* 2025-26: Flemish Inter-University Development Cooperation ([VLIR-UOS](https://www.vliruos.be/)), Global Minds XREI Staff Mobility project "Ecuador's electricity crisis 2023-24: Drought impacts on hydropower and mitigation through variable renewables". 
+* 2023-24: [The World Bank](https://www.worldbank.org/ext/en/home) (WB), Infrastructure Energy & Extractives Global Knowledge Unit (IEEGK), PO Number 8831242.
+* 2022: [International Rivers](https://www.internationalrivers.org/), consulting contract "Alternatives to new hydropower to meet energy needs in the Republic of Guinea".
+* 2018-21: Project CIREG, part of [ERA4CS](https://jpi-climate.eu/programme/era4cs/), an ERA-NET Co-fund action initiated by JPI Climate, funded by BMBF (DE), FORMAS (SE), BELSPO (BE) and IFD (DK) with co-funding from the EU's Horizon2020 Framework Program, Grant 690462.
 
 ## References
 The REVUB model has so far been used in, and/or inspired the methods of, the following publications/documents:
-* S. Sterl, L.E. Pineda, T. Mast, Y. Rodríguez, P. Muñoz, and W. Thiery. <ins>_Variable renewables fortify Ecuador's power system against recurrences of drought-driven energy crises_</ins>. Nature Water __4__, 571–585 (2026). https://doi.org/10.1038/s44221-026-00617-w.
-* H. Hoff, M. Ogeya, D. de Condappa, R.J. Brecha, M.A.D. Larsen, K. Halsnæs, S. Salack, S. Sanfo, S. Sterl, and S. Liersch. <ins>_Stakeholder-guided, model-based scenarios for a climate- and water-smart electricity transition in Ghana and Burkina Faso_</ins>. Energy Strategy Reviews __49__ (2023). https://doi.org/10.1016/j.esr.2023.101149.
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective_</ins>. Energy Policy __177__ (2023). https://doi.org/10.1016/j.enpol.2023.113526.
-* S. Sterl and W. Thiery. <ins>_La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative_</ins>. Vrije Universiteit Brussel, Brussels, Belgium (2022). http://dx.doi.org/10.13140/RG.2.2.26548.83848.
-* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. <ins>_A spatiotemporal atlas of hydropower in Africa for energy modelling purposes_</ins>. Open Research Europe __1__, 29 (2021). https://doi.org/10.12688/openreseurope.13392.3.
-* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. <ins>_Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam_</ins>. Nature Energy __6__, 407–418 (2021). https://doi.org/10.1038/s41560-021-00799-5.
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname_</ins>. Renewable Energy __173__, 57–75 (2021). https://doi.org/10.1016/j.renene.2021.03.117.
-* S. Sterl, P. Donk, P. Willems, and W. Thiery. <ins>_Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power_</ins>. Renewable and Sustainable Energy Reviews __134__ (2020) 110352. https://doi.org/10.1016/j.rser.2020.110352.
-* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. <ins>_Smart renewable electricity portfolios in West Africa_</ins>. Nature Sustainability __3__, 710–719 (2020). https://doi.org/10.1038/s41893-020-0539-0.
+* S. Sterl, L.E. Pineda, T. Mast, Y. Rodríguez, P. Muñoz, and W. Thiery. <ins>_[Variable renewables fortify Ecuador's power system against recurrences of drought-driven energy crises](https://doi.org/10.1038/s44221-026-00617-w)_</ins>. Nature Water __4__, 571–585 (2026).
+* H. Hoff, M. Ogeya, D. de Condappa, R.J. Brecha, M.A.D. Larsen, K. Halsnæs, S. Salack, S. Sanfo, S. Sterl, and S. Liersch. <ins>_[Stakeholder-guided, model-based scenarios for a climate- and water-smart electricity transition in Ghana and Burkina Faso](https://doi.org/10.1016/j.esr.2023.101149)_</ins>. Energy Strategy Reviews __49__ (2023).
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_[A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective](https://doi.org/10.1016/j.enpol.2023.113526)_</ins>. Energy Policy __177__ (2023).
+* S. Sterl and W. Thiery. <ins>_[La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative](http://dx.doi.org/10.13140/RG.2.2.26548.83848)_</ins>. Vrije Universiteit Brussel, Brussels, Belgium (2022).
+* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. <ins>_[A spatiotemporal atlas of hydropower in Africa for energy modelling purposes](https://doi.org/10.12688/openreseurope.13392.3)_</ins>. Open Research Europe __1__, 29 (2021).
+* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. <ins>_[Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam](https://doi.org/10.1038/s41560-021-00799-5)_</ins>. Nature Energy __6__, 407–418 (2021).
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_[REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname](https://doi.org/10.1016/j.renene.2021.03.117)_</ins>. Renewable Energy __173__, 57–75 (2021).
+* S. Sterl, P. Donk, P. Willems, and W. Thiery. <ins>_[Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power](https://doi.org/10.1016/j.rser.2020.110352)_</ins>. Renewable and Sustainable Energy Reviews __134__ (2020) 110352.
+* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. <ins>_[Smart renewable electricity portfolios in West Africa](https://doi.org/10.1038/s41893-020-0539-0)_</ins>. Nature Sustainability __3__, 710–719 (2020).
