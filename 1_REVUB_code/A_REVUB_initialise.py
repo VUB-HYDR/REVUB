@@ -202,9 +202,15 @@ HPP_name_data_bathymetry = parameters_hydropower_values[np.where(parameters_hydr
 
 # [set by user] relative capacity of solar vs. wind to be installed (cf. explanation below eq. S13)
 # e.g. c_solar_relative = 1 means only solar deployment, no wind deployment on the grid of each HPP in question.
-c_solar_relative = parameters_hydropower_values[np.where(parameters_hydropower_list == 'c_solar_relative', True, False)][0]
+c_solar_relative = parameters_hydropower_values[np.where(parameters_hydropower_list == 'c_solar_relative', True, False)][0].astype(float)
 c_wind_relative = 1 - c_solar_relative
 
+# [check] if solar and wind profiles have been added without corresponding solar/wind ratio
+for n in range(len(HPP_name)):
+    if np.isnan(c_solar_relative[n]) and (str(HPP_name_data_CF_solar[n]) != 'nan' and str(HPP_name_data_CF_wind[n]) != 'nan'):
+        print('Error: No solar/wind ratio defined; code will give error message. Please define c_solar_relative.')
+        raise SystemExit
+        
 # [set by user] the parameter f_reg controls the fraction (<=1) of average inflow allocated to flexible use. Code B will enter a default if left empty by user
 f_reg = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_reg', True, False)][0]
 

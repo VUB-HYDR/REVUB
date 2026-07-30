@@ -2240,7 +2240,7 @@ with warnings.catch_warnings():
                     hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                     hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                     
-                    # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = mixed, 1 = baseload, 1.5 = baseload + pumping)
+                    # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = periodic saturation, 1 = full saturation, 1.5 = flexibility + pumping, 2 = periodic saturation + pumping)
                     temp_maxed_out_BAL_monthly[m,y,HPP] = np.mean(temp_maxed_out_BAL[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     if hydro_BAL_curtailment_factor_monthly[m,y,HPP] == 0:
                         temp_maxed_out_BAL_monthly[m,y,HPP] = -1
@@ -2253,7 +2253,10 @@ with warnings.catch_warnings():
                     if temp_maxed_out_STOR_monthly[m,y,HPP] > 0 and temp_maxed_out_STOR_monthly[m,y,HPP] < 1:
                         temp_maxed_out_STOR_monthly[m,y,HPP] = 0.5
                     if E_hydro_STOR_pump_bymonth[m,y,HPP] > 0:
-                        temp_maxed_out_STOR_monthly[m,y,HPP] = 1.5
+                        if temp_maxed_out_STOR_monthly[m,y,HPP] == 0.5:
+                            temp_maxed_out_STOR_monthly[m,y,HPP] = 2
+                        elif temp_maxed_out_STOR_monthly[m,y,HPP] == 0:
+                            temp_maxed_out_STOR_monthly[m,y,HPP] = 1.5
                     
                     # [calculate] ELCC by month (MWh/h)
                     ELCC_BAL_bymonth[m,y,HPP] = np.nansum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day

@@ -701,17 +701,17 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     # [figure] histogram of flexibility regime by month in BAL regime
     if Figure9_on == 1:
         fig = plt.figure()
-        hist_maxed_out_monthly_BAL = [np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0), 0, np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == -1)]
+        hist_maxed_out_monthly_BAL = [np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 2), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == -1)]
         hist_maxed_out_monthly_BAL = hist_maxed_out_monthly_BAL/np.sum(hist_maxed_out_monthly_BAL)
         plt.bar(np.array(range(len(hist_maxed_out_monthly_BAL))), hist_maxed_out_monthly_BAL, label = 'BAL', width = 0.8, color = colour_BAL)
         plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
         if STOR_break[plot_HPP] == 0:
-            hist_maxed_out_monthly_STOR = [np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == -1)]
+            hist_maxed_out_monthly_STOR = [np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 2), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == -1)]
             hist_maxed_out_monthly_STOR = hist_maxed_out_monthly_STOR/np.sum(hist_maxed_out_monthly_STOR)
             plt.bar(np.array(range(len(hist_maxed_out_monthly_STOR))), hist_maxed_out_monthly_STOR, label = 'STOR', width = 0.6, color = colour_STOR)
             plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-        labels_maxed_out = ['Flexibility', 'Flexibility \n+ pumping', 'Periodically \nsaturated', 'Fully \nsaturated', 'Shutdown']
-        plt.xticks(np.array(range(len(hist_maxed_out_monthly_BAL))), labels_maxed_out)
+        labels_maxed_out = ['Flexibility', 'Flexibility \n+ pumping', 'Periodically \nsaturated', 'Periodically \nsaturated \n + pumping', 'Fully \nsaturated', 'Shutdown']
+        plt.xticks(np.array(range(len(hist_maxed_out_monthly_BAL))), labels_maxed_out, fontsize = 8)
         plt.ylabel('Fraction of months')
         plt.title('Operational regime - by-month categorisation')
         plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')

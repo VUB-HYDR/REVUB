@@ -306,6 +306,13 @@ ramp_thermal_mean_downward_BAL = np.full([plot_ramping_range], np.nan)
 ramp_hydro_mean_upward_BAL = np.full([plot_ramping_range], np.nan)
 ramp_hydro_mean_downward_BAL = np.full([plot_ramping_range], np.nan)
 
+ramp_vector_thermal_STOR = np.full([int(np.max(positions)), plot_ramping_range], np.nan)
+ramp_vector_hydro_STOR = np.full([int(np.max(positions)), plot_ramping_range, HPP_number], np.nan)
+ramp_thermal_mean_upward_STOR = np.full([plot_ramping_range], np.nan)
+ramp_thermal_mean_downward_STOR = np.full([plot_ramping_range], np.nan)
+ramp_hydro_mean_upward_STOR = np.full([plot_ramping_range], np.nan)
+ramp_hydro_mean_downward_STOR = np.full([plot_ramping_range], np.nan)
+
 # [loop] across user-defined range of hours for thermal power
 for r in range(plot_ramping_range):
     
@@ -319,7 +326,6 @@ for r in range(plot_ramping_range):
     temp_ramp_vector = ramp_vector_thermal_BAL[:, r]
     ramp_thermal_mean_upward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector > 0)])
     ramp_thermal_mean_downward_BAL[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector < 0)])
-
 
 # [loop] across user-defined range of hours for hydropower
 for r in range(plot_ramping_range):
@@ -344,39 +350,39 @@ for r in range(plot_ramping_range):
 
 
 # [establish] ramping envelopes
-ramp_thermal_envelope = np.stack((ramp_thermal_mean_upward_BAL, ramp_thermal_mean_downward_BAL))
-ramp_thermal_envelope[np.isnan(ramp_thermal_envelope)] = 0
-ramp_hydro_envelope = np.stack((ramp_hydro_mean_upward_BAL, ramp_hydro_mean_downward_BAL))
-ramp_hydro_envelope[np.isnan(ramp_hydro_envelope)] = 0
+ramp_thermal_envelope_BAL = np.stack((ramp_thermal_mean_upward_BAL, ramp_thermal_mean_downward_BAL))
+ramp_thermal_envelope_BAL[np.isnan(ramp_thermal_envelope_BAL)] = 0
+ramp_hydro_envelope_BAL = np.stack((ramp_hydro_mean_upward_BAL, ramp_hydro_mean_downward_BAL))
+ramp_hydro_envelope_BAL[np.isnan(ramp_hydro_envelope_BAL)] = 0
 
 # [calculate] total capacity capable of ramping
-P_r_total_ramping_hydro = np.nansum(P_r_turb[np.where(np.asarray(HPP_category) != 'RoR')])
+P_r_total_ramping_hydro_BAL = np.nansum(P_r_turb[np.where(np.asarray(HPP_category) != 'RoR')])
 
 # [preallocate] ramping speeds
-ramp_hydro_envelope_speed = np.full([2, plot_ramping_range], np.nan)
-ramp_thermal_envelope_speed = np.full([2, plot_ramping_range], np.nan)
+ramp_hydro_envelope_BAL_speed = np.full([2, plot_ramping_range], np.nan)
+ramp_thermal_envelope_BAL_speed = np.full([2, plot_ramping_range], np.nan)
 
 
 # [figure]
 # [plot] thermal and hydro ramping envelopes
 fig, (ax1, ax2) = plt.subplots(1,2)
-ax1.plot(range(plot_ramping_range), ramp_hydro_envelope[0,:], color = colour_hydro_flexible, linestyle = '--', label = ('hydro'))
-ax1.plot(range(plot_ramping_range), ramp_hydro_envelope[1,:], color = colour_hydro_flexible, linestyle = '--')
-ax1.plot(range(plot_ramping_range), ramp_thermal_envelope[0,:], color = colour_thermal, linestyle = '-.', label = ('thermal'))
-ax1.plot(range(plot_ramping_range), ramp_thermal_envelope[1,:], color = colour_thermal, linestyle = '-.')
+ax1.plot(range(plot_ramping_range), ramp_hydro_envelope_BAL[0,:], color = colour_hydro_flexible, linestyle = '--', label = ('hydro'))
+ax1.plot(range(plot_ramping_range), ramp_hydro_envelope_BAL[1,:], color = colour_hydro_flexible, linestyle = '--')
+ax1.plot(range(plot_ramping_range), ramp_thermal_envelope_BAL[0,:], color = colour_thermal, linestyle = '-.', label = ('thermal'))
+ax1.plot(range(plot_ramping_range), ramp_thermal_envelope_BAL[1,:], color = colour_thermal, linestyle = '-.')
 ax1.set_xlabel('Time (hours)')
 ax1.set_ylabel('Average ramping needs (MW)')
 
 # [loop] across hours to calculate relative ramping speed
 for r in range(1, plot_ramping_range):
-    ramp_hydro_envelope_speed[:, r] = ramp_hydro_envelope[:, r]/P_r_total_ramping_hydro/r
-    ramp_thermal_envelope_speed[:, r] = ramp_thermal_envelope[:, r]/P_r_total_thermal/r
+    ramp_hydro_envelope_BAL_speed[:, r] = ramp_hydro_envelope_BAL[:, r]/P_r_total_ramping_hydro_BAL/r
+    ramp_thermal_envelope_BAL_speed[:, r] = ramp_thermal_envelope_BAL[:, r]/P_r_total_thermal/r
 
 # [plot] thermal and hydro ramping envelopes per unit of time expressed as percentage of capacity
-ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_speed[0,:], color = colour_hydro_flexible, linestyle = '--')
-ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_speed[1,:], color = colour_hydro_flexible, linestyle = '--')
-ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_speed[0,:], color = colour_thermal, linestyle = '-.')
-ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_speed[1,:], color = colour_thermal, linestyle = '-.')
+ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_BAL_speed[0,:], color = colour_hydro_flexible, linestyle = '--')
+ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_BAL_speed[1,:], color = colour_hydro_flexible, linestyle = '--')
+ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_BAL_speed[0,:], color = colour_thermal, linestyle = '-.')
+ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_BAL_speed[1,:], color = colour_thermal, linestyle = '-.')
 ax2.set_xlabel('Time (hours)')
 ax2.set_ylabel('idem (in fraction of capacity/hr)')
 
@@ -385,6 +391,90 @@ plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
 plt.tight_layout()
 plt.savefig(path_outputs + '\\' + "Total_Fig4.png", dpi = 300, bbox_inches = 'tight')
 print('> Saving Figure 4 (multiple)')
+
+
+# [check] if STOR scenario available
+if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
+    
+    # [loop] across user-defined range of hours for thermal power
+    for r in range(plot_ramping_range):
+        
+        # [loop] across hours in selected year
+        for n in range(len(hrs_year) - r):
+            
+            # [calculate] difference between successive time steps with distance r
+            ramp_vector_thermal_STOR[n, r] = P_STOR_thermal_hourly[n + r, plot_year_multiple] - P_STOR_thermal_hourly[n, plot_year_multiple]
+        
+        # [calculate] average
+        temp_ramp_vector = ramp_vector_thermal_STOR[:, r]
+        ramp_thermal_mean_upward_STOR[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector > 0)])
+        ramp_thermal_mean_downward_STOR[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector < 0)])
+        
+        
+    # [loop] across user-defined range of hours for hydropower
+    for r in range(plot_ramping_range):
+        
+        # [loop] across hours in selected year
+        for n in range(len(hrs_year) - r):
+            
+            # [loop] across hydropower plants
+            for HPP in range(HPP_number):
+                
+                # [skip] iteration in case plant not operated flexibly
+                if HPP_category[HPP] == 'RoR':
+                    continue
+                
+                # [calculate] difference between successive time steps with distance r
+                ramp_vector_hydro_STOR[n, r, HPP] = P_STOR_hydro_flexible_hourly[n + r, plot_year_multiple, HPP] - P_STOR_hydro_flexible_hourly[n, plot_year_multiple, HPP]
+            
+        # [calculate] average ramping for each hour across the sum of hydropower plants
+        temp_ramp_vector = np.nansum(ramp_vector_hydro_STOR[:, r, :], axis = 1)
+        ramp_hydro_mean_upward_STOR[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector > 0)])
+        ramp_hydro_mean_downward_STOR[r] = np.nanmean(temp_ramp_vector[np.where(temp_ramp_vector < 0)])
+    
+    # [establish] ramping envelopes
+    ramp_thermal_envelope_STOR = np.stack((ramp_thermal_mean_upward_STOR, ramp_thermal_mean_downward_STOR))
+    ramp_thermal_envelope_STOR[np.isnan(ramp_thermal_envelope_STOR)] = 0
+    ramp_hydro_envelope_STOR = np.stack((ramp_hydro_mean_upward_STOR, ramp_hydro_mean_downward_STOR))
+    ramp_hydro_envelope_STOR[np.isnan(ramp_hydro_envelope_STOR)] = 0
+
+    # [calculate] total capacity capable of ramping
+    P_r_total_ramping_hydro_STOR = np.nansum(P_r_turb[np.where(np.asarray(HPP_category) != 'RoR')])
+
+    # [preallocate] ramping speeds
+    ramp_hydro_envelope_STOR_speed = np.full([2, plot_ramping_range], np.nan)
+    ramp_thermal_envelope_STOR_speed = np.full([2, plot_ramping_range], np.nan)
+
+
+    # [figure]
+    # [plot] thermal and hydro ramping envelopes
+    fig, (ax1, ax2) = plt.subplots(1,2)
+    ax1.plot(range(plot_ramping_range), ramp_hydro_envelope_STOR[0,:], color = colour_hydro_flexible, linestyle = '--', label = ('hydro'))
+    ax1.plot(range(plot_ramping_range), ramp_hydro_envelope_STOR[1,:], color = colour_hydro_flexible, linestyle = '--')
+    ax1.plot(range(plot_ramping_range), ramp_thermal_envelope_STOR[0,:], color = colour_thermal, linestyle = '-.', label = ('thermal'))
+    ax1.plot(range(plot_ramping_range), ramp_thermal_envelope_STOR[1,:], color = colour_thermal, linestyle = '-.')
+    ax1.set_xlabel('Time (hours)')
+    ax1.set_ylabel('Average ramping needs (MW)')
+
+    # [loop] across hours to calculate relative ramping speed
+    for r in range(1, plot_ramping_range):
+        ramp_hydro_envelope_STOR_speed[:, r] = ramp_hydro_envelope_STOR[:, r]/P_r_total_ramping_hydro_STOR/r
+        ramp_thermal_envelope_STOR_speed[:, r] = ramp_thermal_envelope_STOR[:, r]/P_r_total_thermal/r
+
+    # [plot] thermal and hydro ramping envelopes per unit of time expressed as percentage of capacity
+    ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_STOR_speed[0,:], color = colour_hydro_flexible, linestyle = '--')
+    ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_STOR_speed[1,:], color = colour_hydro_flexible, linestyle = '--')
+    ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_STOR_speed[0,:], color = colour_thermal, linestyle = '-.')
+    ax2.plot(range(plot_ramping_range), ramp_thermal_envelope_STOR_speed[1,:], color = colour_thermal, linestyle = '-.')
+    ax2.set_xlabel('Time (hours)')
+    ax2.set_ylabel('idem (in fraction of capacity/hr)')
+
+    plt.suptitle('Ramping envelopes (year #' + str(plot_year_multiple + 1) + '), STOR')
+    plt.figlegend(loc = 'lower center', ncol = 2, bbox_to_anchor = (0.55, -0.075))
+    plt.tight_layout()
+    plt.savefig(path_outputs + '\\' + "Total_Fig4b.png", dpi = 300, bbox_inches = 'tight')
+    print('> Saving Figure 4b (multiple)')
+
 
 
 # [output] tables with time series
