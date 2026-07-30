@@ -1,7 +1,7 @@
 
 # REVUB (Renewable Electricity Variability, Upscaling and Balancing) 
 
-# <img src="./graphs/header_logo.png" align="right" />
+# <img src="./envs/header_logo.png" align="right" />
 
 Authors: Sebastian Sterl
 
@@ -10,11 +10,9 @@ Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
 ---
-The main objective of REVUB is to model how the operation and dispatch of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services. 
+The main objective of REVUB is to model how the operation and dispatch of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services.
 
-The model can be used, for instance, in due diligence processes for power plant financing.
-
-This model has been used for several peer-reviewed publications related to regional power system interconnection, solar/wind integration, and drought resilience.
+This model has been used for several peer-reviewed publications related to regional power system interconnection, solar/wind integration, and drought resilience, as well as in due diligence processes for power plant financing.
 
 A detailed description of all involved principles and equations can be found in the dedicated [Manual](https://github.com/VUB-HYDR/REVUB/blob/master/3_Manual/REVUB_manual.pdf).
 
@@ -97,19 +95,19 @@ See also the [LICENSE](./LICENSE.md) file.
 
 ## Acknowledgements
 The following funding sources are gratefully acknowledged:
-* 2025-26: Flemish Inter-University Development Cooperation ([VLIR-UOS](https://www.vliruos.be/)), Global Minds XREI Staff Mobility project "Ecuador's electricity crisis 2023-24: Drought impacts on hydropower and mitigation through variable renewables". 
+* 2025-26: Flemish Inter-University Development Cooperation ([VLIR-UOS](https://www.vliruos.be/)), Global Minds XREI Staff Mobility project "_Ecuador's electricity crisis 2023-24: Drought impacts on hydropower and mitigation through variable renewables_". 
 * 2023-24: [The World Bank](https://www.worldbank.org/ext/en/home) (WB), Infrastructure Energy & Extractives Global Knowledge Unit (IEEGK), PO Number 8831242.
-* 2022: [International Rivers](https://www.internationalrivers.org/), consulting contract "Alternatives to new hydropower to meet energy needs in the Republic of Guinea".
+* 2022: [International Rivers](https://www.internationalrivers.org/), consulting contract "_Alternatives to new hydropower to meet energy needs in the Republic of Guinea_".
 * 2018-21: Project CIREG, part of [ERA4CS](https://jpi-climate.eu/programme/era4cs/), an ERA-NET Co-fund action initiated by JPI Climate, funded by BMBF (DE), FORMAS (SE), BELSPO (BE) and IFD (DK) with co-funding from the EU's Horizon2020 Framework Program, Grant 690462.
 
 ## References
 The REVUB model has so far been used in, and/or inspired the methods of, the following publications/documents:
-* S. Sterl, L.E. Pineda, T. Mast, Y. Rodríguez, P. Muñoz, and W. Thiery. <ins>_[Variable renewables fortify Ecuador's power system against recurrences of drought-driven energy crises](https://doi.org/10.1038/s44221-026-00617-w)_</ins>. Nature Water __4__, 571–585 (2026).
-* H. Hoff, M. Ogeya, D. de Condappa, R.J. Brecha, M.A.D. Larsen, K. Halsnæs, S. Salack, S. Sanfo, S. Sterl, and S. Liersch. <ins>_[Stakeholder-guided, model-based scenarios for a climate- and water-smart electricity transition in Ghana and Burkina Faso](https://doi.org/10.1016/j.esr.2023.101149)_</ins>. Energy Strategy Reviews __49__ (2023).
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_[A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective](https://doi.org/10.1016/j.enpol.2023.113526)_</ins>. Energy Policy __177__ (2023).
-* S. Sterl and W. Thiery. <ins>_[La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative](http://dx.doi.org/10.13140/RG.2.2.26548.83848)_</ins>. Vrije Universiteit Brussel, Brussels, Belgium (2022).
-* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. <ins>_[A spatiotemporal atlas of hydropower in Africa for energy modelling purposes](https://doi.org/10.12688/openreseurope.13392.3)_</ins>. Open Research Europe __1__, 29 (2021).
-* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. <ins>_[Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam](https://doi.org/10.1038/s41560-021-00799-5)_</ins>. Nature Energy __6__, 407–418 (2021).
-* P. Donk, S. Sterl, W. Thiery, and P. Willems. <ins>_[REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname](https://doi.org/10.1016/j.renene.2021.03.117)_</ins>. Renewable Energy __173__, 57–75 (2021).
-* S. Sterl, P. Donk, P. Willems, and W. Thiery. <ins>_[Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power](https://doi.org/10.1016/j.rser.2020.110352)_</ins>. Renewable and Sustainable Energy Reviews __134__ (2020) 110352.
-* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. <ins>_[Smart renewable electricity portfolios in West Africa](https://doi.org/10.1038/s41893-020-0539-0)_</ins>. Nature Sustainability __3__, 710–719 (2020).
+* S. Sterl, L.E. Pineda, T. Mast, Y. Rodríguez, P. Muñoz, and W. Thiery. [_Variable renewables fortify Ecuador's power system against recurrences of drought-driven energy crises_](https://doi.org/10.1038/s44221-026-00617-w). Nature Water __4__, 571–585 (2026).
+* H. Hoff, M. Ogeya, D. de Condappa, R.J. Brecha, M.A.D. Larsen, K. Halsnæs, S. Salack, S. Sanfo, S. Sterl, and S. Liersch. [_Stakeholder-guided, model-based scenarios for a climate- and water-smart electricity transition in Ghana and Burkina Faso_](https://doi.org/10.1016/j.esr.2023.101149). Energy Strategy Reviews __49__ (2023).
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. [_A policy framework for power system planning towards optimized integration of renewables under potential climate change – The Small Island Developing States perspective_](https://doi.org/10.1016/j.enpol.2023.113526). Energy Policy __177__ (2023).
+* S. Sterl and W. Thiery. [_La faisabilité du solaire PV pour remplacer la centrale hydroélectrique de Koukoutamba en Guinée: Étude quantitative_](http://dx.doi.org/10.13140/RG.2.2.26548.83848). Vrije Universiteit Brussel, Brussels, Belgium (2022).
+* S. Sterl, A. Devillers, C.J. Chawanda, A. van Griensven, W. Thiery, and D. Russo. [_A spatiotemporal atlas of hydropower in Africa for energy modelling purposes_](https://doi.org/10.12688/openreseurope.13392.3). Open Research Europe __1__, 29 (2021).
+* S. Sterl, D. Fadly, S. Liersch, H. Koch, and W. Thiery. [_Linking solar and wind power in eastern Africa with operation of the Grand Ethiopian Renaissance Dam_](https://doi.org/10.1038/s41560-021-00799-5). Nature Energy __6__, 407–418 (2021).
+* P. Donk, S. Sterl, W. Thiery, and P. Willems. [_REVUB-Light: A parsimonious model to assess power system balancing and flexibility for optimal intermittent renewable energy integration—A study of Suriname_](https://doi.org/10.1016/j.renene.2021.03.117). Renewable Energy __173__, 57–75 (2021).
+* S. Sterl, P. Donk, P. Willems, and W. Thiery. [_Turbines of the Caribbean: Decarbonising Suriname’s electricity mix through hydro-supported integration of wind power_](https://doi.org/10.1016/j.rser.2020.110352). Renewable and Sustainable Energy Reviews __134__ (2020) 110352.
+* S. Sterl, I. Vanderkelen, C.J. Chawanda, D. Russo, R.J. Brecha, A. van Griensven, N.P.M. van Lipzig, and W. Thiery. [_Smart renewable electricity portfolios in West Africa_](https://doi.org/10.1038/s41893-020-0539-0). Nature Sustainability __3__, 710–719 (2020).

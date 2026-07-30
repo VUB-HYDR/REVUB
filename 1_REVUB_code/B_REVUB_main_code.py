@@ -204,7 +204,7 @@ E_hydro_BAL_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HP
 # [preallocate] Monthly average of output energy variables for STOR (GWh/month)
 E_hydro_STOR_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_STOR_flexible_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
-E_hydro_pump_STOR_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+E_hydro_STOR_pump_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 E_hydro_STOR_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Hydropower generation in CONV (MWh/year)
@@ -253,9 +253,11 @@ CF_hydro_STOR_yearly = np.full([len(simulation_years), HPP_number], np.nan)
 CF_hydro_BAL_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 CF_hydro_STOR_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] Array to determine whether hydropower flexibility maxed out or not
+# [preallocate] Array to determine operational regime (whether hydropower flexibility maxed out or not, &c.)
 temp_maxed_out_BAL = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
-temp_maxed_out_BAL_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number)) 
+temp_maxed_out_BAL_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
+temp_maxed_out_STOR = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
+temp_maxed_out_STOR_monthly = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))  
 
 ##### POWER GENERATION PARAMETERS: SOLAR & WIND #####
 
@@ -2180,6 +2182,7 @@ with warnings.catch_warnings():
             
             # [calculate] whether hydropower/turbine flow capacity is maxed out to determine regime
             temp_maxed_out_BAL[:,:,HPP] = np.logical_or((Q_in_RoR_hourly[:,:,HPP] > Q_max_turb[HPP] - Q_BAL_stable_hourly[:,:,HPP] - Q_BAL_flexible_hourly[:,:,HPP]), CF_hydro_BAL_hourly[:,:,HPP] >= 1).astype(int)
+            temp_maxed_out_STOR[:,:,HPP] = np.logical_or((Q_in_RoR_hourly[:,:,HPP] > Q_max_turb[HPP] - Q_STOR_stable_hourly[:,:,HPP] - Q_STOR_flexible_hourly[:,:,HPP]), CF_hydro_STOR_hourly[:,:,HPP] >= 1).astype(int)
             
         # [loop] across all simulation years
         for y in range(len(simulation_years)):
@@ -2222,7 +2225,7 @@ with warnings.catch_warnings():
                     E_solar_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_solar_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     E_wind_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_wind_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     E_hydro_STOR_flexible_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_hydro_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
-                    E_hydro_pump_STOR_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    E_hydro_STOR_pump_bymonth[m,y,HPP] = 1e-3*np.nansum(P_STOR_pump_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     E_hydro_STOR_total_bymonth[m,y,HPP] = E_hydro_STOR_stable_bymonth[m,y,HPP] + E_hydro_STOR_flexible_bymonth[m,y,HPP] 
                     
                     # [calculate] average monthly hydraulic head as proxy for water level (m)
@@ -2237,12 +2240,20 @@ with warnings.catch_warnings():
                     hydro_BAL_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_BAL_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                     hydro_STOR_curtailment_factor_monthly[m,y,HPP] = np.nanmin(hydro_STOR_curtailment_factor_hourly[int(np.sum(days_year[range(m),y])*hrs_day) : int(np.sum(days_year[range(m+1),y])*hrs_day),y,HPP])
                     
-                    # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = mixed, 1 = baseload)
+                    # [calculate] monthly regime of hydropower flexibility (-1 = curtailed, 0 = flexibility, 0.5 = mixed, 1 = baseload, 1.5 = baseload + pumping)
                     temp_maxed_out_BAL_monthly[m,y,HPP] = np.mean(temp_maxed_out_BAL[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
                     if hydro_BAL_curtailment_factor_monthly[m,y,HPP] == 0:
                         temp_maxed_out_BAL_monthly[m,y,HPP] = -1
                     if temp_maxed_out_BAL_monthly[m,y,HPP] > 0 and temp_maxed_out_BAL_monthly[m,y,HPP] < 1:
                         temp_maxed_out_BAL_monthly[m,y,HPP] = 0.5
+                        
+                    temp_maxed_out_STOR_monthly[m,y,HPP] = np.mean(temp_maxed_out_STOR[int(positions[m,y]):int(positions[m+1,y]),y,HPP])
+                    if hydro_STOR_curtailment_factor_monthly[m,y,HPP] == 0:
+                        temp_maxed_out_STOR_monthly[m,y,HPP] = -1
+                    if temp_maxed_out_STOR_monthly[m,y,HPP] > 0 and temp_maxed_out_STOR_monthly[m,y,HPP] < 1:
+                        temp_maxed_out_STOR_monthly[m,y,HPP] = 0.5
+                    if E_hydro_STOR_pump_bymonth[m,y,HPP] > 0:
+                        temp_maxed_out_STOR_monthly[m,y,HPP] = 1.5
                     
                     # [calculate] ELCC by month (MWh/h)
                     ELCC_BAL_bymonth[m,y,HPP] = np.nansum(L_followed_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,HPP])/days_year[m,y]/hrs_day

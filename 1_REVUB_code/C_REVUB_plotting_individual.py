@@ -392,7 +392,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         if Figure4_on == 1:
             # [plot] average monthly power mix in user-selected year
             fig = plt.figure()
-            area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_pump_STOR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
+            area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_STOR_pump_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
             labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored']
             labels_load = 'ELCC'
             plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
@@ -409,7 +409,7 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         if Figure5_on == 1:
             # [plot] power mix by year
             fig = plt.figure()
-            E_generated_STOR_bymonth_sum = [np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_STOR_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_STOR_bymonth[:,:,plot_HPP], axis = 0), -1*np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP], axis = 0)]
+            E_generated_STOR_bymonth_sum = [np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_wind_STOR_bymonth[:,:,plot_HPP], axis = 0), np.sum(E_solar_STOR_bymonth[:,:,plot_HPP], axis = 0), -1*np.sum(E_hydro_STOR_pump_bymonth[:,:,plot_HPP], axis = 0)]
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[0], bottom = np.sum(E_generated_STOR_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
             plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
@@ -444,16 +444,24 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
             print('> Saving Figure 6b')
     
     
-    # [preallocate] vectors for adapted rules under BAL
+    # [preallocate] vectors for outflow rules
     h_BAL_rules_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
     h_BAL_rules_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),int(np.max(days_year)),hrs_day))
     Q_out_net_BAL_rules_stable_bymonth = np.full([months_yr,len(simulation_years)], np.nan)
     Q_out_net_BAL_rules_total_bymonth = np.full([months_yr,len(simulation_years),int(np.max(days_year)),hrs_day], np.nan)
+    h_STOR_rules_stable_bymonth = np.zeros(shape = (months_yr,len(simulation_years)))
+    h_STOR_rules_total_bymonth = np.zeros(shape = (months_yr,len(simulation_years),int(np.max(days_year)),hrs_day))
+    Q_out_net_STOR_rules_stable_bymonth = np.full([months_yr,len(simulation_years)], np.nan)
+    Q_out_net_STOR_rules_total_bymonth = np.full([months_yr,len(simulation_years),int(np.max(days_year)),hrs_day], np.nan)
+    
     
     # [loop] across all simulation years to calculate release for each day, hour, month and year
     for y in range(len(simulation_years)):
+        
         # [loop] across all months in each year
+        
         for m in range(months_yr):
+            
             # [arrange] hourly head and outflow values for each month
             temp_head_BAL_bymonth = h_BAL_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
             temp_Q_BAL_bymonth = Q_BAL_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_in_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_BAL_spill_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
@@ -475,9 +483,34 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
                     # [arrange] head and outflow for each hour, day, month, year
                     h_BAL_rules_total_bymonth[m,y,day,hr] = temp_head_bymonth_hr[day]
                     Q_out_net_BAL_rules_total_bymonth[m,y,day,hr] = temp_Q_bymonth_hr[day]
+            
+            # [repeat] in case STOR scenario activated
+            if STOR_break[HPP] == 0:
+
+                # [arrange] hourly head and outflow values for each month
+                temp_head_STOR_bymonth = h_STOR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
+                temp_Q_STOR_bymonth = Q_STOR_stable_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] + Q_STOR_flexible_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
+                #temp_Q_STOR_bymonth = Q_STOR_out_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_in_RoR_hourly[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP] - Q_STOR_spill_hourly_upper[int(positions[m,y]):int(positions[m+1,y]),y,plot_HPP]
+                temp_Q_STOR_bymonth[temp_Q_STOR_bymonth < 0] = np.nan
+                
+                # [arrange] according to specific hours of day
+                # [loop] across all hours of the day
+                for hr in range(hrs_day):
+                    
+                    # [find] head during specific hours
+                    temp_head_bymonth_hr = temp_head_STOR_bymonth[hr::hrs_day]
+                    
+                    # [find] outflow during specific hours
+                    temp_Q_bymonth_hr = temp_Q_STOR_bymonth[hr::hrs_day]
+                    
+                    # [loop] across all days of the month to find rules for flexible outflow
+                    for day in range(int(days_year[m,y])):
+                        
+                        # [arrange] head and outflow for each hour, day, month, year
+                        h_STOR_rules_total_bymonth[m,y,day,hr] = temp_head_bymonth_hr[day]
+                        Q_out_net_STOR_rules_total_bymonth[m,y,day,hr] = temp_Q_bymonth_hr[day]
                 
             
-        
     # [figure] approximate release rules for selected months and hours of day (Fig. 2b main paper)
     if Figure7_on == 1:
         fig = plt.figure()
@@ -542,6 +575,72 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         plt.title('release rules (BAL)')
         plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig7.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 7')
+        
+        # [repeat] in case STOR scenario activated
+        if STOR_break[plot_HPP] == 0:
+            
+            fig = plt.figure()
+            
+            # [loop] across selected hours of day
+            for hr in plot_rules_hr:
+                # [loop] across selected months
+                for m in np.array(plot_rules_month) - 1:
+                    
+                    # [preallocate] temporary vectors to store head and outflow
+                    temp_h = np.zeros(shape = (len(simulation_years)))
+                    temp_Q = np.zeros(shape = (len(simulation_years)))
+                    temp_Q_std = np.zeros(shape = (len(simulation_years)))
+                    temp_Q_025 = np.zeros(shape = (len(simulation_years)))
+                    temp_Q_075 = np.zeros(shape = (len(simulation_years)))
+                    
+                    # [loop] across all simulation years
+                    for y in range(len(simulation_years)):
+                        
+                        # [calculate] head at given hour of day for all days in a single month in a single year
+                        temp = h_STOR_rules_total_bymonth[m,y,0:int(days_year[m,y]),hr]
+                        
+                        # [calculate] take the mean for that time of day in that month
+                        temp_h[y] = np.nanmedian(temp)
+                        
+                        # [calculate] outflow at given hour of day for all days in a single month in a single year
+                        temp = Q_out_net_STOR_rules_total_bymonth[m,y,0:int(days_year[m,y]),hr]
+                        
+                        temp_Q[y] = np.nanmedian(temp)
+                        temp_Q_std[y] = np.nanstd(temp)
+                        temp_Q_025[y] = np.nanpercentile(temp,25)
+                        temp_Q_075[y] = np.nanpercentile(temp,75)
+                        
+                        # [check] mark drought incidences
+                        if hydro_STOR_curtailment_factor_monthly[m,y,plot_HPP] == 0:
+                            temp_Q[y] = np.nan
+                            temp_h[y] = np.nan
+                            temp_Q_std[y] = np.nan
+                            temp_Q_025[y] = np.nan
+                            temp_Q_075[y] = np.nan
+                            
+                        
+                    # [check] remove drought incidences
+                    temp_Q = temp_Q[np.isfinite(temp_Q)]
+                    temp_h = temp_h[np.isfinite(temp_h)]
+                    temp_Q_std = temp_Q_std[np.isfinite(temp_Q_std)]
+                    temp_Q_025 = temp_Q_025[np.isfinite(temp_Q_025)]
+                    temp_Q_075 = temp_Q_075[np.isfinite(temp_Q_075)]
+                    
+                    # specify errorbar values
+                    yerr = [temp_Q - temp_Q_025, temp_Q_075 - temp_Q]
+                    
+                    plt.errorbar(temp_h, temp_Q, yerr = yerr, fmt='^', label = ('regulated outflow ' + str(hr) + 'h ' + str(months_names_full[m])) )
+                    temp_fit = np.polyfit(temp_h, temp_Q, 1)
+                    plt.plot(temp_h, temp_fit[1] + temp_fit[0]*temp_h, color = 'black', linestyle = '--', label = ('regulated outflow ' + str(hr) + 'h ' + str(months_names_full[m]) + ' fit') )
+                
+            
+            plt.plot([np.nanmin(h_STOR_hourly[:,:,plot_HPP]), np.nanmax(h_STOR_hourly[:,:,plot_HPP])], [np.nanmean(Q_STOR_stable_hourly[:,:,plot_HPP]), np.nanmean(Q_STOR_stable_hourly[:,:,plot_HPP])], color = 'black', label = 'average fixed outflow')
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+            plt.xlabel('Hydraulic head (m)')
+            plt.ylabel('$Q_{out}$ (m$^3$/s)')
+            plt.title('release rules (STOR - from upper reservoir)')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig7b.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 7b')
     
     
     # [calculate] capacity of each turbine (MW)
@@ -601,17 +700,23 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     
     # [figure] histogram of flexibility regime by month in BAL regime
     if Figure9_on == 1:
-        hist_maxed_out_monthly = [np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == -1)]
-        hist_maxed_out_monthly = hist_maxed_out_monthly/np.sum(hist_maxed_out_monthly)
         fig = plt.figure()
-        plt.bar(np.array(range(len(hist_maxed_out_monthly))), hist_maxed_out_monthly, width = 0.8)
-        labels_maxed_out = ['Flexibility', 'Baseload', 'Mixed', 'Curtailed']
-        plt.xticks(np.array(range(len(hist_maxed_out_monthly))), labels_maxed_out)
-        plt.ylabel('Fraction of time')
-        plt.title('Operational regime (BAL)')
+        hist_maxed_out_monthly_BAL = [np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0), 0, np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_BAL_monthly[:,:,plot_HPP] == -1)]
+        hist_maxed_out_monthly_BAL = hist_maxed_out_monthly_BAL/np.sum(hist_maxed_out_monthly_BAL)
+        plt.bar(np.array(range(len(hist_maxed_out_monthly_BAL))), hist_maxed_out_monthly_BAL, label = 'BAL', width = 0.8, color = colour_BAL)
+        plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+        if STOR_break[plot_HPP] == 0:
+            hist_maxed_out_monthly_STOR = [np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 0.5), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == 1), np.count_nonzero(temp_maxed_out_STOR_monthly[:,:,plot_HPP] == -1)]
+            hist_maxed_out_monthly_STOR = hist_maxed_out_monthly_STOR/np.sum(hist_maxed_out_monthly_STOR)
+            plt.bar(np.array(range(len(hist_maxed_out_monthly_STOR))), hist_maxed_out_monthly_STOR, label = 'STOR', width = 0.6, color = colour_STOR)
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+        labels_maxed_out = ['Flexibility', 'Flexibility \n+ pumping', 'Periodically \nsaturated', 'Fully \nsaturated', 'Shutdown']
+        plt.xticks(np.array(range(len(hist_maxed_out_monthly_BAL))), labels_maxed_out)
+        plt.ylabel('Fraction of months')
+        plt.title('Operational regime - by-month categorisation')
         plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig9.png', dpi = 300, bbox_inches = 'tight')
         print('> Saving Figure 9')
-       
+        
         
 # [output] tables with time series for calibration run
 if tables_on == 1 and HPP_category[plot_HPP] != 'RoR':

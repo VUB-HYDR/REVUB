@@ -232,10 +232,10 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     # [figure] (cf. Fig. S4a, S9a)
     # [plot] average monthly power mix in user-selected year
     fig = plt.figure()
-    area_mix_STOR_bymonth = [np.nansum(E_hydro_STOR_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_STOR_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_STOR_bymonth[:,plot_year_multiple], E_unsatisfied_STOR_bymonth[:,plot_year_multiple], -1*E_curtailed_STOR_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
+    area_mix_STOR_bymonth = [np.nansum(E_hydro_STOR_stable_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_STOR_flexible_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_wind_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_solar_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple] - E_hydro_STOR_pump_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), np.nansum(E_hydro_BAL_RoR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), E_thermal_STOR_bymonth[:,plot_year_multiple], E_unsatisfied_STOR_bymonth[:,plot_year_multiple], -1*E_curtailed_STOR_bymonth[:,plot_year_multiple]]/days_year[:,plot_year_multiple]*10**3/hrs_day
     labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)', 'Thermal/imports', 'Unsatisfied', 'Curtailed/exports']
     plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR, colour_thermal, colour_unsatisfied, colour_curtailed])
-    plt.fill_between(np.array(range(months_yr)), -1*np.nansum(E_hydro_pump_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'Stored', facecolor = colour_hydro_pumped)
+    plt.fill_between(np.array(range(months_yr)), -1*np.nansum(E_hydro_STOR_pump_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'Stored', facecolor = colour_hydro_pumped)
     plt.plot(np.array(range(months_yr)), E_total_bymonth[:,plot_year_multiple]/days_year[:,plot_year_multiple]*10**3/hrs_day, label = 'Total load', color = 'black', linewidth = 3)
     if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(months_yr)), np.nansum(ELCC_STOR_bymonth[:,plot_year_multiple,plot_HPP_multiple], axis = 1), label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(range(months_yr)), np.zeros(months_yr), color = 'black', linewidth = 1)
@@ -250,7 +250,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     # [figure] (cf. Fig. S4b, S9b)
     # [plot] power mix by year
     fig = plt.figure()
-    E_generated_STOR_bymonth_sum = [np.nansum(np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_STOR_bymonth[:,:,plot_HPP_multiple] - E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_STOR_bymonth, axis = 0), np.sum(E_unsatisfied_STOR_bymonth, axis = 0), -1*np.sum(E_curtailed_STOR_bymonth, axis = 0)]
+    E_generated_STOR_bymonth_sum = [np.nansum(np.sum(E_hydro_STOR_stable_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_STOR_flexible_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_wind_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_solar_STOR_bymonth[:,:,plot_HPP_multiple] - E_hydro_STOR_pump_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.nansum(np.sum(E_hydro_BAL_RoR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), np.sum(E_thermal_STOR_bymonth, axis = 0), np.sum(E_unsatisfied_STOR_bymonth, axis = 0), -1*np.sum(E_curtailed_STOR_bymonth, axis = 0)]
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[0], bottom = np.sum(E_generated_STOR_bymonth_sum[0:0], axis = 0), label = 'Hydropower (stable)', color = colour_hydro_stable)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[1], bottom = np.sum(E_generated_STOR_bymonth_sum[0:1], axis = 0), label = 'Hydropower (flexible)', color = colour_hydro_flexible)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[2], bottom = np.sum(E_generated_STOR_bymonth_sum[0:2], axis = 0), label = 'Wind power', color = colour_wind)
@@ -259,7 +259,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[5], bottom = np.sum(E_generated_STOR_bymonth_sum[0:5], axis = 0), label = 'Thermal/imports', color = colour_thermal)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[6], bottom = np.sum(E_generated_STOR_bymonth_sum[0:6], axis = 0), label = 'Unsatisfied', color = colour_unsatisfied)
     plt.bar(np.array(range(len(simulation_years))), E_generated_STOR_bymonth_sum[7], bottom = np.sum(E_generated_STOR_bymonth_sum[0:7], axis = 0), label = 'Curtailed/exports', color = colour_curtailed)
-    plt.bar(np.array(range(len(simulation_years))), -1*np.nansum(np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), label = 'Stored', color = colour_hydro_pumped)
+    plt.bar(np.array(range(len(simulation_years))), -1*np.nansum(np.sum(E_hydro_STOR_pump_bymonth[:,:,plot_HPP_multiple], axis = 0), axis = 1), label = 'Stored', color = colour_hydro_pumped)
     plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
     if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_STOR_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
     plt.plot(np.array(range(len(simulation_years))), np.zeros(len(simulation_years)), color = 'black', linewidth = 1)
@@ -267,7 +267,7 @@ if option_storage == 1 and np.min(STOR_break[plot_HPP_multiple]) == 0:
     plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
     plt.xlabel('year')
     plt.ylabel('Power generation (GWh/year)')
-    plt.ylim([np.nanmin(-1*np.sum(E_hydro_pump_STOR_bymonth[:,:,plot_HPP_multiple], axis = 0))*1.1, np.nanmax(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
+    plt.ylim([np.nanmin(-1*np.sum(E_hydro_STOR_pump_bymonth[:,:,plot_HPP_multiple], axis = 0))*1.1, np.nanmax(np.sum(E_generated_STOR_bymonth_sum, axis = 0))*1.1])
     plt.title('Multiannual generation (STOR)')
     plt.savefig(path_outputs + '\\' + "Total_Fig2_b.png", dpi = 300, bbox_inches = 'tight')
     print('> Saving Figure 2b (multiple)')
@@ -453,7 +453,7 @@ if tables_on_multiple == 1 and calibration_only == 0:
         with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
             pd.DataFrame(np.sum(P_STOR_pump_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total pumped (MW) STOR", index = False, header = False)
     
-    # [parse] overall demand curve (MW) P_STOR_pump_hourly
+    # [parse] overall demand curve (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
         pd.DataFrame(P_total_hourly[:,:]).to_excel(writer, sheet_name = "load (MW)", index = False, header = False)
     
