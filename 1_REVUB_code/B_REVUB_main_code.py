@@ -76,7 +76,7 @@ Q_BAL_out_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_n
 # [preallocate] Potential flexible outflow from eq. S17
 Q_BAL_pot_turb_flexible = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 
-# [preallocate] Various outflow data arrays (m^3/s) for optional STOR scenario (Note 7)
+# [preallocate] Various outflow data arrays (m^3/s) for optional STOR scenario
 Q_STOR_stable_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 Q_STOR_flexible_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 Q_STOR_pump_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -235,7 +235,7 @@ V_BAL_bymonth = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 V_STOR_bymonth_upper = np.zeros(shape = (months_yr,len(simulation_years),HPP_number))
 
 # [preallocate] Binary variable [0 or 1] determining whether hydropower plant is operating (1)
-# or shut off in case of extreme drought (0) (see Note 3.1 and 8)
+# or shut off in case of extreme drought (0) (see Note 3.1)
 hydro_CONV_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 hydro_BAL_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
 hydro_STOR_curtailment_factor_hourly = np.full([int(np.max(positions)), len(simulation_years), HPP_number], np.nan)
@@ -446,7 +446,7 @@ for HPP in range(HPP_number):
     if d_min[HPP] == 1:
         print('> Warning: minimum required load for', HPP_name[HPP], 'leaves no room for flexibility')
     
-    # [calculate] Determine dam category (whether deemed to have more or less than a year of storage) based on f_reg (Note 5)
+    # [calculate] Determine dam category (whether deemed to have more or less than a year of storage) based on f_reg (Note 4)
     # Here 'large' HPPs are designated by 'A', 'small' HPPs by 'B'
     
     if f_reg[HPP] < 1 and f_reg[HPP] > 0:
@@ -467,7 +467,7 @@ for HPP in range(HPP_number):
         print('> Error: no inflow time series defined')
         raise SystemExit
         
-    # [calculate] the component Q_RoR for HPPs deemed to have less-than-a-year storage (Note 5)
+    # [calculate] the component Q_RoR for HPPs deemed to have less-than-a-year storage (Note 4)
     Q_in_RoR_hourly[:,:,HPP] = Q_in_nat_hourly[:,:,HPP] - Q_in_frac_hourly[:,:,HPP]
     
     ##### SPECIFY OUTFLOW CURVE (CONV) #####
@@ -749,7 +749,7 @@ for HPP in range(HPP_number):
         C_OR_range_BAL = list(np.arange(1 - d_min[HPP], 0.05, -0.05))
         C_OR_range_STOR = list(np.arange(1 - d_min[HPP], 0.05, -0.05))
         
-        # [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 4)
+        # [loop] with incrementally increased C_OR values, starting at C_OR = 1 - d_min (Note 3.4)
         for q in range(len(C_OR_range_BAL)):
             
             # [calculate] ratio of stable to average total outflow (see eq. S14)
