@@ -391,7 +391,7 @@ for HPP in range(HPP_number):
         else:
             f_cascade_downstream[HPP] = 1 - f_cascade_upstream[HPP]
         
-        if year_calibration_start[HPP_upstream] != year_calibration_start[HPP] or year_calibration_end[HPP_upstream] != year_calibration_end[HPP]:
+        if (year_calibration_start[HPP_upstream] != year_calibration_start[HPP] and (~np.isnan(year_calibration_start[HPP_upstream]) or ~np.isnan(year_calibration_start[HPP]))) or (year_calibration_end[HPP_upstream] != year_calibration_end[HPP] and (~np.isnan(year_calibration_end[HPP_upstream]) or ~np.isnan(year_calibration_end[HPP]))):
             print('> Error: calibration period between reservoirs in same cascade should match')
             raise SystemExit
         

@@ -314,14 +314,14 @@ c_VRE_corrector = np.full([HPP_number], np.nan)
 # [loop] over all HPP names to extract relevant time series from user-prepared Excel tables
 for n in range(len(HPP_name)):
     
-    # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
-    if str(HPP_name_data_inflow[n]) != 'nan':
-        Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-    
-    # [set by user] natural inflow and prescribed environmental/irrigation outflow at hourly timescale (m^3/s)
+    # [set by user] natural lateral inflow at hourly timescale (m^3/s)
     if str(HPP_name_data_lateral_flow[n]) != 'nan':
         Q_in_nat_lateral_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_lateral_flow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-        
+
+    # [set by user] natural (lateral + transversal) inflow at hourly timescale (m^3/s)
+    if str(HPP_name_data_inflow[n]) != 'nan':
+        Q_in_nat_hourly[:,:,n] = pd.read_excel (filename_inflow, sheet_name = HPP_name_data_inflow[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions))) + Q_in_nat_lateral_hourly[:,:,n]
+            
     # [set by user] Precipitation flux (kg/m^2/s)
     if str(HPP_name_data_precipitation[n]) != 'nan':
         precipitation_flux_hourly[:,:,n] = pd.read_excel (filename_precipitation, sheet_name = HPP_name_data_precipitation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
@@ -371,6 +371,9 @@ for n in range(len(HPP_name)):
         # [set] dummy c_solar and c_wind
         c_solar_relative[n] = 0
         c_wind_relative[n] = 0
+    
+    if np.isnan(f_size[n]) and c_VRE_corrector[n] == 1:
+        print('> Warning: scenario includes VRE hybridised with "' + HPP_name[n] + '", but parameter f_size undefined')
     
     # [set by user] Load curves (L_norm; see eq. S10)
     if str(HPP_name_data_load[n]) != 'nan':
