@@ -55,8 +55,20 @@ parameters_hydropower_list = np.array(parameters_hydropower[0][0:].tolist())
 parameters_hydropower_values = np.array(parameters_hydropower)[0:,2:]
 
 
-# [read] parameters on plant name, activation, and cascade situation
+# [read] plant entries
 HPP_name_temp = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_name', True, False)][0].astype(str)
+
+# [check] plant entries for duplicates
+temp_names, temp_count = np.unique(HPP_name_temp, return_counts = True)
+temp_duplicates = temp_names[temp_count > 1]
+temp_duplicates = temp_duplicates[temp_duplicates != 'nan']
+if np.size(temp_duplicates) > 0:
+    print('Error: Duplicate names encountered in HPP_name. Please use unique names only, including for de-activated entries, to avoid confusion in cascade configurations.')
+    print('Duplicate names identified:')
+    for n in range(len(temp_duplicates)): print('> ' + temp_duplicates[n])
+    raise SystemExit
+    
+# [read] parameters on plant activation and cascade situation
 HPP_active = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
 HPP_active_save = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_active', True, False)][0]
 HPP_cascade_upstream = parameters_hydropower_values[np.where(parameters_hydropower_list == 'HPP_cascade_upstream', True, False)][0].astype(str)
@@ -329,7 +341,8 @@ for n in range(len(HPP_name)):
     # [set by user] Evaporation flux (kg/m^2/s)
     if str(HPP_name_data_evaporation[n]) != 'nan':
         evaporation_flux_hourly[:,:,n] = pd.read_excel (filename_evaporation, sheet_name = HPP_name_data_evaporation[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
-
+    
+    # [set by user] prescribed outflow (environmental/irrigation) at hourly timescale (m^3/s)
     if str(HPP_name_data_outflow_prescribed[n]) != 'nan':
         Q_out_stable_env_irr_hourly[:,:,n] = pd.read_excel (filename_outflow_prescribed, sheet_name = HPP_name_data_outflow_prescribed[n], header = None, usecols = range(column_start - 1, column_end), nrows = int(np.max(positions)))
     
@@ -372,6 +385,7 @@ for n in range(len(HPP_name)):
         c_solar_relative[n] = 0
         c_wind_relative[n] = 0
     
+    # [check] if solar/wind have been added without corresponding overproduction parameter
     if np.isnan(f_size[n]) and c_VRE_corrector[n] == 1:
         print('> Warning: scenario includes VRE hybridised with "' + HPP_name[n] + '", but parameter f_size undefined')
     
