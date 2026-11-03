@@ -713,11 +713,11 @@ for HPP in range(HPP_number):
                 elif n == len(hrs_year) - 1 and y < len(simulation_years) - 1:
                     hydro_CONV_curtailment_factor_hourly[0,y+1,HPP] = 0
             
-            # [calculate] total hydropower generation in MWh/year (eq. S24)
-            E_hydro_CONV_stable_yearly[y,HPP] = np.sum(P_CONV_hydro_stable_hourly[hrs_year,y,HPP])
-            E_hydro_CONV_RoR_yearly[y,HPP] = np.sum(P_CONV_hydro_RoR_hourly[hrs_year,y,HPP])
-            E_hydro_CONV_yearly[y,HPP] = E_hydro_CONV_stable_yearly[y,HPP] + E_hydro_CONV_RoR_yearly[y,HPP]
-            
+        # [calculate] total hydropower generation in MWh/year (eq. S24)
+        E_hydro_CONV_stable_yearly[y,HPP] = np.sum(P_CONV_hydro_stable_hourly[hrs_year,y,HPP])
+        E_hydro_CONV_RoR_yearly[y,HPP] = np.sum(P_CONV_hydro_RoR_hourly[hrs_year,y,HPP])
+        E_hydro_CONV_yearly[y,HPP] = E_hydro_CONV_stable_yearly[y,HPP] + E_hydro_CONV_RoR_yearly[y,HPP]
+        
     
     # [arrange] complete time series of water volume, area and levels
     for y in range(len(simulation_years)): 
