@@ -197,7 +197,7 @@ plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[5], 
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[6], bottom = np.sum(E_generated_BAL_bymonth_sum[0:6], axis = 0), label = 'Unsatisfied', color = colour_unsatisfied)
 plt.bar(np.array(range(len(simulation_years))), E_generated_BAL_bymonth_sum[7], bottom = np.sum(E_generated_BAL_bymonth_sum[0:7], axis = 0), label = 'Curtailed/exports', color = colour_curtailed)
 plt.plot(np.array(range(len(simulation_years))), np.sum(E_total_bymonth, axis = 0), label = 'Total load', color = 'black', linewidth = 3)
-if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.sum(ELCC_BAL_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
+if plot_ELCC_line_multiple == 1: plt.plot(np.array(range(len(simulation_years))), np.nansum(ELCC_BAL_yearly[:,plot_HPP_multiple], axis = 1)/10**3, label = 'ELCC$_{tot}$', color = 'black', linestyle = '--', linewidth = 3)
 plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
 plt.xticks(np.array(range(len(simulation_years))), np.array(range(len(simulation_years))) + 1)
 plt.xlabel('year')
@@ -356,7 +356,8 @@ ramp_hydro_envelope_BAL = np.stack((ramp_hydro_mean_upward_BAL, ramp_hydro_mean_
 ramp_hydro_envelope_BAL[np.isnan(ramp_hydro_envelope_BAL)] = 0
 
 # [calculate] total capacity capable of ramping
-P_r_total_ramping_hydro_BAL = np.nansum(P_r_turb[np.where(np.asarray(HPP_category) != 'RoR')])
+active_category = plot_year_multiple > year_operation_start - year_start
+P_r_total_ramping_hydro_BAL = np.nansum(P_r_turb[np.where((np.asarray(HPP_category) != 'RoR') & (active_category == True))])
 
 # [preallocate] ramping speeds
 ramp_hydro_envelope_BAL_speed = np.full([2, plot_ramping_range], np.nan)
@@ -376,7 +377,11 @@ ax1.set_ylabel('Average ramping needs (MW)')
 # [loop] across hours to calculate relative ramping speed
 for r in range(1, plot_ramping_range):
     ramp_hydro_envelope_BAL_speed[:, r] = ramp_hydro_envelope_BAL[:, r]/P_r_total_ramping_hydro_BAL/r
-    ramp_thermal_envelope_BAL_speed[:, r] = ramp_thermal_envelope_BAL[:, r]/P_r_total_thermal/r
+    if choose_demand_type == 0:
+        ramp_thermal_envelope_BAL_speed[:, r] = ramp_thermal_envelope_BAL[:, r]/P_r_total_thermal/r
+    if choose_demand_type == 1:
+        ramp_thermal_envelope_BAL_speed[:, r] = ramp_thermal_envelope_BAL[:, r]/P_r_total_thermal_series[plot_year_multiple]/r
+        
 
 # [plot] thermal and hydro ramping envelopes per unit of time expressed as percentage of capacity
 ax2.plot(range(plot_ramping_range), ramp_hydro_envelope_BAL_speed[0,:], color = colour_hydro_flexible, linestyle = '--')
@@ -487,35 +492,35 @@ if tables_on_multiple == 1 and calibration_only == 0:
     
     # [parse] run-of-river hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple) as writer:
-        pd.DataFrame(np.sum(P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_RoR (MW) BAL", index = False, header = False)
+        pd.DataFrame(np.nansum(P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_RoR (MW) BAL", index = False, header = False)
     
     # [parse] stable hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-        pd.DataFrame(np.sum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) BAL", index = False, header = False)
+        pd.DataFrame(np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) BAL", index = False, header = False)
     if STOR_break[HPP] == 0:
         with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-            pd.DataFrame(np.sum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) STOR", index = False, header = False)
+            pd.DataFrame(np.nansum(P_STOR_hydro_stable_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_stable (MW) STOR", index = False, header = False)
         
     # [parse] flexible hydropower component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) BAL", index = False, header = False)
+        pd.DataFrame(np.nansum(P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) BAL", index = False, header = False)
     if STOR_break[HPP] == 0:
         with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-            pd.DataFrame(np.sum(P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) STOR", index = False, header = False)
+            pd.DataFrame(np.nansum(P_STOR_hydro_flexible_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total hydro_flexible (MW) STOR", index = False, header = False)
     
     # [parse] solar component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) BAL", index = False, header = False)
+        pd.DataFrame(np.nansum(P_BAL_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) BAL", index = False, header = False)
     if STOR_break[HPP] == 0:
         with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-            pd.DataFrame(np.sum(P_STOR_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) STOR", index = False, header = False)
+            pd.DataFrame(np.nansum(P_STOR_solar_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total solar (MW) STOR", index = False, header = False)
     
     # [parse] wind component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 
-        pd.DataFrame(np.sum(P_BAL_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) BAL", index = False, header = False)
+        pd.DataFrame(np.nansum(P_BAL_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) BAL", index = False, header = False)
     if STOR_break[HPP] == 0:
         with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer:
-            pd.DataFrame(np.sum(P_STOR_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) STOR", index = False, header = False)
+            pd.DataFrame(np.nansum(P_STOR_wind_hourly[:,:,plot_HPP_multiple], axis = 2)).to_excel(writer, sheet_name = "total wind (MW) STOR", index = False, header = False)
     
     # [parse] thermal/imports component (MW)
     with pd.ExcelWriter(output_filename_multiple, engine = "openpyxl", mode = "a") as writer: 

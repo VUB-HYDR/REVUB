@@ -165,6 +165,9 @@ g = parameters_general_values[np.where(parameters_general_list == 'g', True, Fal
 # [set by user] percentile value used to calculate exceedance probability of delivered power
 p_exceedance = parameters_general_values[np.where(parameters_general_list == 'p_exceedance', True, False)][0].astype(float)
 
+# [set by user] percentile value used to define saturation point of hydroturbine capacity
+k_turb_saturation = parameters_general_values[np.where(parameters_general_list == 'k_turb_saturation', True, False)][0].astype(float)
+
 ##### HYDROPOWER OPERATION PARAMETERS #####
 
 # [set by user] threshold for determining whether HPP is "large" or "small" - if
@@ -299,18 +302,24 @@ f_size = parameters_hydropower_values[np.where(parameters_hydropower_list == 'f_
 # [set by user] number of turbines per hydropower plant (used for turbine use statistics in script C)
 no_turbines = parameters_hydropower_values[np.where(parameters_hydropower_list == 'no_turbines', True, False)][0]
 
-# [set by user] percentile value used to calculate exceedance probability of delivered power
+# [set by user] first year of calibration period
 year_calibration_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_calibration_start', True, False)][0]
 
-# [set by user] percentile value used to calculate exceedance probability of delivered power
+# [set by user] last year of calibration period
 year_calibration_end = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_calibration_end', True, False)][0]
+
+# [set by user] first year of operation
+year_operation_start = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_operation_start', True, False)][0]
+
+# [set by user] last year of operation
+year_operation_end = parameters_hydropower_values[np.where(parameters_hydropower_list == 'year_operation_end', True, False)][0]
 
 
 # %% pre.4) Time series
 
 print('> Reading input time series')
 
-# [preallocate]
+# [preallocate] input time series
 Q_in_nat_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 Q_in_nat_lateral_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))
 precipitation_flux_hourly = np.zeros(shape = (int(np.max(positions)), len(simulation_years), HPP_number))

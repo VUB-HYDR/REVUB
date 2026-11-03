@@ -83,50 +83,6 @@ colour_wind = np.array([77, 175, 74]) / 255
 colour_hydro_RoR = np.array([158, 202, 225]) / 255
 colour_hydro_pumped = np.array([77, 191, 237]) / 255
 
-
-# [calculate] take Fourier transform of CONV head time series (cf. Fig. S6b)
-fft_rep = 1
-fft_temp_CONV = np.transpose(np.matlib.repmat(h_CONV_series_hourly[:,plot_HPP],fft_rep,1))
-fft_CONV = np.fft.fft(fft_temp_CONV, axis = 0)
-L_fft_CONV = len(fft_CONV)
-# [calculate] take absolute value
-fft_CONV_amp = np.abs(fft_CONV/L_fft_CONV)
-# [calculate] compute single-sided spectrum and normalise
-fft_CONV_amp = fft_CONV_amp[range(int(L_fft_CONV/2) + 1)]
-fft_CONV_amp[1:-2] = 2*fft_CONV_amp[1:-2]
-fft_CONV_amp[0] = 0
-fft_CONV_amp = fft_CONV_amp/np.max(fft_CONV_amp)
-# [calculate] corresponding frequency series (in Hz)
-fft_CONV_freq = (1/secs_hr)*np.array(range(int(L_fft_CONV/2) + 1))/L_fft_CONV
-
-# [calculate] take Fourier transform of BAL head time series (cf. Fig. S6b)
-fft_temp_BAL = np.transpose(np.matlib.repmat(h_BAL_series_hourly[:,plot_HPP],fft_rep,1))
-fft_BAL = np.fft.fft(fft_temp_BAL, axis = 0)
-L_fft_BAL = len(fft_BAL)
-# [calculate] take absolute value
-fft_BAL_amp = np.abs(fft_BAL/L_fft_BAL)
-# [calculate] compute single-sided spectrum and normalise
-fft_BAL_amp = fft_BAL_amp[range(int(L_fft_BAL/2) + 1)]
-fft_BAL_amp[1:-2] = 2*fft_BAL_amp[1:-2]
-fft_BAL_amp[0] = 0
-fft_BAL_amp = fft_BAL_amp/np.max(fft_BAL_amp)
-# [calculate] corresponding frequency series (in Hz)
-fft_BAL_freq = (1/secs_hr)*np.array(range(int(L_fft_BAL/2) + 1))/L_fft_BAL
-
-# [calculate] take Fourier transform of STOR head time series (cf. Fig. S6b)
-fft_temp_STOR = np.transpose(np.matlib.repmat(h_STOR_series_hourly[:,plot_HPP],fft_rep,1))
-fft_STOR = np.fft.fft(fft_temp_STOR, axis = 0)
-L_fft_STOR = len(fft_STOR)
-# [calculate] take absolute value
-fft_STOR_amp = np.abs(fft_STOR/L_fft_STOR)
-# [calculate] compute single-sided spectrum and normalise
-fft_STOR_amp = fft_STOR_amp[range(int(L_fft_STOR/2) + 1)]
-fft_STOR_amp[1:-2] = 2*fft_STOR_amp[1:-2]
-fft_STOR_amp[0] = 0
-fft_STOR_amp = fft_STOR_amp/np.max(fft_STOR_amp)
-# [calculate] corresponding frequency series (in Hz)
-fft_STOR_freq = (1/secs_hr)*np.array(range(int(L_fft_STOR/2) + 1))/L_fft_STOR
-
 # [display] name of hydropower plant for which results are plotted
 print(HPP_name[plot_HPP])
 
@@ -155,10 +111,61 @@ if Figure1_on == 1:
     plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig1.png', dpi = 300)
     print('> Saving Figure 1')
     plt.show
+   
+
+# [calculate] frequency spectra of head time series   
+if Figure2_on == 1:
+    fft_rep = 1
+    
+    # [calculate] take Fourier transform of CONV head time series (cf. Fig. S6b)
+    fft_temp_CONV = np.transpose(np.matlib.repmat(h_CONV_series_hourly[:,plot_HPP],fft_rep,1))
+    fft_CONV = np.fft.fft(fft_temp_CONV[np.isfinite(fft_temp_CONV)], axis = 0)
+    L_fft_CONV = len(fft_CONV)
+    # [calculate] take absolute value
+    fft_CONV_amp = np.abs(fft_CONV/L_fft_CONV)
+    # [calculate] compute single-sided spectrum and normalise
+    fft_CONV_amp = fft_CONV_amp[range(int(L_fft_CONV/2) + 1)]
+    fft_CONV_amp[1:-2] = 2*fft_CONV_amp[1:-2]
+    fft_CONV_amp[0] = 0
+    fft_CONV_amp = fft_CONV_amp/np.max(fft_CONV_amp)
+    # [calculate] corresponding frequency series (in Hz)
+    fft_CONV_freq = (1/secs_hr)*np.array(range(int(L_fft_CONV/2) + 1))/L_fft_CONV
+    
+    # [calculate] take Fourier transform of BAL head time series (cf. Fig. S6b)
+    fft_temp_BAL = np.transpose(np.matlib.repmat(h_BAL_series_hourly[:,plot_HPP],fft_rep,1))
+    fft_BAL = np.fft.fft(fft_temp_BAL[np.isfinite(fft_temp_BAL)], axis = 0)
+    L_fft_BAL = len(fft_BAL)
+    # [calculate] take absolute value
+    fft_BAL_amp = np.abs(fft_BAL/L_fft_BAL)
+    # [calculate] compute single-sided spectrum and normalise
+    fft_BAL_amp = fft_BAL_amp[range(int(L_fft_BAL/2) + 1)]
+    fft_BAL_amp[1:-2] = 2*fft_BAL_amp[1:-2]
+    fft_BAL_amp[0] = 0
+    fft_BAL_amp = fft_BAL_amp/np.max(fft_BAL_amp)
+    # [calculate] corresponding frequency series (in Hz)
+    fft_BAL_freq = (1/secs_hr)*np.array(range(int(L_fft_BAL/2) + 1))/L_fft_BAL
+    
+    if STOR_break[plot_HPP] == 0 and option_storage == 1:
+        # [calculate] take Fourier transform of STOR head time series (cf. Fig. S6b)
+        fft_temp_STOR = np.transpose(np.matlib.repmat(h_STOR_series_hourly[:,plot_HPP],fft_rep,1))
+        fft_STOR = np.fft.fft(fft_temp_STOR[np.isfinite(fft_temp_STOR)], axis = 0)
+        L_fft_STOR = len(fft_STOR)
+        # [calculate] take absolute value
+        fft_STOR_amp = np.abs(fft_STOR/L_fft_STOR)
+        # [calculate] compute single-sided spectrum and normalise
+        fft_STOR_amp = fft_STOR_amp[range(int(L_fft_STOR/2) + 1)]
+        fft_STOR_amp[1:-2] = 2*fft_STOR_amp[1:-2]
+        fft_STOR_amp[0] = 0
+        fft_STOR_amp = fft_STOR_amp/np.max(fft_STOR_amp)
+        # [calculate] corresponding frequency series (in Hz)
+        fft_STOR_freq = (1/secs_hr)*np.array(range(int(L_fft_STOR/2) + 1))/L_fft_STOR
 
 
 # [figure] (cf. Fig. S6)
 if Figure2_on == 1:
+    
+    print('> Saving Figure 2')
+    
     fig = plt.figure()
     ax1 = plt.subplot(221)
     ax2 = plt.subplot(223)
@@ -180,6 +187,10 @@ if Figure2_on == 1:
     ax1.set_xlabel('time (years)')
     ax1.set_ylim([0, h_max[plot_HPP]])
     ax1.set_ylabel('$h(t)$ (m)')
+    if year_operation_start[plot_HPP] != year_calibration_start[plot_HPP] or year_operation_end[plot_HPP] != year_calibration_end[plot_HPP]:
+        ax1.axvspan(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_start[plot_HPP] - year_start], np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_end[plot_HPP] - year_start + 1], edgecolor = 'black', facecolor = 'white', alpha = 1, linestyle = 'dashed')
+        ax1.axvspan(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_operation_start[plot_HPP] - year_start], np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_operation_end[plot_HPP] - year_start + 1], color = colour_nat, alpha = 0.2)
+        print('> added calibration (dashed lines) and operation (green shaded) period')
     ax1.set_title('time series of hydraulic head')
     plt.setp(ax1.get_xticklabels(), rotation = 90, horizontalalignment = 'right', fontsize = 'x-small')
     
@@ -226,29 +237,35 @@ if Figure2_on == 1:
     
     plt.tight_layout()
     plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig2.png', dpi = 300)
-    print('> Saving Figure 2')
     plt.show
 
 
 # [figure]
 if Figure3_on == 1:
+    
+    print('> Saving Figure 3')
+    
     # [plot] lake volume time series, monthly inflow vs. outflow
     starting_volume = V_max[plot_HPP]*f_initial_frac[plot_HPP]
     fig, (ax1, ax2) = plt.subplots(2,1)
-    ax1.plot(f_cascade_downstream[plot_HPP]*(V_CONV_series_hourly[:,plot_HPP] - V_CONV_series_hourly[0,plot_HPP]) + starting_volume, color = colour_CONV)
+    ax1.plot(f_cascade_downstream[plot_HPP]*(V_CONV_series_hourly[:,plot_HPP] - V_CONV_series_hourly[np.isfinite(V_CONV_series_hourly[:, plot_HPP]),plot_HPP][0]) + starting_volume, color = colour_CONV)
     if calibration_only == 0:
-        ax1.plot(f_cascade_downstream[plot_HPP]*(V_BAL_series_hourly[:,plot_HPP] - V_BAL_series_hourly[0,plot_HPP]) + starting_volume, color = colour_BAL)
+        ax1.plot(f_cascade_downstream[plot_HPP]*(V_BAL_series_hourly[:,plot_HPP] - V_BAL_series_hourly[np.isfinite(V_BAL_series_hourly[:, plot_HPP]),plot_HPP][0]) + starting_volume, color = colour_BAL)
         if force_cascade_outflow[plot_HPP] == 1:
             HPP_downstream = int(np.where(HPP_cascade_upstream == HPP_name[plot_HPP])[0].item())
-            ax1.plot(f_cascade_upstream[HPP_downstream]*(V_BAL_series_hourly[:,HPP_downstream] - V_BAL_series_hourly[0,HPP_downstream]) + starting_volume, color = colour_hydro_flexible, linestyle = 'dashed')
+            ax1.plot(f_cascade_upstream[HPP_downstream]*(V_BAL_series_hourly[:,HPP_downstream] - V_BAL_series_hourly[np.isfinite(V_BAL_series_hourly[:, HPP_downstream]),HPP_downstream][0]) + starting_volume, color = colour_hydro_flexible, linestyle = 'dashed')
             ax1.legend(['CONV', 'BAL', 'BAL calib.'])
         elif STOR_break[plot_HPP] == 0 and option_storage == 1:
-            ax1.plot(f_cascade_downstream[plot_HPP]*(V_STOR_series_hourly_upper[:,plot_HPP] - V_STOR_series_hourly_upper[0,plot_HPP]) + starting_volume, color = colour_STOR)
+            ax1.plot(f_cascade_downstream[plot_HPP]*(V_STOR_series_hourly_upper[:,plot_HPP] - V_BAL_series_hourly[np.isfinite(V_STOR_series_hourly_upper[:, plot_HPP]),plot_HPP][0]) + starting_volume, color = colour_STOR)
             ax1.legend(['CONV', 'BAL', 'STOR'])
         else:
             ax1.legend(['CONV', 'BAL'])
     else:
         ax1.legend(['CONV'])
+    if year_operation_start[plot_HPP] != year_calibration_start[plot_HPP] or year_operation_end[plot_HPP] != year_calibration_end[plot_HPP]:
+        ax1.axvspan(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_start[plot_HPP] - year_start], np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_end[plot_HPP] - year_start + 1], edgecolor = 'black', facecolor = 'white', alpha = 1, linestyle = 'dashed')
+        ax1.axvspan(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_operation_start[plot_HPP] - year_start], np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_operation_end[plot_HPP] - year_start + 1], color = colour_nat, alpha = 0.2)
+        print('> added calibration (dashed lines) and operation (green shaded) period')
     ax1.set_xticks(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:])))
     ax1.set_xticklabels(np.array(range(1, year_end - year_start + 3)))
     ax1.set_ylim([0, V_max[plot_HPP]])
@@ -275,11 +292,13 @@ if Figure3_on == 1:
     ax2.set_xticklabels(np.array(range(1, year_end - year_start + 3)))
     ax2.set_xlabel('time (years)')
     ax2.set_ylabel('$Q(t)$ (m$^3$/s)')
+    if year_operation_start[plot_HPP] != year_calibration_start[plot_HPP] or year_operation_end[plot_HPP] != year_calibration_end[plot_HPP]:
+        ax2.axvspan(np.arange(0, months_yr*(len(simulation_years) + 1), months_yr)[year_calibration_start[plot_HPP] - year_start], np.arange(0, months_yr*(len(simulation_years) + 1), months_yr)[year_calibration_end[plot_HPP] - year_start + 1], edgecolor = 'black', facecolor = 'white', alpha = 1, linestyle = 'dashed')
+        ax2.axvspan(np.arange(0, months_yr*(len(simulation_years) + 1), months_yr)[year_operation_start[plot_HPP] - year_start], np.arange(0, months_yr*(len(simulation_years) + 1), months_yr)[year_operation_end[plot_HPP] - year_start + 1], color = colour_nat, alpha = 0.2)
     ax2.set_title('inflow vs. outflow (monthly)')
     
     plt.tight_layout()
     plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig3.png', dpi = 300)
-    print('> Saving Figure 3')
     plt.show
 
 
@@ -331,19 +350,22 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     
     # [figure] (cf. Fig. S4a, S9a)
     if Figure4_on == 1:
-        # [plot] average monthly power mix in user-selected year
-        fig = plt.figure()
-        area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], plot_RoR_part*E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
-        labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
-        labels_load = 'ELCC'
-        plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-        if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_BAL_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
-        plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-        plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
-        plt.ylabel('Power generation (MWh/h)')
-        plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', BAL)')
-        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
-        print('> Saving Figure 4')
+        if year_start + plot_year < year_operation_start[plot_HPP] or year_start + plot_year > year_operation_end[plot_HPP]:
+            print('> No Figure 4: selected plot_year falls outside of operation period')
+        else:
+            # [plot] average monthly power mix in user-selected year
+            fig = plt.figure()
+            area_mix_BAL_bymonth = [E_hydro_BAL_stable_bymonth[:,plot_year,plot_HPP], E_hydro_BAL_flexible_bymonth[:,plot_year,plot_HPP], E_wind_BAL_bymonth[:,plot_year,plot_HPP], E_solar_BAL_bymonth[:,plot_year,plot_HPP], plot_RoR_part*E_hydro_BAL_RoR_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
+            labels_generation_BAL = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Hydropower (RoR)']
+            labels_load = 'ELCC'
+            plt.stackplot(np.array(range(months_yr)), area_mix_BAL_bymonth, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
+            if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_BAL_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+            plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
+            plt.ylabel('Power generation (MWh/h)')
+            plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', BAL)')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 4')
     
     
     # [figure] (cf. Fig. S4b, S9b)
@@ -369,20 +391,23 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
     
     # [figure] (cf. Fig. 2 main paper, Fig. S5)
     if Figure6_on == 1:
-        # [plot] power mix for selected days of selected month
-        fig = plt.figure()
-        area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], plot_RoR_part*P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
-        plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
-        if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
-        plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-        plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
-        plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
-        plt.ylim([0, np.max(np.nansum(area_mix_full, axis = 0)*1.1)])
-        plt.xlabel('Day of the year')
-        plt.ylabel('Power generation (MWh/h)')
-        plt.title('Daily generation & load profiles (BAL)')
-        plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
-        print('> Saving Figure 6')
+        if year_start + plot_year < year_operation_start[plot_HPP] or year_start + plot_year > year_operation_end[plot_HPP]:
+            print('> No Figure 6: selected plot_year falls outside of operation period')
+        else:
+            # [plot] power mix for selected days of selected month
+            fig = plt.figure()
+            area_mix_full = [P_BAL_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_BAL_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_BAL_wind_hourly[hrs_year,plot_year,plot_HPP], P_BAL_solar_hourly[hrs_year,plot_year,plot_HPP], plot_RoR_part*P_BAL_hydro_RoR_hourly[hrs_year,plot_year,plot_HPP]]
+            plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_BAL, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_RoR])
+            if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_BAL_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
+            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+            plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
+            plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
+            plt.ylim([0, np.max(np.nansum(area_mix_full, axis = 0)*1.1)])
+            plt.xlabel('Day of the year')
+            plt.ylabel('Power generation (MWh/h)')
+            plt.title('Daily generation & load profiles (BAL)')
+            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6.png', dpi = 300, bbox_inches = 'tight')
+            print('> Saving Figure 6')
     
     
     # [check] if STOR scenario available
@@ -390,19 +415,22 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         
         # [figure] (cf. Fig. S4a, S9a)
         if Figure4_on == 1:
-            # [plot] average monthly power mix in user-selected year
-            fig = plt.figure()
-            area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_STOR_pump_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
-            labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored']
-            labels_load = 'ELCC'
-            plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-            if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
-            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-            plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
-            plt.ylabel('Power generation (MWh/h)')
-            plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', STOR)')
-            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
-            print('> Saving Figure 4b')
+            if year_start + plot_year < year_operation_start[plot_HPP] or year_start + plot_year > year_operation_end[plot_HPP]:
+                print('> No Figure 4b: selected plot_year falls outside of operation period')
+            else:
+                # [plot] average monthly power mix in user-selected year
+                fig = plt.figure()
+                area_mix_STOR_bymonth = [E_hydro_STOR_stable_bymonth[:,plot_year,plot_HPP], E_hydro_STOR_flexible_bymonth[:,plot_year,plot_HPP], E_wind_STOR_bymonth[:,plot_year,plot_HPP], E_solar_STOR_bymonth[:,plot_year,plot_HPP], -1*E_hydro_STOR_pump_bymonth[:,plot_year,plot_HPP]]/days_year[:,plot_year]*10**3/hrs_day
+                labels_generation_STOR = ['Hydropower (stable)', 'Hydropower (flexible)', 'Wind power', 'Solar power', 'Stored']
+                labels_load = 'ELCC'
+                plt.stackplot(np.array(range(months_yr)), area_mix_STOR_bymonth, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
+                if plot_ELCC_line == 1: plt.plot(np.array(range(months_yr)), ELCC_STOR_bymonth[:,plot_year,plot_HPP], label = labels_load, color = 'black', linewidth = 3)
+                plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+                plt.xticks(np.array(range(months_yr)),months_names_full, rotation = 'vertical')
+                plt.ylabel('Power generation (MWh/h)')
+                plt.title('monthly power generation (selected year #' + str(plot_year + 1) + ', STOR)')
+                plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig4_b.png', dpi = 300, bbox_inches = 'tight')
+                print('> Saving Figure 4b')
         
         
         # [figure] (cf. Fig. S4b, S9b)
@@ -428,20 +456,23 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
         
         # [figure] (cf. Fig. 2 main paper, Fig. S5)
         if Figure6_on == 1:
-            # [plot] power mix for selected days of selected month
-            fig = plt.figure()
-            area_mix_full = [P_STOR_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_STOR_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_STOR_wind_hourly[hrs_year,plot_year,plot_HPP], P_STOR_solar_hourly[hrs_year,plot_year,plot_HPP], -1*P_STOR_pump_hourly[hrs_year,plot_year,plot_HPP]]
-            plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
-            if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_STOR_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
-            plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
-            plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
-            plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
-            plt.ylim([0, np.max(np.sum(area_mix_full, axis = 0)*1.1)])
-            plt.xlabel('Day of the year')
-            plt.ylabel('Power generation (MWh/h)')
-            plt.title('Daily generation & load profiles (STOR)')
-            plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
-            print('> Saving Figure 6b')
+            if year_start + plot_year < year_operation_start[plot_HPP] or year_start + plot_year > year_operation_end[plot_HPP]:
+                print('> No Figure 6b: selected plot_year falls outside of operation period')
+            else:
+                # [plot] power mix for selected days of selected month
+                fig = plt.figure()
+                area_mix_full = [P_STOR_hydro_stable_hourly[hrs_year,plot_year,plot_HPP], P_STOR_hydro_flexible_hourly[hrs_year,plot_year,plot_HPP], P_STOR_wind_hourly[hrs_year,plot_year,plot_HPP], P_STOR_solar_hourly[hrs_year,plot_year,plot_HPP], -1*P_STOR_pump_hourly[hrs_year,plot_year,plot_HPP]]
+                plt.stackplot(np.array(hrs_year), area_mix_full, labels = labels_generation_STOR, colors = [colour_hydro_stable, colour_hydro_flexible, colour_wind, colour_solar, colour_hydro_pumped])
+                if plot_ELCC_line == 1: plt.plot(np.array(hrs_year), L_followed_STOR_hourly[hrs_year,plot_year,plot_HPP], label = 'ELCC', color = 'black', linewidth = 3)
+                plt.legend(loc = 'center left', bbox_to_anchor = (1, 0.5))
+                plt.xticks(np.array(np.arange(hrs_year[0],hrs_year[-1] + hrs_day,hrs_day)), days_bymonth_byyear_axis)
+                plt.xlim([hrs_day*plot_day_load, hrs_day*(plot_day_load + plot_num_days)])
+                plt.ylim([0, np.max(np.sum(area_mix_full, axis = 0)*1.1)])
+                plt.xlabel('Day of the year')
+                plt.ylabel('Power generation (MWh/h)')
+                plt.title('Daily generation & load profiles (STOR)')
+                plt.savefig(path_outputs + '\\' + HPP_name[plot_HPP] + '_Fig6_b.png', dpi = 300, bbox_inches = 'tight')
+                print('> Saving Figure 6b')
     
     
     # [preallocate] vectors for outflow rules
@@ -530,6 +561,23 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
                 # [loop] across all simulation years
                 for y in range(len(simulation_years)):
                     
+                    if year_start + y < year_operation_start[plot_HPP] or year_start + y > year_operation_end[plot_HPP]:
+                        temp_Q[y] = np.nan
+                        temp_h[y] = np.nan
+                        temp_Q_std[y] = np.nan
+                        temp_Q_025[y] = np.nan
+                        temp_Q_075[y] = np.nan
+                        continue
+                    
+                    # [check] mark drought incidences
+                    if hydro_BAL_curtailment_factor_monthly[m,y,plot_HPP] == 0:
+                        temp_Q[y] = np.nan
+                        temp_h[y] = np.nan
+                        temp_Q_std[y] = np.nan
+                        temp_Q_025[y] = np.nan
+                        temp_Q_075[y] = np.nan
+                        continue
+                    
                     # [calculate] head at given hour of day for all days in a single month in a single year
                     temp = h_BAL_rules_total_bymonth[m,y,0:int(days_year[m,y]),hr]
                     
@@ -544,16 +592,8 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
                     temp_Q_025[y] = np.nanpercentile(temp,25)
                     temp_Q_075[y] = np.nanpercentile(temp,75)
                     
-                    # [check] mark drought incidences
-                    if hydro_BAL_curtailment_factor_monthly[m,y,plot_HPP] == 0:
-                        temp_Q[y] = np.nan
-                        temp_h[y] = np.nan
-                        temp_Q_std[y] = np.nan
-                        temp_Q_025[y] = np.nan
-                        temp_Q_075[y] = np.nan
-                        
-                    
-                # [check] remove drought incidences
+                
+                # [check] remove non-operational years and drought incidences
                 temp_Q = temp_Q[np.isfinite(temp_Q)]
                 temp_h = temp_h[np.isfinite(temp_h)]
                 temp_Q_std = temp_Q_std[np.isfinite(temp_Q_std)]
@@ -596,6 +636,23 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
                     # [loop] across all simulation years
                     for y in range(len(simulation_years)):
                         
+                        if year_start + y < year_operation_start[plot_HPP] or year_start + y > year_operation_end[plot_HPP]:
+                            temp_Q[y] = np.nan
+                            temp_h[y] = np.nan
+                            temp_Q_std[y] = np.nan
+                            temp_Q_025[y] = np.nan
+                            temp_Q_075[y] = np.nan
+                            continue
+                        
+                        # [check] mark drought incidences
+                        if hydro_STOR_curtailment_factor_monthly[m,y,plot_HPP] == 0:
+                            temp_Q[y] = np.nan
+                            temp_h[y] = np.nan
+                            temp_Q_std[y] = np.nan
+                            temp_Q_025[y] = np.nan
+                            temp_Q_075[y] = np.nan
+                            continue
+                        
                         # [calculate] head at given hour of day for all days in a single month in a single year
                         temp = h_STOR_rules_total_bymonth[m,y,0:int(days_year[m,y]),hr]
                         
@@ -609,17 +666,9 @@ if d_min[plot_HPP] != 1 and calibration_only == 0:
                         temp_Q_std[y] = np.nanstd(temp)
                         temp_Q_025[y] = np.nanpercentile(temp,25)
                         temp_Q_075[y] = np.nanpercentile(temp,75)
-                        
-                        # [check] mark drought incidences
-                        if hydro_STOR_curtailment_factor_monthly[m,y,plot_HPP] == 0:
-                            temp_Q[y] = np.nan
-                            temp_h[y] = np.nan
-                            temp_Q_std[y] = np.nan
-                            temp_Q_025[y] = np.nan
-                            temp_Q_075[y] = np.nan
                             
                         
-                    # [check] remove drought incidences
+                    # [check] remove non-operational years and drought incidences
                     temp_Q = temp_Q[np.isfinite(temp_Q)]
                     temp_h = temp_h[np.isfinite(temp_h)]
                     temp_Q_std = temp_Q_std[np.isfinite(temp_Q_std)]
@@ -728,7 +777,7 @@ if tables_on == 1 and HPP_category[plot_HPP] != 'RoR':
     
     # [parse] lake volume (m^3)
     with pd.ExcelWriter(output_filename_calibration) as writer:
-        pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) CONV", index = False, header = False)
+        pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_CONV_hourly[:,:,plot_HPP] - V_CONV_hourly[0, np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start, plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) CONV", index = False, header = False)
     
     # [parse] head drop (m)
     with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
@@ -737,7 +786,7 @@ if tables_on == 1 and HPP_category[plot_HPP] != 'RoR':
     # [parse] lake volume (m^3) if CONV superseded by cascade requirements
     if force_cascade_outflow[plot_HPP] == 1:
         with pd.ExcelWriter(output_filename_calibration, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(f_cascade_upstream[HPP_downstream]*(V_BAL_hourly[:,:,HPP_downstream] - V_BAL_hourly[0,0,HPP_downstream]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL calib", index = False, header = False)
+            pd.DataFrame(f_cascade_upstream[HPP_downstream]*(V_BAL_hourly[:,:,HPP_downstream] - V_BAL_hourly[0, np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start ,HPP_downstream]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL calib", index = False, header = False)
             
     
 # [output] tables with time series for dispatch run
@@ -806,10 +855,10 @@ if tables_on == 1 and calibration_only == 0:
     if HPP_category[plot_HPP] != 'RoR':
         # [parse] lake volume (m^3)
         with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-            pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_BAL_hourly[:,:,plot_HPP] - V_BAL_hourly[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL", index = False, header = False)
+            pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_BAL_hourly[:,:,plot_HPP] - V_BAL_hourly[0, np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start ,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) BAL", index = False, header = False)
         if STOR_break[HPP] == 0:
            with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
-               pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_STOR_hourly_upper[:,:,plot_HPP] - V_STOR_hourly_upper[0,0,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) STOR", index = False, header = False) 
+               pd.DataFrame(f_cascade_downstream[plot_HPP]*(V_STOR_hourly_upper[:,:,plot_HPP] - V_STOR_hourly_upper[0, np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start ,plot_HPP]) + starting_volume).to_excel(writer, sheet_name = "volume (m^3) STOR", index = False, header = False) 
         if STOR_break[HPP] == 0:
            with pd.ExcelWriter(output_filename_dispatch, engine = "openpyxl", mode = "a") as writer: 
                pd.DataFrame(V_STOR_hourly_lower[:,:,plot_HPP]).to_excel(writer, sheet_name = "volume lower (m^3) STOR", index = False, header = False)
