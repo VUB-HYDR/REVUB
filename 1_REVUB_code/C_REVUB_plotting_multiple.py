@@ -23,6 +23,11 @@ warnings.filterwarnings(action = 'ignore', message = 'Mean of empty slice')
 from matplotlib.ticker import PercentFormatter
 
 
+# [check] whether simulation results available
+if calibration_only == 1:
+    print('Error: No dispatch simulation results available; disable calibration-only mode by setting calibration_only = 0')
+    raise SystemExit
+    
 # [load] plotting parameters
 parameters_plotting_multiple = pd.read_excel (filename_parameters, sheet_name = 'Plot power output (multi HPP)', header = None)
 parameters_plotting_multiple_list = np.array(parameters_plotting_multiple[0][0:].tolist())
@@ -58,14 +63,20 @@ tables_on_multiple = int(parameters_plotting_multiple_values[:,0][np.where(param
 # [set by user] total electricity demand to be met (MW) - these numbers are chosen for illustrative purposes only
 P_total_av = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_total_av', True, False)][0]
 P_total_av_series = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'P_total_av_series', True, False)][0].astype(float)
+P_total_av_series = P_total_av_series[~np.isnan(P_total_av_series)]
 choose_demand_type = int(parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'choose_demand_type', True, False)][0])
 L_norm_HPP = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'chosen_load', True, False)][0]
 
 if choose_demand_type == 0:
     P_total_hourly = P_total_av*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
 if choose_demand_type == 1:
-    P_total_hourly = P_total_av_series*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
-
+    if len(P_total_av_series) != len(simulation_years):
+        print('> Error: Demand time series {P_total_av_series} does not match simulation window -', len(simulation_years),'entries needed,', len(P_total_av_series), 'counted')
+        raise SystemExit
+    else:
+        P_total_hourly = P_total_av_series*L_norm[:,:,np.where(np.array(HPP_name_data_load) == L_norm_HPP)[0][0]]
+    
+    
 ##### CALCULATE NEEDED NON-HYDRO CONTRIBUTION TO FLEXIBILITY #####
 
 # [calculate] non-hydro-solar-wind (thermal) power contribution (difference between total and hydro-solar-wind)
@@ -78,6 +89,7 @@ P_STOR_thermal_hourly[P_STOR_thermal_hourly < 0] = 0
 # [import] available capacity of thermal power
 P_r_total_thermal = parameters_plotting_multiple_values[:,0][np.where(parameters_plotting_multiple_list == 'P_r_total_thermal', True, False)][0]
 P_r_total_thermal_series = parameters_plotting_multiple_values[np.where(parameters_plotting_multiple_list == 'P_r_total_thermal_series', True, False)][0].astype(float)
+P_r_total_thermal_series = P_r_total_thermal_series[~np.isnan(P_r_total_thermal_series)]
 
 # [cap] thermal power to available capacity
 # [in case] demand is static
@@ -87,14 +99,20 @@ if choose_demand_type == 0:
 
 # [in case] demand is dynamic
 if choose_demand_type == 1:
-    for y in range(len(simulation_years)):
-        temp_thermal = P_BAL_thermal_hourly[:,y]
-        temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
-        P_BAL_thermal_hourly[:,y] = temp_thermal
+    
+    if len(P_r_total_thermal_series) != len(simulation_years):
+        print('> Error: Demand time series {P_r_total_thermal_series} does not match simulation window -', len(simulation_years),'entries needed,', len(P_r_total_thermal_series), 'counted')
+        raise SystemExit
+    else:
         
-        temp_thermal = P_STOR_thermal_hourly[:,y]
-        temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
-        P_STOR_thermal_hourly[:,y] = temp_thermal
+        for y in range(len(simulation_years)):
+            temp_thermal = P_BAL_thermal_hourly[:,y]
+            temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
+            P_BAL_thermal_hourly[:,y] = temp_thermal
+            
+            temp_thermal = P_STOR_thermal_hourly[:,y]
+            temp_thermal[temp_thermal > P_r_total_thermal_series[y]] = P_r_total_thermal_series[y]
+            P_STOR_thermal_hourly[:,y] = temp_thermal
 
 # [calculate] moments of unsatisfied power demand (LOLE)        
 P_BAL_unsatisfied_hourly = P_total_hourly - P_BAL_thermal_hourly - np.nansum(P_BAL_hydro_stable_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_flexible_hourly[:,:,plot_HPP_multiple] + P_BAL_wind_hourly[:,:,plot_HPP_multiple] + P_BAL_solar_hourly[:,:,plot_HPP_multiple] + P_BAL_hydro_RoR_hourly[:,:,plot_HPP_multiple], axis = 2)

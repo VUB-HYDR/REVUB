@@ -495,8 +495,8 @@ for HPP in range(HPP_number):
         # [calculate] kappa (eq. S5) for each HPP
         kappa[HPP] = 1/(f_opt[HPP]**phi[HPP])*((np.exp(1))**(1 - d_min[HPP]) - 1)
     
-    # [initialize] store Q_in_frac_hourly and Q_in_RoR_hourly; these may change during the simulations
-    # but need to be reinitialized for every iteration step (e.g. every new c_solar, c_wind in eq. S9)
+    # [initialise] store Q_in_frac_hourly and Q_in_RoR_hourly; these may change during the simulations
+    # but need to be reinitialised for every iteration step (e.g. every new c_solar, c_wind in eq. S9)
     Q_in_frac_store[:,:,HPP] = Q_in_frac_hourly[:,:,HPP]
     Q_in_RoR_store[:,:,HPP] = Q_in_RoR_hourly[:,:,HPP]
     
@@ -556,14 +556,14 @@ for HPP in range(HPP_number):
     ############----------- CONV simulation -----------############
     ###############################################################
     
-    # [initialize] ensure Q_in_nat_flex and Q_in_nat_out are written correctly at the beginning of each simulation
+    # [initialise] ensure Q_in_nat_flex and Q_in_nat_out are written correctly at the beginning of each simulation
     Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
     Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
     
-    # [initialize] average inflow (eq. S4)
+    # [initialise] average inflow (eq. S4)
     Q_in_nat_av = np.nanmean(Q_in_frac_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP])
     
-    # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
+    # [initialise] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
     # temporary curtailment on hydropower generation (Note 3.1)
     hydro_CONV_curtailment_factor_hourly[:,:,HPP] = 1
     
@@ -584,7 +584,7 @@ for HPP in range(HPP_number):
         if (y >= year_operation_start[HPP] - year_start) and (y < year_operation_end[HPP] - year_start + 1):
             mask_operation[:,y,HPP] = 1
                 
-        # [initialize] initial values of volume (m^3), area (m^2) and hydraulic head (m) for each simulation year
+        # [initialise] initial values of volume (m^3), area (m^2) and hydraulic head (m) for each simulation year
         if y == np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start:
             
             # [calculate] overall regulation volume (cumulative in case of cascade)
@@ -778,6 +778,9 @@ for HPP in range(HPP_number):
         
         # [display] start of iterations to find optimal solution for BAL operation
         print('(ii) finding optimal BAL solution')
+        
+        # [set] variable to skip optimisation (yes/no)
+        temp_skip_optimisation = 0
               
         # [set by user] array of C_{OR} values (eq. S14). The first value is the default. If the
         # criterium on k_turb (eq. S28) is not met, the simulation is redone with the second value, &c.
@@ -793,17 +796,26 @@ for HPP in range(HPP_number):
             # [display] refinement step in BAL simulation
             print('C_OR = ', np.round(100*C_OR_range_BAL[q], decimals = 1), '%')
             
-            # [check] if optimality parameter known from previous simulation
-            if ~np.isnan(f_init_BAL_opt[HPP]):
-                f_demand_BAL_start = f_init_BAL_opt[HPP]
-                f_demand_BAL_step = 0.01
-                f_demand_BAL_end = f_demand_BAL_start - f_demand_BAL_step/2
+            # [check] if optimality parameter known from previous simulation, skip optimisation
+            if ~np.isnan(f_init_BAL_opt[HPP]) and q == 0:
+                temp_skip_optimisation = 1
+                temp_N_refine_BAL = N_refine_BAL[HPP]
                 N_refine_BAL[HPP] = 1
+                print('skipping optimisation - using user-specified optimum directly')
+            elif ~np.isnan(f_init_BAL_opt[HPP]) and q != 0:
+                temp_skip_optimisation = 0
+                N_refine_BAL[HPP] = temp_N_refine_BAL
             
             # [loop] across refinement steps to increase accuracy
             for n_refine_BAL in range(int(N_refine_BAL[HPP])):
                 
-                # [initialize] range for current refinement step; each step increases accuracy by one digit
+                # [check] if instructed to skip optimisation
+                if temp_skip_optimisation == 1:
+                    # [set] aforementioned optimality parameter directly
+                    f_demand_opt_BAL = f_init_BAL_opt[HPP]
+                    continue
+                
+                # [initialise] range for current refinement step; each step increases accuracy by one digit
                 if np.isnan(f_init_BAL_opt[HPP]):
                     if n_refine_BAL == 0:
                         f_demand_BAL_start = f_init_BAL_start[HPP]
@@ -826,7 +838,7 @@ for HPP in range(HPP_number):
                     # [display] progress within each refinement step in BAL simulation
                     print('refinement step', n_refine_BAL + 1, '/', int(N_refine_BAL[HPP]), '> scanning:', np.floor(100*(f + 1)/len(f_demand_BAL)), '%')
     
-                    # [initialize] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
+                    # [initialise] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
                     E_SW_loop_BAL = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_BAL[f]*np.ones(shape = (len(E_hydro_CONV_stable_yearly[:,HPP])))
                     
                     # [preallocate] stable hydropower generation P_stable in MW (see explanation below eq. S19)
@@ -850,15 +862,15 @@ for HPP in range(HPP_number):
                         temp_Q_out_BAL[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
                         Q_BAL_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_BAL, Q_out_stable_env_irr_hourly[:,:,HPP])
                         
-                        # [initialize] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
+                        # [initialise] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
                         Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
                         Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
                         
-                        # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
+                        # [initialise] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                         # temporary curtailment on hydropower generation (Note 3.1)
                         hydro_BAL_curtailment_factor_hourly[:,:,HPP] = 1
     
-                        # [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
+                        # [loop] across all simulation years to initialise P_stable (see explanation below eq. S19)
                         for y in range(len(simulation_years)):
                         
                             # [read] vector with hours in each year
@@ -891,7 +903,7 @@ for HPP in range(HPP_number):
                             # [calculate] load difference P_d (eq. S9)
                             P_BAL_difference_hourly[hrs_year,y,HPP] = P_BAL_inflexible_hourly[hrs_year,y,HPP] - L_BAL_hourly[hrs_year,y,HPP]
                             
-                            # [initialize] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
+                            # [initialise] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
                             if y == np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start:
                                 
                                 V_BAL_hourly[0,y,HPP] = V_CONV_hourly[0,y,HPP]
@@ -1107,7 +1119,7 @@ for HPP in range(HPP_number):
                 if f_demand_opt_BAL == f_demand_BAL[-1] and np.isnan(f_init_BAL_opt[HPP]):
                     print('> Warning: parameter f_init_BAL_end possibly set too low')
                 
-            # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
+            # [initialise] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
             E_SW_loop_BAL_opt[HPP] = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_opt_BAL
             
             
@@ -1140,21 +1152,21 @@ for HPP in range(HPP_number):
                 temp_Q_out_BAL[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
                 Q_BAL_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_BAL, Q_out_stable_env_irr_hourly[:,:,HPP])
                 
-                # [initialize] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
+                # [initialise] ensure Q_in_frac_hourly and Q_in_RoR_hourly are written correctly at the beginning of each step in the loop
                 Q_in_frac_hourly[:,:,HPP] = Q_in_frac_store[:,:,HPP]
                 Q_in_RoR_hourly[:,:,HPP] = Q_in_RoR_store[:,:,HPP]
                         
-                # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
+                # [initialise] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                 # temporary curtailment on hydropower generation (Note 3.1)
                 hydro_BAL_curtailment_factor_hourly[:,:,HPP] = 1
                 
-                # [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
+                # [loop] across all simulation years to initialise P_stable (see explanation below eq. S19)
                 for y in range(len(simulation_years)):
                         
                     # [read] vector with hours in each year
                     hrs_year = range(int(hrs_byyear[y]))
     
-                    # [initialize] stable hydropower generation P_stable in MW (see explanation below eq. S19)
+                    # [initialise] stable hydropower generation P_stable in MW (see explanation below eq. S19)
                     # use estimate P_stable,BAL = (1 - C_OR)*P_stable,CONV as initial guess
                     if x == 0:
                         P_BAL_inflexible_hourly[hrs_year,y,HPP] = (np.mean(c_multiplier_BAL[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_BAL[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP] + Q_stable_ratio*np.nanmean(P_CONV_hydro_stable_hourly[:,:,HPP]))
@@ -1186,7 +1198,7 @@ for HPP in range(HPP_number):
                     # [calculate] load difference P_d (eq. S9)
                     P_BAL_difference_hourly[hrs_year,y,HPP] = P_BAL_inflexible_hourly[hrs_year,y,HPP] - L_BAL_hourly[hrs_year,y,HPP]
                     
-                    # [initialize] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
+                    # [initialise] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
                     if y == np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start:
                         
                         V_BAL_hourly[0,y,HPP] = V_CONV_hourly[0,y,HPP]
@@ -1460,7 +1472,7 @@ for HPP in range(HPP_number):
         ############----------- STOR iterations -----------############
         ###############################################################
             
-        # [initialize] STOR scenario is only relevant for large HPPs
+        # [initialise] STOR scenario is only relevant for large HPPs
         if HPP_category[HPP] == 'B' and option_storage == 1:
             STOR_break[HPP] = 1
             print('> STOR not simulated as reservoir is small compared to inflow')
@@ -1476,6 +1488,9 @@ for HPP in range(HPP_number):
             # [display] start of iterations to find optimal solution for STOR operation
             print('(iv) finding optimal STOR solution')
             
+            # [set] variable to skip optimisation (yes/no)
+            temp_skip_optimisation = 0
+            
             for q in range(len(C_OR_range_STOR)):
             
                 # [calculate] ratio of stable to average total outflow (see eq. S14)
@@ -1484,17 +1499,26 @@ for HPP in range(HPP_number):
                 # [display] refinement step in STOR simulation
                 print('C_OR = ', np.round(100*C_OR_range_STOR[q], decimals = 1), '%')
                 
-                # [check] if optimality parameter known from previous simulation
-                if ~np.isnan(f_init_STOR_opt[HPP]):
-                    f_demand_STOR_start = f_init_STOR_opt[HPP]
-                    f_demand_STOR_step = 0.01
-                    f_demand_STOR_end = f_demand_STOR_start - f_demand_STOR_step/2
+                # [check] if optimality parameter known from previous simulation, skip optimisation
+                if ~np.isnan(f_init_STOR_opt[HPP]) and q == 0:
+                    temp_skip_optimisation = 1
+                    temp_N_refine_STOR = N_refine_STOR[HPP]
                     N_refine_STOR[HPP] = 1
+                    print('skipping optimisation - using user-specified optimum directly')
+                elif ~np.isnan(f_init_STOR_opt[HPP]) and q != 0:
+                    temp_skip_optimisation = 0
+                    N_refine_STOR[HPP] = temp_N_refine_STOR
                 
                 # [loop] across refinement steps to increase accuracy
                 for n_refine_STOR in range(int(N_refine_STOR[HPP])):
                     
-                    # [initialize] range for current refinement step; each step increases accuracy by one digit
+                    # [check] if instructed to skip optimisation
+                    if temp_skip_optimisation == 1:
+                        # [set] aforementioned optimality parameter directly
+                        f_demand_opt_STOR = f_init_STOR_opt[HPP]
+                        continue
+                    
+                    # [initialise] range for current refinement step; each step increases accuracy by one digit
                     if np.isnan(f_init_STOR_opt[HPP]):
                         if n_refine_STOR == 0:
                             f_demand_STOR_start = f_init_STOR_start[HPP]
@@ -1517,7 +1541,7 @@ for HPP in range(HPP_number):
                         # [display] progress within each refinement step in STOR simulation
                         print('refinement step', n_refine_STOR + 1, '/', int(N_refine_STOR[HPP]), '> scanning:', np.floor(100*(f + 1)/len(f_demand_STOR)), '%')
         
-                        # [initialize] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
+                        # [initialise] realistic value of total SW power (MWh/year) so that we can loop over realistic values of c_solar and c_wind (eq. S25)
                         E_SW_loop_STOR = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_STOR[f]*np.ones(shape = (len(E_hydro_CONV_stable_yearly[:,HPP])))
                         
                         # [preallocate] stable hydropower generation P_stable in MW (see explanation below eq. S19)
@@ -1541,17 +1565,17 @@ for HPP in range(HPP_number):
                             temp_Q_out_STOR[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
                             Q_STOR_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_STOR, Q_out_stable_env_irr_hourly[:,:,HPP])
                             
-                            # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
+                            # [initialise] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                             # temporary curtailment on hydropower generation (Note 3.1)
                             hydro_STOR_curtailment_factor_hourly[:,:,HPP] = 1
         
-                            # [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
+                            # [loop] across all simulation years to initialise P_stable (see explanation below eq. S19)
                             for y in range(len(simulation_years)):
                             
                                 # [read] vector with hours in each year
                                 hrs_year = range(int(hrs_byyear[y]))
         
-                                # [initialize] stable hydropower generation P_stable in MW (see explanation below eq. S19)
+                                # [initialise] stable hydropower generation P_stable in MW (see explanation below eq. S19)
                                 # use estimate P_stable,STOR = (1 - C_OR)*P_stable,CONV as initial guess
                                 if x == 0:
                                     P_STOR_inflexible_hourly[hrs_year,y,HPP] = (np.mean(c_multiplier_STOR[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP] + Q_stable_ratio*np.nanmean(P_CONV_hydro_stable_hourly[:,:,HPP]))
@@ -1578,7 +1602,7 @@ for HPP in range(HPP_number):
                                 # [calculate] load difference P_d (eq. S9)
                                 P_STOR_difference_hourly[hrs_year,y,HPP] = P_STOR_inflexible_hourly[hrs_year,y,HPP] - L_STOR_hourly[hrs_year,y,HPP]
                                 
-                                # [initialize] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
+                                # [initialise] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
                                 if y == np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start:
                                     
                                     V_STOR_hourly_upper[0,y,HPP] = V_CONV_hourly[0,y,HPP]
@@ -1794,7 +1818,7 @@ for HPP in range(HPP_number):
                             and (np.nansum(Q_STOR_out_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] == 0) > np.nansum(Q_CONV_out_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] == 0) \
                             or np.sum(np.sum(Q_STOR_out_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP] == 0, axis = 0) > 0) > np.floor((year_calibration_end[HPP] - year_calibration_start[HPP] + 1)/2)):
                                 psi_STOR[f] = np.nan
-                                # [check] if droughts do not occur in CONV, then neither should they in BAL
+                                # [check] if droughts do not occur in CONV, then neither should they in STOR
                             elif np.nanmin(V_CONV_hourly[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP]) >= f_stop[HPP]*V_max[HPP] and np.nanmin(V_STOR_hourly_upper[:, year_calibration_start[HPP] - year_start : year_calibration_end[HPP] - year_start + 1, HPP]) < f_stop[HPP]*V_max[HPP]:
                                 psi_STOR[f] = np.nan
                         
@@ -1822,7 +1846,7 @@ for HPP in range(HPP_number):
                     if f_demand_opt_STOR == f_demand_STOR[-1] and np.isnan(f_init_STOR_opt[HPP]):
                         print('> Warning: parameter f_init_STOR_end possibly set too low')
                     
-                # [initialize] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
+                # [initialise] optimal value of total SW power (MWh/year) so that we can calculate optimal c_solar and c_wind (eq. S25)
                 E_SW_loop_STOR_opt[HPP] = np.mean(E_hydro_CONV_stable_yearly[:,HPP])*f_demand_opt_STOR
                 
                 
@@ -1855,17 +1879,17 @@ for HPP in range(HPP_number):
                     temp_Q_out_STOR[np.isnan(Q_CONV_stable_hourly[:,:,HPP])] = np.nan
                     Q_STOR_stable_hourly[:,:,HPP] = np.fmax(Q_stable_ratio*temp_Q_out_STOR, Q_out_stable_env_irr_hourly[:,:,HPP])
                     
-                    # [initialize] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
+                    # [initialise] This variable is equal to unity by default, but set to zero in case of extreme droughts forcing a
                     # temporary curtailment on hydropower generation (Note 3.1)
                     hydro_STOR_curtailment_factor_hourly[:,:,HPP] = 1
     
-                    # [loop] across all simulation years to initialize P_stable (see explanation below eq. S19)
+                    # [loop] across all simulation years to initialise P_stable (see explanation below eq. S19)
                     for y in range(len(simulation_years)):
                     
                         # [read] vector with hours in each year
                         hrs_year = range(int(hrs_byyear[y]))
     
-                        # [initialize] stable hydropower generation P_stable in MW (see explanation below eq. S19)
+                        # [initialise] stable hydropower generation P_stable in MW (see explanation below eq. S19)
                         # use estimate P_stable,STOR = (1 - C_OR)*P_stable,CONV as initial guess
                         if x == 0:
                             P_STOR_inflexible_hourly[hrs_year,y,HPP] = (np.mean(c_multiplier_STOR[:,HPP])*c_solar_relative[HPP]*CF_solar_hourly[hrs_year,y,HPP] + np.mean(c_multiplier_STOR[:,HPP])*c_wind_relative[HPP]*CF_wind_hourly[hrs_year,y,HPP] + Q_stable_ratio*np.nanmean(P_CONV_hydro_stable_hourly[:,:,HPP]))
@@ -1898,7 +1922,7 @@ for HPP in range(HPP_number):
                         # [calculate] load difference P_d (eq. S9)
                         P_STOR_difference_hourly[hrs_year,y,HPP] = P_STOR_inflexible_hourly[hrs_year,y,HPP] - L_STOR_hourly[hrs_year,y,HPP]
                         
-                        # [initialize] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
+                        # [initialise] initial values of volume (m^3), area (m^2), hydraulic head (m) and ramp restrictions (MW/hr) for each simulation year
                         if y == np.min([year_calibration_start[HPP], year_operation_start[HPP]]) - year_start:
                             
                             V_STOR_hourly_upper[0,y,HPP] = V_CONV_hourly[0,y,HPP]
@@ -1984,10 +2008,10 @@ for HPP in range(HPP_number):
                                 Q_STOR_pot_turb_flexible[n,y,HPP] = np.max([0, Q_max_turb[HPP] - Q_STOR_stable_hourly[n,y,HPP]]) * hydro_STOR_curtailment_factor_hourly[n,y,HPP]
                                 # [calculate] if ramping up
                                 if temp_sgn_turb == 1:
-                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
+                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.min([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_STOR_hydro_stable_hourly[n,y,HPP] ])
                                 # [calculate] if ramping down
                                 elif temp_sgn_turb == -1:
-                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_BAL_hydro_stable_hourly[n,y,HPP] ])
+                                    P_STOR_hydro_flexible_hourly[n,y,HPP] = np.min([Q_STOR_pot_turb_flexible[n,y,HPP]*eta_turb[HPP]*rho*g*h_STOR_hourly[n,y,HPP]/10**6, np.max([np.abs(P_STOR_difference_hourly[n,y,HPP]), P_STOR_ramp_restr_hourly[n,y,HPP]]), P_r_turb[HPP] - P_STOR_hydro_stable_hourly[n,y,HPP] ])
                                 # [calculate] if P_d < 0 pumping is not performed (eq. S37)
                                 P_STOR_pump_hourly[n,y,HPP] = 0
                             

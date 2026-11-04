@@ -131,34 +131,35 @@ if Figure2_on == 1:
     # [calculate] corresponding frequency series (in Hz)
     fft_CONV_freq = (1/secs_hr)*np.array(range(int(L_fft_CONV/2) + 1))/L_fft_CONV
     
-    # [calculate] take Fourier transform of BAL head time series (cf. Fig. S6b)
-    fft_temp_BAL = np.transpose(np.matlib.repmat(h_BAL_series_hourly[:,plot_HPP],fft_rep,1))
-    fft_BAL = np.fft.fft(fft_temp_BAL[np.isfinite(fft_temp_BAL)], axis = 0)
-    L_fft_BAL = len(fft_BAL)
-    # [calculate] take absolute value
-    fft_BAL_amp = np.abs(fft_BAL/L_fft_BAL)
-    # [calculate] compute single-sided spectrum and normalise
-    fft_BAL_amp = fft_BAL_amp[range(int(L_fft_BAL/2) + 1)]
-    fft_BAL_amp[1:-2] = 2*fft_BAL_amp[1:-2]
-    fft_BAL_amp[0] = 0
-    fft_BAL_amp = fft_BAL_amp/np.max(fft_BAL_amp)
-    # [calculate] corresponding frequency series (in Hz)
-    fft_BAL_freq = (1/secs_hr)*np.array(range(int(L_fft_BAL/2) + 1))/L_fft_BAL
-    
-    if STOR_break[plot_HPP] == 0 and option_storage == 1:
-        # [calculate] take Fourier transform of STOR head time series (cf. Fig. S6b)
-        fft_temp_STOR = np.transpose(np.matlib.repmat(h_STOR_series_hourly[:,plot_HPP],fft_rep,1))
-        fft_STOR = np.fft.fft(fft_temp_STOR[np.isfinite(fft_temp_STOR)], axis = 0)
-        L_fft_STOR = len(fft_STOR)
+    if calibration_only == 0:
+        # [calculate] take Fourier transform of BAL head time series (cf. Fig. S6b)
+        fft_temp_BAL = np.transpose(np.matlib.repmat(h_BAL_series_hourly[:,plot_HPP],fft_rep,1))
+        fft_BAL = np.fft.fft(fft_temp_BAL[np.isfinite(fft_temp_BAL)], axis = 0)
+        L_fft_BAL = len(fft_BAL)
         # [calculate] take absolute value
-        fft_STOR_amp = np.abs(fft_STOR/L_fft_STOR)
+        fft_BAL_amp = np.abs(fft_BAL/L_fft_BAL)
         # [calculate] compute single-sided spectrum and normalise
-        fft_STOR_amp = fft_STOR_amp[range(int(L_fft_STOR/2) + 1)]
-        fft_STOR_amp[1:-2] = 2*fft_STOR_amp[1:-2]
-        fft_STOR_amp[0] = 0
-        fft_STOR_amp = fft_STOR_amp/np.max(fft_STOR_amp)
+        fft_BAL_amp = fft_BAL_amp[range(int(L_fft_BAL/2) + 1)]
+        fft_BAL_amp[1:-2] = 2*fft_BAL_amp[1:-2]
+        fft_BAL_amp[0] = 0
+        fft_BAL_amp = fft_BAL_amp/np.max(fft_BAL_amp)
         # [calculate] corresponding frequency series (in Hz)
-        fft_STOR_freq = (1/secs_hr)*np.array(range(int(L_fft_STOR/2) + 1))/L_fft_STOR
+        fft_BAL_freq = (1/secs_hr)*np.array(range(int(L_fft_BAL/2) + 1))/L_fft_BAL
+        
+        if STOR_break[plot_HPP] == 0 and option_storage == 1:
+            # [calculate] take Fourier transform of STOR head time series (cf. Fig. S6b)
+            fft_temp_STOR = np.transpose(np.matlib.repmat(h_STOR_series_hourly[:,plot_HPP],fft_rep,1))
+            fft_STOR = np.fft.fft(fft_temp_STOR[np.isfinite(fft_temp_STOR)], axis = 0)
+            L_fft_STOR = len(fft_STOR)
+            # [calculate] take absolute value
+            fft_STOR_amp = np.abs(fft_STOR/L_fft_STOR)
+            # [calculate] compute single-sided spectrum and normalise
+            fft_STOR_amp = fft_STOR_amp[range(int(L_fft_STOR/2) + 1)]
+            fft_STOR_amp[1:-2] = 2*fft_STOR_amp[1:-2]
+            fft_STOR_amp[0] = 0
+            fft_STOR_amp = fft_STOR_amp/np.max(fft_STOR_amp)
+            # [calculate] corresponding frequency series (in Hz)
+            fft_STOR_freq = (1/secs_hr)*np.array(range(int(L_fft_STOR/2) + 1))/L_fft_STOR
 
 
 # [figure] (cf. Fig. S6)
@@ -185,7 +186,7 @@ if Figure2_on == 1:
     ax1.set_xticks(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:])))
     ax1.set_xticklabels(np.array(range(1, year_end - year_start + 3)))
     ax1.set_xlabel('time (years)')
-    ax1.set_ylim([0, h_max[plot_HPP]])
+    ax1.set_ylim([np.nanmin(np.concatenate((h_CONV_series_hourly[:,plot_HPP], h_BAL_series_hourly[:,plot_HPP], h_STOR_series_hourly[:,plot_HPP]), axis = 0))*0.95, h_max[plot_HPP]])
     ax1.set_ylabel('$h(t)$ (m)')
     if year_operation_start[plot_HPP] != year_calibration_start[plot_HPP] or year_operation_end[plot_HPP] != year_calibration_end[plot_HPP]:
         ax1.axvspan(np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_start[plot_HPP] - year_start], np.append(np.cumsum(positions[-1,:]) - positions[-1,0], np.sum(positions[-1,:]))[year_calibration_end[plot_HPP] - year_start + 1], edgecolor = 'black', facecolor = 'white', alpha = 1, linestyle = 'dashed')
