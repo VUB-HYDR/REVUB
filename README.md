@@ -9,7 +9,6 @@ Authors: Sebastian Sterl
 Contact author: sebastian.sterl@vub.be
 
 # 1. Introduction
----
 The main objective of REVUB is to model how the operation and dispatch of hydropower plants can be hybridised with variable solar and wind power (VRE) plants, allowing the combination of hydro with VRE to operate "as a single unit" to provide reliable electricity supply and load-following services.
 
 This model has been used for several peer-reviewed publications related to regional power system interconnection, solar/wind integration, and drought resilience, as well as in due diligence processes for power plant financing.
@@ -23,7 +22,6 @@ The REVUB code simulates dedicated hydropower plant operation to provide an effe
 * Hourly to decadally resolved hydro, solar and wind power generation and dispatch.
 
 # 2. Installation
----
 The most recent version of the REVUB model was written for Python 3.13.
 
 The [envs](https://github.com/VUB-HYDR/REVUB/tree/master/envs) folder contains a .yaml configuration file to install the needed packages to run the latest REVUB release.
@@ -31,7 +29,6 @@ The [envs](https://github.com/VUB-HYDR/REVUB/tree/master/envs) folder contains a
 A [training dataset](https://github.com/VUB-HYDR/REVUB/tree/master/4_Training), allowing the user to set up a REVUB simulation from scratch, learn how to set up input data, and become acquainted with simulation control, is available in English (EN) and Spanish (ES).
 
 # 3. Tool's structure
----
 
 ### Scripts
 The code is divided into [four scripts](https://github.com/VUB-HYDR/REVUB/tree/master/1_REVUB_code): one for initialisation (A), one containing the core code (B), and two for plotting (C). For a detailed explanation of the purpose of each file and the equations solved by the core code, the user is referred to the Manual. The files are always run in sequence A-B-C.
@@ -72,6 +69,8 @@ The difference between hydro-VRE and this overall demand is assumed to be covere
 The script also provides statistics on ramping needs of hydropower plants and other flexible sources under the investigated scenarios.
 
 ## Versions
+Version 2.0.0 - November 2026
+
 Version 1.2.1 - August 2026
 
 Version 1.2.0 - July 2026
